@@ -64,7 +64,7 @@ RUN mkdir -p /icgc/ega-download-demo && \
 
 RUN mkdir -p /icgc/genetorrent && \
     cd /icgc/genetorrent && \
-    wget -qO- https://cghub.ucsc.edu/software/downloads/GeneTorrent/GT_VERSION/GeneTorrent-download-GT_VERSION-GT_VERSION_LONG-Ubuntu14.04.x86_64.tar.gz | \
+    wget -qO- https://cghub.ucsc.edu/software/downloads/GeneTorrent/$GT_VERSION/GeneTorrent-download-$GT_VERSION-$GT_VERSION_LONG-Ubuntu14.04.x86_64.tar.gz | \
     tar xvz --strip-components 1 
 ENV PATH=$PATH:/icgc/genetorrent/bin
 
