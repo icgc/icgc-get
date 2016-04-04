@@ -77,6 +77,13 @@ RUN mkdir -p /icgc/icgc-storage-client && \
     wget -qO- https://seqwaremaven.oicr.on.ca/artifactory/dcc-release/org/icgc/dcc/icgc-storage-client/[RELEASE]/icgc-storage-client-[RELEASE]-dist.tar.gz | \
     tar xvz --strip-components 1
 
+RUN mkdir -p /icgc/gdc-data-transfer-tool && \
+    cd /icgc/gdc-data-transfer-tool && \ 
+    wget -qO- https://gdc.nci.nih.gov/files/public/file/gdc-clientv07ubuntu1404x64_1.zip -O temp.zip ; \
+    unzip temp.zip -d /icgc/gdc-data-transfer-tool ; \
+    rm temp.zip
+ENV PATH=$PATH:/icgc/gdc-data-transfer-tool
+
 #
 # Set working directory for convenience with interactive usage
 #
