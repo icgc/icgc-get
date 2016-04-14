@@ -1,8 +1,6 @@
 import argparse
 import logging
-
 import yaml
-import subprocess
 
 from clients.ega import ega_script
 from clients.gdc import gdc_script
