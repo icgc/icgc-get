@@ -10,7 +10,7 @@ tool.ega: /icgc/ega-download-demo/EgaDemoClient.jar
 tool.gdc: /icgc/gdc-data-transfer-tool/gdc-client
 tool.cghub: /icgc/genetorrent/bin/gtdownload
 download.directory: /icgc/mnt/downloads
-udt: off
+udt: true
 transport.parallel: 6
 transport.memory: 1
 logfile: /icgc/mnt/logging/logfile.txt
