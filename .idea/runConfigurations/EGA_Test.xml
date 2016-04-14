@@ -5,15 +5,15 @@
     <envs>
       <env name="PYTHONUNBUFFERED" value="1" />
     </envs>
-    <option name="SDK_HOME" value="/Library/Frameworks/Python.framework/Versions/3.4/bin/python3.4" />
-    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/.." />
+    <option name="SDK_HOME" value="$USER_HOME$/DevENV2.7/bin/python" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/lib/cli" />
     <option name="IS_MODULE_SDK" value="false" />
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="false" />
     <module name="icgc-download-client" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
     <option name="SCRIPT_NAME" value="icgc-download-client.py" />
-    <option name="PARAMETERS" value="-file  EGAD00001000023 repo ega" />
+    <option name="PARAMETERS" value="ega EGAD00001000023 --config $PROJECT_DIR$/config.yaml -m" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <method />
   </configuration>

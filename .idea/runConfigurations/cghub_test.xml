@@ -5,8 +5,8 @@
     <envs>
       <env name="PYTHONUNBUFFERED" value="1" />
     </envs>
-    <option name="SDK_HOME" value="/System/Library/Frameworks/Python.framework/Versions/2.7/bin/python2.7" />
-    <option name="WORKING_DIRECTORY" value="" />
+    <option name="SDK_HOME" value="$USER_HOME$/DevENV2.7/bin/python" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/lib/cli" />
     <option name="IS_MODULE_SDK" value="false" />
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
