@@ -20,17 +20,17 @@ RUN \
   apt-get update && \
   apt-get -y upgrade && \
   apt-get install -y libfuse-dev fuse curl wget software-properties-common && \
-  apt-get install libicu52 && \
-  apt-get install unzip
+  apt-get install libicu52 && \ #required for Genetorrent and Icgc
+  apt-get install unzip # Required to download EGA 
 
 #
-# Install OpenSSL
+# Install OpenSSL for Genetorrent
 #
 
 RUN apt-get install openssl
 
 #
-# Install Oracle JDK 8
+# Install Oracle JDK 8 for icgc-storage client 
 #
 
 RUN add-apt-repository ppa:webupd8team/java
@@ -42,7 +42,7 @@ RUN apt-get install -y \
 ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
 
 #
-# Install python 2.7 and dependancies
+# Install python 2.7 and dependancies for Genetorrent.
 #
 
 RUN apt-get install -y python

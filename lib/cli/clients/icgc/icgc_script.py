@@ -1,11 +1,13 @@
 import subprocess
 import logging
+import os
 
 
-def icgc_call(objectid, token, repo, output):
+def icgc_call(objectid, token, toolpath, output):
     logger = logging.getLogger('__log__')
 
-    call_args = ['icgc-storage-client', 'download', '--object-id', objectid, '-t', token, '--output-dir', output]
+    os.environ['ACCESSTOKEN'] = token
+    call_args = [toolpath, 'download', '--object-id', objectid, '--output-dir', output]
     logger.debug(call_args)
     call = subprocess.Popen(call_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     output, _ = call.communicate()
@@ -13,10 +15,10 @@ def icgc_call(objectid, token, repo, output):
     logger.warning(_)
 
 
-def icgc_manifest_call(manifest, token, repo, output):
+def icgc_manifest_call(manifest, token, toolpath, output):
     logger = logging.getLogger('__log__')
-
-    call_args = ['icgc-storage-client download', '--manifest', manifest, '-t', token, '--output-dir', output]
+    os.environ['ACCESSTOKEN'] = token
+    call_args = {toolpath, '--manifest', manifest,  '--output-dir', output}
     logger.debug(call_args)
     call = subprocess.Popen(call_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     output, _ = call.communicate()
