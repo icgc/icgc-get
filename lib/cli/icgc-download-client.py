@@ -2,15 +2,43 @@ import argparse
 import logging
 
 import yaml
+import subprocess
 
 from clients.ega import ega_script
 from clients.gdc import gdc_script
 from clients.gnos import genetorrent
 from clients.icgc import icgc_script
 
-logger = logging.getLogger('__log__')
-logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+
+def config_parse(filename):
+    try:
+        configtext = open(filename, 'r')
+    except IOError:
+        print "Config file not found"
+    try:
+        config_temp = yaml.load(configtext)
+    except yaml.YAMLError:
+        print "Could not read config file"
+    return config_temp
+
+
+def logger_setup(logfile):
+    logger = logging.getLogger('__log__')
+    logger.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+
+    fh = logging.FileHandler(logfile)
+    fh.setLevel(logging.DEBUG)
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+
+    sh = logging.StreamHandler()
+    sh.setLevel(logging.INFO)
+    sh.setFormatter(formatter)
+    logger.addHandler(sh)
+    return logger
+
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--config", nargs='?', default="/icgc/mnt/configuration/config.yaml",
@@ -21,19 +49,9 @@ parser.add_argument('file_id', help='Lowercase identifier of file or path to man
 parser.add_argument('-m', '--manifest', action='store_true', help='Flag used when the downloading from a manifest file')
 
 args = parser.parse_args()
-configtext = open(args.config, 'r')
-
-config = yaml.load(configtext)
-
-fh = logging.FileHandler(config['logfile'])
-fh.setLevel(logging.DEBUG)
-fh.setFormatter(formatter)
-logger.addHandler(fh)
-
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+config = config_parse(args.config)
+logger_setup(config['logfile'])
+logger = logging.getLogger('__log__')
 
 if args.repo == 'ega':
     ega_script.ega_call(args.file_id, config['access.ega'], config['tool.ega'], config['udt'],
@@ -56,8 +74,3 @@ elif args.repo == 'gdc':
                             config['download.directory'], config['udt'])
 else:
     logger.info('No valid repository specified.  Valid repositories are: aws, collab, cghub, gdc,and ega')
-
-
-
-
-

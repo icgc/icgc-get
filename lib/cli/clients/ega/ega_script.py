@@ -1,47 +1,47 @@
 #!/usr/bin/python
 import subprocess
-import random
-import string
+from random import SystemRandom
+from string import ascii_uppercase, digits
 import logging
 
 
-def ega_call(id, passfile, toolpath, udt, downloaddirectory):
+def ega_call(object_id, pass_file, tool_path, udt, download_dir):
     logger = logging.getLogger('__log__')
 
-    lable = id + '_request'
-    key = ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(4))
-    if id[4] == 'd':
-        downloadtype = '-rfd'
+    label = object_id + '_request'
+    key = ''.join(SystemRandom().choice(ascii_uppercase + digits) for _ in range(4))
+    if object_id[4] == 'd':
+        download_type = '-rfd'
     else:
-        downloadtype = '-rf'
-    requestcall_args = ['java', '-jar', toolpath, '-pf', passfile, downloadtype, id, '-re', key,
-                        '-label', lable]
-    logger.debug(requestcall_args)
-    requestcall = subprocess.Popen(requestcall_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    output, _ = requestcall.communicate()
+        download_type = '-rf'
+    request_call_args = ['java', '-jar', tool_path, '-pf', pass_file, download_type, id, '-re', key,
+                         '-label', label]
+    logger.debug(request_call_args)
+    request_call = subprocess.Popen(request_call_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    output, error = request_call.communicate()
     logger.info(output)
-    logger.warning(_)
+    logger.warning(error)
 
     if udt:
-        downloadcall_args = ['java', '-jar', toolpath, '-pf', passfile, '-dr', lable, '-path',
-                             downloaddirectory, '-udt']
+        download_call_args = ['java', '-jar', tool_path, '-pf', pass_file, '-dr', label, '-path',
+                              download_dir, '-udt']
     else:
-        downloadcall_args = ['java', '-jar', toolpath, '-pf', passfile, '-dr', lable, '-path',
-                             downloaddirectory]
+        download_call_args = ['java', '-jar', tool_path, '-pf', pass_file, '-dr', label, '-path',
+                              download_dir]
 
-    requestcall.wait()  # some requests may have pending files, need to wait longer than the lenght of the request call
+    request_call.wait()  # some requests may have pending files, need to wait longer than the length of the request call
 
-    logger.debug(downloadcall_args)
-    downloadcall = subprocess.Popen(downloadcall_args,  stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    output, _ = downloadcall.communicate()
+    logger.debug(download_call_args)
+    download_call = subprocess.Popen(download_call_args,  stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    output, error = download_call.communicate()
     logger.info(output)
-    logger.warning(_)
-    downloadcall.wait()  # This process takes hours-need to background the call
-    filename = downloaddirectory + ''
+    logger.warning(error)
+    download_call.wait()  # This process takes hours-need to background the call
+    filename = download_dir + ''
 
-    decryptcall_args = ['java', '-jar', toolpath, '-pf', passfile, '-dc', filename, '-dck', key]
-    logger.debug(decryptcall_args)
-    decryptcall = subprocess.Popen(decryptcall_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    output, _ = decryptcall.communicate()
+    decrypt_call_args = ['java', '-jar', tool_path, '-pf', pass_file, '-dc', filename, '-dck', key]
+    logger.debug(decrypt_call_args)
+    decrypt_call = subprocess.Popen(decrypt_call_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    output, error = decrypt_call.communicate()
     logger.info(output)
-    logger.warning(_)
+    logger.warning(error)
