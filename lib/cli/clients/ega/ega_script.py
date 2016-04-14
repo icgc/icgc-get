@@ -22,15 +22,15 @@ def ega_call(id, passfile, toolpath, udt, downloaddirectory):
     logger.info(output)
     logger.warning(_)
 
-    if udt == 'off':
-        udtflag = ''
+    if udt:
+        downloadcall_args = ['java', '-jar', toolpath, '-pf', passfile, '-dr', lable, '-path',
+                             downloaddirectory, '-udt']
     else:
-        udtflag = ' -udt'
+        downloadcall_args = ['java', '-jar', toolpath, '-pf', passfile, '-dr', lable, '-path',
+                             downloaddirectory]
 
     requestcall.wait()  # some requests may have pending files, need to wait longer than the lenght of the request call
 
-    downloadcall_args = ['java', '-jar', toolpath, '-pf', passfile, '-dr', lable, '-path',
-                         downloaddirectory, udtflag]
     logger.debug(downloadcall_args)
     downloadcall = subprocess.Popen(downloadcall_args,  stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     output, _ = downloadcall.communicate()

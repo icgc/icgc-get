@@ -13,7 +13,7 @@
     <module name="icgc-download-client" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
     <option name="SCRIPT_NAME" value="icgc-download-client.py" />
-    <option name="PARAMETERS" value="cghub e6091244-6442-4977-903f-771a9eae0b11 --config $PROJECT_DIR$/config.yaml" />
+    <option name="PARAMETERS" value="cghub e6091244-6442-4977-903f-771a9eae0b11 --config $PROJECT_DIR$/config_dev.yaml" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <method />
   </configuration>
