@@ -1,5 +1,5 @@
-
 from ..run_command import run_command
+
 
 def genetorrent_call(uuid, token, tool_path, output):
 

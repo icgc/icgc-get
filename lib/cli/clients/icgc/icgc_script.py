@@ -10,6 +10,7 @@ def icgc_call(object_id, token, tool_path, output):
 
 
 def icgc_manifest_call(manifest, token, tool_path, output):
+
     os.environ['ACCESSTOKEN'] = token
     call_args = {tool_path, '--manifest', manifest,  '--output-dir', output}
     run_command(call_args)
