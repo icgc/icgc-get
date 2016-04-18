@@ -74,15 +74,22 @@ logger_setup(config['logfile'])
 logger = logging.getLogger('__log__')
 
 if args.repo == 'ega':
-    if args.file_id is not None:  # ega does not support manifest files
-        ega_script.ega_call(args.file_id, config['access.ega'], config['tool.ega'], config['udt'], args.output_dir)
+    if args.file_id is not None:
+            if len(args.file_id) > 1:
+                logger.error("The ega repository does not support input of multiple file id values")
+            else:
+                ega_script.ega_call(args.file_id, config['username.ega'], config['password.ega'], config['tool.ega'],
+                                    config['udt'], args.output_dir)
     if args.manifest is not None:
         logger.warning("The ega repository does not support downloading from manifest files.  Use the -f tag instead")
 elif args.repo == 'collab' or args.repo == 'aws':
     if args.manifest is not None:
         icgc_script.icgc_manifest_call(args.manifest, config['access.icgc'], config['tool.icgc'], args.output_dir)
     if args.file_id is not None:  # This code exists to let users use both file id's and manifests in one command
-        icgc_script.icgc_call(args.file_id, config['access.icgc'], config['tool.icgc'], args.output_dir)
+        if len(args.file_id) > 1:
+            logger.error("The icgc repository does not support input of multiple file id values")
+        else:
+            icgc_script.icgc_call(args.file_id, config['access.icgc'], config['tool.icgc'], args.output_dir)
 elif args.repo == 'cghub':
     if args.manifest is not None:
         genetorrent.genetorrent_manifest_call(args.manifest, config['access.cghub'], config['tool.cghub'],

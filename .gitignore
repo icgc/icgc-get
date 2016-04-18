@@ -4,3 +4,5 @@
 logging/
 config_dev.yaml
 passfile.txt
+*.DS_store
+downloads/

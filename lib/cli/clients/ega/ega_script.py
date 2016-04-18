@@ -24,11 +24,12 @@ import os
 import fnmatch
 
 
-def ega_call(object_id, pass_file, tool_path, udt, download_dir):
+def ega_call(object_id, username, password, tool_path, udt, download_dir):
 
+    object_id = ''.join(object_id)  # object id is  a single element list to support multiple id's on other clients
     label = object_id + '_request'
     key = ''.join(SystemRandom().choice(ascii_uppercase + digits) for _ in range(4))  # Make randomized decryption key
-    args = ['java', '-jar', tool_path, '-pf', pass_file]  # Parameters needed for all ega client commands
+    args = ['java', '-jar', tool_path, '-p', username, password]  # Parameters needed for all ega client commands
 
     request_call_args = args
     if object_id[3] == 'D':

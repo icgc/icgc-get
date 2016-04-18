@@ -20,8 +20,10 @@ RUN \
   apt-get update && \
   apt-get -y upgrade && \
   apt-get install -y libfuse-dev fuse curl wget software-properties-common && \
-  apt-get install libicu52 && \ #required for Genetorrent and Icgc
-  apt-get install unzip # Required to download EGA 
+  apt-get install libicu52 && \
+# Required for Genetorrent and Icgc
+  apt-get install unzip
+# Required to download EGA
 
 #
 # Install OpenSSL for Genetorrent
@@ -46,14 +48,11 @@ ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
 #
 
 RUN apt-get install -y python && \
-    mkdir /icgc/cli/clients
-COPY /lib/* /icgc/
-COPY /lib/cli/* /icgc/cli/
-COPY /lib/cli/clients/* /icgc/cli/clients/
-COPY /lib/cli/clients/gdc/* /icgc/cli/clients/gdc/
-COPY /lib/cli/clients/ega/* /icgc/cli/clients/ega/
-COPY /lib/cli/clients/icgc/* /icgc/cli/clients/icgc/
-COPY /lib/cli/clients/gnos/* /icgc/cli/clients/gnos/
+    mkdir -p /icgc/cli/clients
+
+COPY /lib/cli/ /icgc/cli/
+
+ENV PATH=$PATH:/icgc/cli
 
 #
 # Download and install latest EGA download client version

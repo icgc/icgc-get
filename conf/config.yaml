@@ -19,7 +19,8 @@
 #
 
 access.icgc:
-access.ega:
+username.ega:
+password.ega:
 access.gdc:
 access.cghub:
 tool.icgc: /icgc/icgc-storage-client/bin/icgc-storage-client
@@ -29,4 +30,4 @@ tool.cghub: /icgc/genetorrent/bin/gtdownload
 udt: true
 transport.parallel: 6
 transport.memory: 1
-logfile: /icgc/mnt/logging/logfile.txt
+logfile: /icgc/mnt/logs/logfile.txt

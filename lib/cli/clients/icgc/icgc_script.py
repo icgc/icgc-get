@@ -23,9 +23,8 @@ from ..run_command import run_command
 def icgc_call(object_id, token, tool_path, output):
 
     os.environ['ACCESSTOKEN'] = token
-    call_args = [tool_path, 'download', '--object-id']
-    call_args.extend(object_id)
-    call_args.extend(['--output-dir', output])
+    call_args = [tool_path, 'download', '--object-id', ''.join(object_id), '--output-dir', output]
+    # object id is passed as a single element list to support multiple id's on other clients.
     run_command(call_args)
 
 

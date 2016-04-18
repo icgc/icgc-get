@@ -1,6 +1,11 @@
 # icgc-download-client
 Universal download client for ICGC data residing in various environments. 
 
+## Installing the python script:
+
+The python script can be installed by simply navigating to the icgc-download-client directory and running the command
+"python setup.py install"
+
 ## Using the python script:
 
 The required arguments for the python script are the repository that is being targeted for download.
