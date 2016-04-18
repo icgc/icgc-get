@@ -61,12 +61,12 @@ def logger_setup(logfile):
 repos = ['ega', 'collab', 'cghub', 'aws', 'gdc']
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--config", nargs='?', default="/icgc/mnt/configuration/config.yaml",
+parser.add_argument("--config", nargs='?', default="/icgc/mnt/conf/config.yaml",
                     help="File used to set download preferences and authentication criteria")
 parser.add_argument('repo', choices=repos, help='Specify which repository to download from, all lowercase letters')
 parser.add_argument('-f', '--file_id', nargs='*', help='Lowercase identifier of file or path to manifest file')
 parser.add_argument('-m', '--manifest', help='Flag used when the downloading from a manifest file')
-parser.add_argument('--output_dir', nargs='?', default='/icgc/mnt/downloads', help='Directory to save downloaded files')
+parser.add_argument('--output_dir', nargs='?', default='/icgc/downloads', help='Directory to save downloaded files')
 args = parser.parse_args()
 
 config = config_parse(args.config)

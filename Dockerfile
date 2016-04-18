@@ -48,6 +48,9 @@ ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
 #
 
 RUN apt-get install -y python && \
+    wget -qO- http://pyyaml.org/download/pyyaml/PyYAML-3.11.tar.gz | \
+    tar xvz --strip-components 1 && \
+    python setup.py install && \
     mkdir -p /icgc/cli/clients
 
 COPY /lib/cli/ /icgc/cli/
@@ -88,3 +91,8 @@ RUN mkdir -p /icgc/icgc-storage-client && \
 #
 
 WORKDIR /icgc
+
+#
+#  Make directories for python script to use
+#
+

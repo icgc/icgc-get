@@ -1,5 +1,5 @@
-downloads/
-logging/
+mnt/downloads/
+mnt/logs/
 passfile.txt
 test
 .idea/

@@ -18,11 +18,14 @@
 # ICGC Download Client - Configuration
 #
 
-access.icgc:
+
+
+access.icgc: 48cddf73-cf4f-4aa8-a34b-0f9ba6194316
 username.ega:
 password.ega:
+access.ega:
 access.gdc:
-access.cghub:
+access.cghub:https: //cghub.ucsc.edu/software/downloads/cghub_public.key
 tool.icgc: /icgc/icgc-storage-client/bin/icgc-storage-client
 tool.ega: /icgc/ega-download-demo/EgaDemoClient.jar
 tool.gdc: /icgc/gdc-data-transfer-tool/gdc-client
