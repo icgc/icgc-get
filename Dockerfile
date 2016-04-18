@@ -45,8 +45,15 @@ ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
 # Install python 2.7 and dependancies for Genetorrent.
 #
 
-RUN apt-get install -y python
- 
+RUN apt-get install -y python && \
+    mkdir /icgc/cli/clients
+COPY /lib/* /icgc/
+COPY /lib/cli/* /icgc/cli/
+COPY /lib/cli/clients/* /icgc/cli/clients/
+COPY /lib/cli/clients/gdc/* /icgc/cli/clients/gdc/
+COPY /lib/cli/clients/ega/* /icgc/cli/clients/ega/
+COPY /lib/cli/clients/icgc/* /icgc/cli/clients/icgc/
+COPY /lib/cli/clients/gnos/* /icgc/cli/clients/gnos/
 
 #
 # Download and install latest EGA download client version

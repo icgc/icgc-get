@@ -15,8 +15,6 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# ICGC Download Client - Configuration
-#
 
 import os
 from ..run_command import run_command
@@ -25,7 +23,9 @@ from ..run_command import run_command
 def icgc_call(object_id, token, tool_path, output):
 
     os.environ['ACCESSTOKEN'] = token
-    call_args = [tool_path, 'download', '--object-id', object_id, '--output-dir', output]
+    call_args = [tool_path, 'download', '--object-id']
+    call_args.extend(object_id)
+    call_args.extend(['--output-dir', output])
     run_command(call_args)
 
 

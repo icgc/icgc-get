@@ -16,8 +16,6 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# ICGC Download Client - Configuration
-#
 
 from ..run_command import run_command
 from random import SystemRandom
@@ -46,7 +44,7 @@ def ega_call(object_id, pass_file, tool_path, udt, download_dir):
     run_command(download_call_args)
     decrypt_call_args = args
     decrypt_call_args.append('-dc')
-    for file in os.listdir(download_dir):  # file names cannot be dynamically predicted from dataset names
+    for file in os.listdir(download_dir):  # File names cannot be dynamically predicted from dataset names
         if fnmatch.fnmatch(file, '*.cip'):  # Tool attempts to decrypt all encrypted files in downloads.
             decrypt_call_args.append(download_dir + '/' + file)
 

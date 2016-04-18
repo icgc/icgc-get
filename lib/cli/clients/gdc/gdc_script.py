@@ -15,15 +15,15 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# ICGC Download Client - Configuration
-#
 
 from ..run_command import run_command
 
 
 def gdc_call(uuid, token, tool_path, output, udt):
 
-    call_args = [tool_path, 'download', uuid, '-t', token, '--dir', output]
+    call_args = [tool_path, 'download']
+    call_args.extend(uuid)
+    call_args.extend(['-t', token, '--dir', output])
     if udt:
         call_args.append('--udt')
     run_command(call_args)

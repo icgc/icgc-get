@@ -15,8 +15,6 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# ICGC Download Client - Configuration
-#
 
 import argparse
 import logging
@@ -66,7 +64,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--config", nargs='?', default="/icgc/mnt/configuration/config.yaml",
                     help="File used to set download preferences and authentication criteria")
 parser.add_argument('repo', choices=repos, help='Specify which repository to download from, all lowercase letters')
-parser.add_argument('-f', '--file_id', help='Lowercase identifier of file or path to manifest file')
+parser.add_argument('-f', '--file_id', nargs='*', help='Lowercase identifier of file or path to manifest file')
 parser.add_argument('-m', '--manifest', help='Flag used when the downloading from a manifest file')
 parser.add_argument('--output_dir', nargs='?', default='/icgc/mnt/downloads', help='Directory to save downloaded files')
 args = parser.parse_args()
@@ -87,7 +85,8 @@ elif args.repo == 'collab' or args.repo == 'aws':
         icgc_script.icgc_call(args.file_id, config['access.icgc'], config['tool.icgc'], args.output_dir)
 elif args.repo == 'cghub':
     if args.manifest is not None:
-        genetorrent.genetorrent_call(args.manifest, config['access.cghub'], config['tool.cghub'], args.output_dir)
+        genetorrent.genetorrent_manifest_call(args.manifest, config['access.cghub'], config['tool.cghub'],
+                                              args.output_dir)
     if args.file_id is not None:
         genetorrent.genetorrent_call(args.file_id, config['access.cghub'], config['tool.cghub'], args.output_dir)
 elif args.repo == 'gdc':

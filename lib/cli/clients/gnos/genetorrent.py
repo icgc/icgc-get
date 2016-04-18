@@ -15,14 +15,19 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# ICGC Download Client - Configuration
-#
 
 from ..run_command import run_command
 
 
 def genetorrent_call(uuid, token, tool_path, output):
 
-    call_args = [tool_path, '-vv', '-c', token, '-d', uuid, '-p', output]
+    call_args = [tool_path, '-vv', '-c', token, '-d']
+    call_args.extend(uuid)
+    call_args.extend(['-p', output])
     run_command(call_args)
 
+
+def genetorrent_manifest_call(manifest, token, tool_path, output):
+
+    call_args = [tool_path, 'vv', '-c', token, '-d', manifest, '-p', output]
+    run_command(call_args)
