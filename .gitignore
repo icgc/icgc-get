@@ -1,0 +1,7 @@
+.idea/
+*.pyc
+*.iml
+config_dev.yaml
+passfile.txt
+*.DS_store
+

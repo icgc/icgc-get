@@ -21,16 +21,18 @@ RUN \
   apt-get -y upgrade && \
   apt-get install -y libfuse-dev fuse curl wget software-properties-common && \
   apt-get install libicu52 && \
+# Required for Genetorrent and Icgc
   apt-get install unzip
+# Required to download EGA
 
 #
-# Install OpenSSL
+# Install OpenSSL for Genetorrent
 #
 
 RUN apt-get install openssl
 
 #
-# Install Oracle JDK 8
+# Install Oracle JDK 8 for icgc-storage client 
 #
 
 RUN add-apt-repository ppa:webupd8team/java
@@ -42,11 +44,18 @@ RUN apt-get install -y \
 ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
 
 #
-# Install python 2.7 and dependancies
+# Install python 2.7 and dependancies for Genetorrent.
 #
 
-RUN apt-get install -y python
- 
+RUN apt-get install -y python && \
+    wget -qO- http://pyyaml.org/download/pyyaml/PyYAML-3.11.tar.gz | \
+    tar xvz --strip-components 1 && \
+    python setup.py install && \
+    mkdir -p /icgc/cli/clients
+
+COPY /lib/cli/ /icgc/cli/
+
+ENV PATH=$PATH:/icgc/cli
 
 #
 # Download and install latest EGA download client version
@@ -78,7 +87,19 @@ RUN mkdir -p /icgc/icgc-storage-client && \
     tar xvz --strip-components 1
 
 #
+# Install latest version of gdc download tool
+#
+
+RUN mkdir -p /icgc/gdc-data-transfer-tool && \
+    cd /icgc/gdc-data-transfer-tool && \
+    wget -qO- https://gdc.nci.nih.gov/files/public/file/gdc-clientv07ubuntu1404x64_1.zip -O temp.zip ; \
+    unzip temp.zip -d /icgc/gdc-data-transfer-tool ; \
+    rm temp.zip
+
+#
 # Set working directory for convenience with interactive usage
 #
 
 WORKDIR /icgc
+
+
