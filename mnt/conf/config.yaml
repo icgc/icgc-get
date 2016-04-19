@@ -18,14 +18,14 @@
 # ICGC Download Client - Configuration
 #
 
-username.ega:
-password.ega:
+username.ega: gavin.m.wilson@oicr.on.ca
+password.ega: W@tson1%
 access.ega:
 tool.ega: /icgc/ega-download-demo/EgaDemoClient.jar
 
-access.icgc:
+access.icgc: db28bd54-5255-4de7-879b-cb42891388ad
 tool.icgc: /icgc/icgc-storage-client/bin/icgc-storage-client
-transport.file.from.icgc:
+transport.file.from.icgc: remote
 
 access.gdc:
 tool.gdc: /icgc/gdc-data-transfer-tool/gdc-client

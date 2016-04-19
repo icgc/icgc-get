@@ -25,9 +25,10 @@ def icgc_call(object_id, token, tool_path, file_from, output, repo):
     os.environ['ACCESSTOKEN'] = token
     if file_from is not None:  # transport.file.from.icgc defaults to none, triggering memory mapped download
         os.environ['TRANSPORT_FILEFROM'] = file_from
-    call_args = [tool_path, 'download', '--object-id', ''.join(object_id), '--output-dir', output]
+    call_args = [tool_path, '--profile', repo, 'download', '--object-id', ''.join(object_id), '--output-dir', output]
     # object id is passed as a single element list to support multiple id's on other clients.
-    run_command(call_args)
+    code = run_command(call_args)
+    return code
 
 
 def icgc_manifest_call(manifest, token, tool_path, file_from, output, repo):
@@ -36,5 +37,6 @@ def icgc_manifest_call(manifest, token, tool_path, file_from, output, repo):
 
     if file_from is not None:
         os.environ['TRANSPORT_FILEFROM'] = file_from
-    call_args = [tool_path, 'download', '--manifest', manifest,  '--output-dir', output]
-    run_command(call_args)
+    call_args = [tool_path, '--profile', repo, 'download', '--manifest', manifest,  '--output-dir', output]
+    code = run_command(call_args)
+    return code

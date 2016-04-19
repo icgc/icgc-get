@@ -1,7 +1,6 @@
 # ICGC Download Client
 Universal download client for ICGC data residing in various environments. 
 
-<<<<<<< HEAD
 ## Installing the Python Script
 
 The python script can be installed by simply navigating to the icgc-download-client directory and running the command:
@@ -35,7 +34,7 @@ and the `--config`, the location of the configuration file.  **Absolute paths ar
 Start the dockerfile with the command:
 
 ```shell
-alias icgc-download-client="docker run -it --rm -v {PATH}/icgc-download-client/mnt:/icgc/mnt icgc sudo python /icgc/cli/icgc-download-client.py"
+alias icgc-download-client="docker run -it --rm -v {PATH}/icgc-download-client/mnt:/icgc/mnt icgc python /icgc/cli/icgc-download-client.py"
 ```
 replacing `{PATH}` with the path to the repository.
 This will enable the invoaction of the python script with the commad `icgc-download-client`.  When running through the docker container there is no

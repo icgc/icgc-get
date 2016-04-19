@@ -28,7 +28,8 @@ def gdc_call(uuid, token, tool_path, output, udt):
     call_args.extend(['--dir', output])
     if udt:
         call_args.append('--udt')
-    run_command(call_args)
+    code = run_command(call_args)
+    return code
 
 
 def gdc_manifest_call(manifest, token, tool_path, output, udt):
@@ -38,5 +39,5 @@ def gdc_manifest_call(manifest, token, tool_path, output, udt):
         call_args.extend(['-t', token])
     if udt:
         call_args.append('--udt')
-    run_command(call_args)
-
+    code = run_command(call_args)
+    return code

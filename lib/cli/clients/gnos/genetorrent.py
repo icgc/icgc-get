@@ -24,10 +24,12 @@ def genetorrent_call(uuid, token, tool_path, output):
     call_args = [tool_path, '-vv', '-c', token, '-d']
     call_args.extend(uuid)
     call_args.extend(['-p', output])
-    run_command(call_args)
+    code = run_command(call_args)
+    return code
 
 
 def genetorrent_manifest_call(manifest, token, tool_path, output):
 
     call_args = [tool_path, '-vv', '-c', token, '-d', manifest, '-p', output]
-    run_command(call_args)
+    code = run_command(call_args)
+    return code

@@ -37,12 +37,12 @@ def ega_call(object_id, username, password, tool_path, udt, download_dir):
     else:
         request_call_args.append('-rf')
     request_call_args.extend([object_id, '-re', key, '-label', label])
-    run_command(request_call_args)
+    rc_request = run_command(request_call_args)
     download_call_args = args
     download_call_args.extend(['-dr', label, '-path', download_dir])
     if udt:
         download_call_args.append('-udt')
-    run_command(download_call_args)
+    rc_download = run_command(download_call_args)
     decrypt_call_args = args
     decrypt_call_args.append('-dc')
     for file in os.listdir(download_dir):  # File names cannot be dynamically predicted from dataset names
@@ -50,4 +50,4 @@ def ega_call(object_id, username, password, tool_path, udt, download_dir):
             decrypt_call_args.append(download_dir + '/' + file)
 
     decrypt_call_args.extend(['-dck', key])
-    run_command(decrypt_call_args)
+    rc_decrypt = run_command(decrypt_call_args)
