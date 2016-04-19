@@ -21,9 +21,9 @@
 username.ega:
 password.ega:
 access.ega:
-tool.ega:
+tool.ega: /icgc/ega
 
-access.icgc: 48cddf73-cf4f-4aa8-a34b-0f9ba6194316
+access.icgc:
 tool.icgc: /icgc/icgc-storage-client/bin/icgc-storage-client
 transport.file.from.icgc: 
 
