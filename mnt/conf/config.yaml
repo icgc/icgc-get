@@ -21,11 +21,11 @@
 username.ega:
 password.ega:
 access.ega:
-tool.ega: /icgc/ega
+tool.ega: /icgc/ega-download-demo/EgaDemoClient.jar
 
 access.icgc:
 tool.icgc: /icgc/icgc-storage-client/bin/icgc-storage-client
-transport.file.from.icgc: 
+transport.file.from.icgc:
 
 access.gdc:
 tool.gdc: /icgc/gdc-data-transfer-tool/gdc-client

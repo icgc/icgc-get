@@ -102,4 +102,4 @@ RUN mkdir -p /icgc/gdc-data-transfer-tool && \
 
 WORKDIR /icgc
 
-# CMD ["python", "/icgc/cli/icgc-download-client"]
+

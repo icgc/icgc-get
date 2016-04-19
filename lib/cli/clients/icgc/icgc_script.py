@@ -36,5 +36,5 @@ def icgc_manifest_call(manifest, token, tool_path, file_from, output, repo):
 
     if file_from is not None:
         os.environ['TRANSPORT_FILEFROM'] = file_from
-    call_args = [tool_path, 'download', '--manifest', manifest,  '--output-dir', output, '--profile', repo]
+    call_args = [tool_path, 'download', '--manifest', manifest,  '--output-dir', output]
     run_command(call_args)
