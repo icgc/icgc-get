@@ -87,12 +87,19 @@ RUN mkdir -p /icgc/icgc-storage-client && \
     tar xvz --strip-components 1
 
 #
+# Install latest version of gdc download tool
+#
+
+RUN mkdir -p /icgc/gdc-data-transfer-tool && \
+    cd /icgc/gdc-data-transfer-tool && \
+    wget -qO- https://gdc.nci.nih.gov/files/public/file/gdc-clientv07ubuntu1404x64_1.zip -O temp.zip ; \
+    unzip temp.zip -d /icgc/gdc-data-transfer-tool ; \
+    rm temp.zip
+
+#
 # Set working directory for convenience with interactive usage
 #
 
 WORKDIR /icgc
 
-#
-#  Make directories for python script to use
-#
-
+# CMD ["python", "/icgc/cli/icgc-download-client"]

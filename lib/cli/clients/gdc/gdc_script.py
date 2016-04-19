@@ -23,7 +23,9 @@ def gdc_call(uuid, token, tool_path, output, udt):
 
     call_args = [tool_path, 'download']
     call_args.extend(uuid)
-    call_args.extend(['-t', token, '--dir', output])
+    if token is not None:  # Enables download of unsecured gdc-data
+        call_args.extend(['-t', token])
+    call_args.extend(['--dir', output])
     if udt:
         call_args.append('--udt')
     run_command(call_args)
@@ -31,7 +33,9 @@ def gdc_call(uuid, token, tool_path, output, udt):
 
 def gdc_manifest_call(manifest, tool_path, token, output, udt):
 
-    call_args = [tool_path, 'download', manifest, '-t', token, '--dir', output]
+    call_args = [tool_path, 'download', manifest,  '--dir', output]
+    if token is not None:  # Enables download of unsecured gdc data
+        call_args.extend(['-t', token])
     if udt:
         call_args.append('--udt')
     run_command(call_args)

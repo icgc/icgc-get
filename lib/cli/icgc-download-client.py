@@ -31,12 +31,12 @@ def config_parse(filename):
     try:
         config_text = open(filename, 'r')
     except IOError:
-        print "Config file not found: Aborting"
+        print "Config file" + filename + "not found: Aborting"
         return
     try:
         config_temp = yaml.load(config_text)
     except yaml.YAMLError:
-        print "Could not read config file: Aborting"
+        print "Could not read config file" + filename + ": Aborting"
         return
     return config_temp
 
@@ -64,9 +64,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--config", nargs='?', default="/icgc/mnt/conf/config.yaml",
                     help="File used to set download preferences and authentication criteria")
 parser.add_argument('repo', choices=repos, help='Specify which repository to download from, all lowercase letters')
-parser.add_argument('-f', '--file_id', nargs='*', help='Lowercase identifier of file or path to manifest file')
+parser.add_argument('-f', '--file', nargs='*', help='Lowercase identifier of file or path to manifest file')
 parser.add_argument('-m', '--manifest', help='Flag used when the downloading from a manifest file')
-parser.add_argument('--output_dir', nargs='?', default='/icgc/downloads', help='Directory to save downloaded files')
+parser.add_argument('--output', nargs='?', default='/icgc/mnt/downloads', help='Directory to save downloaded files')
 args = parser.parse_args()
 
 config = config_parse(args.config)
@@ -74,33 +74,35 @@ logger_setup(config['logfile'])
 logger = logging.getLogger('__log__')
 
 if args.repo == 'ega':
-    if args.file_id is not None:
-            if len(args.file_id) > 1:
+    if args.file is not None:
+            if len(args.file) > 1:
                 logger.error("The ega repository does not support input of multiple file id values")
             else:
-                ega_script.ega_call(args.file_id, config['username.ega'], config['password.ega'], config['tool.ega'],
-                                    config['udt'], args.output_dir)
+                ega_script.ega_call(args.file, config['username.ega'], config['password.ega'], config['tool.ega'],
+                                    config['udt'], args.output)
     if args.manifest is not None:
         logger.warning("The ega repository does not support downloading from manifest files.  Use the -f tag instead")
 elif args.repo == 'collab' or args.repo == 'aws':
     if args.manifest is not None:
-        icgc_script.icgc_manifest_call(args.manifest, config['access.icgc'], config['tool.icgc'], args.output_dir)
-    if args.file_id is not None:  # This code exists to let users use both file id's and manifests in one command
-        if len(args.file_id) > 1:
+        icgc_script.icgc_manifest_call(args.manifest, config['access.icgc'], config['tool.icgc'],
+                                       config['transport.file.from.icgc'], args.output, args.repo)
+    if args.file is not None:  # This code exists to let users use both file id's and manifests in one command
+        if len(args.file) > 1:
             logger.error("The icgc repository does not support input of multiple file id values")
         else:
-            icgc_script.icgc_call(args.file_id, config['access.icgc'], config['tool.icgc'], args.output_dir)
+            icgc_script.icgc_call(args.file, config['access.icgc'], config['tool.icgc'],
+                                  config['transport.file.from.icgc'], args.output, args.repo)
 elif args.repo == 'cghub':
     if args.manifest is not None:
         genetorrent.genetorrent_manifest_call(args.manifest, config['access.cghub'], config['tool.cghub'],
-                                              args.output_dir)
-    if args.file_id is not None:
-        genetorrent.genetorrent_call(args.file_id, config['access.cghub'], config['tool.cghub'], args.output_dir)
+                                              args.output)
+    if args.file is not None:
+        genetorrent.genetorrent_call(args.file, config['access.cghub'], config['tool.cghub'], args.output)
 elif args.repo == 'gdc':
     if args.manifest is not None:
-        gdc_script.gdc_manifest_call(args.manifest, config['access.gdc'], config['tool.gdc'], args.output_dir,
+        gdc_script.gdc_manifest_call(args.manifest, config['access.gdc'], config['tool.gdc'], args.output,
                                      config['udt'])
-    if args.file_id is not None:
-        gdc_script.gdc_call(args.file_id, config['access.gdc'], config['tool.gdc'], args.output_dir, config['udt'])
+    if args.file is not None:
+        gdc_script.gdc_call(args.file, config['access.gdc'], config['tool.gdc'], args.output, config['udt'])
 else:
     logger.error("Please provide either a file id value or a manifest file to download")

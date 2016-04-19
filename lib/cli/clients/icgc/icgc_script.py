@@ -20,16 +20,21 @@ import os
 from ..run_command import run_command
 
 
-def icgc_call(object_id, token, tool_path, output):
+def icgc_call(object_id, token, tool_path, file_from, output, repo):
 
     os.environ['ACCESSTOKEN'] = token
+    if file_from is not None:  # transport.file.from.icgc defaults to none, triggering memory mapped download
+        os.environ['TRANSPORT_FILEFROM'] = file_from
     call_args = [tool_path, 'download', '--object-id', ''.join(object_id), '--output-dir', output]
     # object id is passed as a single element list to support multiple id's on other clients.
     run_command(call_args)
 
 
-def icgc_manifest_call(manifest, token, tool_path, output):
+def icgc_manifest_call(manifest, token, tool_path, file_from, output, repo):
 
     os.environ['ACCESSTOKEN'] = token
-    call_args = {tool_path, '--manifest', manifest,  '--output-dir', output}
+
+    if file_from is not None:
+        os.environ['TRANSPORT_FILEFROM'] = file_from
+    call_args = [tool_path, 'download', '--manifest', manifest,  '--output-dir', output, '--profile', repo]
     run_command(call_args)
