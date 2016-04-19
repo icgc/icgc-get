@@ -1,0 +1,7 @@
+mnt/downloads/
+mnt/logs/
+passfile.txt
+test
+.idea/
+.git
+.DS_store
