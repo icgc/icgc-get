@@ -3,7 +3,7 @@ Universal download client for ICGC data residing in various environments.
 
 ## Installing the Python Script
 
-The python script can be installed by simply navigating to the icgc-download-client directory and running the command:
+The python script can be installed by simply navigating to the `icgc-download-client` directory and running the command:
 
 ```shell
 python setup.py install
@@ -28,15 +28,19 @@ gdc or cghub repositories.  **The EGA and ICGC repositories do not support this 
 If not running the tool in a docker container, a user must also specify the `--output` where files are to be saved
 and the `--config`, the location of the configuration file.  **Absolute paths are required for both arguments.**
 
-## Using the Dockerfile
+## Using the Docker Container
 
-
-Start the dockerfile with the command:
+To save some typing, you can add a convenience bash alias to make working with the container easier:
 
 ```shell
 alias icgc-download-client="docker run -it --rm -v {PATH}/icgc-download-client/mnt:/icgc/mnt icgc python /icgc/cli/icgc-download-client.py"
 ```
 replacing `{PATH}` with the path to the repository.
-This will enable the invoaction of the python script with the commad `icgc-download-client`.  When running through the docker container there is no
- need to use the `--output` or `--config` arguments
+This will enable the invocation of the python script with the command `icgc-download-client`.  When running through the docker container there is no need to use the `--output` or `--config` arguments
+
+Then execute the command as normal:
+
+```shell
+icgc-download-client collab -f  FI378424
+```
 
