@@ -18,22 +18,26 @@
 # ICGC Download Client - Configuration
 #
 
-username.ega: gavin.m.wilson@oicr.on.ca
-password.ega: W@tson1%
+username.ega:
+password.ega:
 access.ega:
 tool.ega: /icgc/ega-download-demo/EgaDemoClient.jar
+transport.parallel.ega: '1'
 
-access.icgc: db28bd54-5255-4de7-879b-cb42891388ad
+access.icgc:
 tool.icgc: /icgc/icgc-storage-client/bin/icgc-storage-client
 transport.file.from.icgc: remote
+transport.parallel.icgc: '6'
 
 access.gdc:
 tool.gdc: /icgc/gdc-data-transfer-tool/gdc-client
+transport.parallel.gdc: '6'
 
 access.cghub: https://cghub.ucsc.edu/software/downloads/cghub_public.key
 tool.cghub: /icgc/genetorrent/bin/gtdownload
+transport.parallel.cghub: '8'
 
 udt: false
-transport.parallel: 6
+transport.parallel: '6'
 transport.memory: 1
 logfile: /icgc/mnt/logs/logfile.txt

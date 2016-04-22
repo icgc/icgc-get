@@ -19,17 +19,17 @@
 from ..run_command import run_command
 
 
-def genetorrent_call(uuid, token, tool_path, output):
+def genetorrent_call(uuid, token, tool_path, children, output):
 
-    call_args = [tool_path, '-vv', '-c', token, '-d']
+    call_args = [tool_path, '-vv', '--max-children', children, '-c', token, '-d']
     call_args.extend(uuid)
     call_args.extend(['-p', output])
     code = run_command(call_args)
     return code
 
 
-def genetorrent_manifest_call(manifest, token, tool_path, output):
+def genetorrent_manifest_call(manifest, token, tool_path, children, output):
 
-    call_args = [tool_path, '-vv', '-c', token, '-d', manifest, '-p', output]
+    call_args = [tool_path, '-vv', '--max-children', children, '-c', token, '-d', manifest, '-p', output]
     code = run_command(call_args)
     return code

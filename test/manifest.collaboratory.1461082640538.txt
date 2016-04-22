@@ -1,0 +1,5 @@
+repo_code	file_id	object_id	file_format	file_name	file_size	md5_sum	index_object_id	donor_id/donor_count	project_id/project_count	study
+collaboratory	FI377892	6e6d420d-fb38-5958-b545-b6a36b52f82f	VCF	c9ad6b1c-baa0-45a7-b7c4-733728505b8a.broad-snowman.20151023.germline.sv.vcf.gz	1520928	7f4eb1a8e6f3c955d70216669765311c		DO47100	RECA-EU	PCAWG
+collaboratory	FI377899	965865a6-0b0c-5f83-b2f8-4b16e382b643	VCF	6d3551d6-b5f4-4fd1-b8d7-8e5931096c19.broad-snowman.20151023.germline.sv.vcf.gz	1625731	2d5d17fb22d623b7cfa8c8bafee43adb		DO46937	RECA-EU	PCAWG
+collaboratory	FI377925	4862d12a-7c48-5adf-939b-be93303d9847	VCF	a78b5788-67ea-4275-931c-421bf76c5a4c.broad-snowman.20151107.germline.sv.vcf.gz	1381742	042c54b3309059093bfa21146fedec59		DO46941	RECA-EU	PCAWG
+collaboratory	FI377846	ec37ddf9-9ea4-5b8b-ac38-c9e415b302c4	VCF	f37971bd-ec65-4840-8d4f-678692cee695.embl-delly_1-3-0-preFilter.20151106.germline.sv.vcf.gz	191099	964c94d35ec733fda3cbea7297508dd1		DO47096	RECA-EU	PCAWG

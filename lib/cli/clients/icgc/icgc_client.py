@@ -16,28 +16,29 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+import os
 from ..run_command import run_command
 
 
-def gdc_call(uuid, token, tool_path, output, udt):
+def icgc_call(object_id, token, tool_path, file_from, parallel, output, repo):
 
-    call_args = [tool_path, 'download']
-    call_args.extend(uuid)
-    if token is not None:  # Enables download of unsecured gdc-data
-        call_args.extend(['-t', token])
-    call_args.extend(['--dir', output])
-    if udt:
-        call_args.append('--udt')
+    os.environ['ACCESSTOKEN'] = token
+    os.environ['TRANSPORT_PARALLEL'] = parallel
+    if file_from is not None:  # transport.file.from.icgc defaults to none, triggering memory mapped download
+        os.environ['TRANSPORT_FILEFROM'] = file_from
+    call_args = [tool_path, '--profile', repo, 'download', '--object-id', ''.join(object_id), '--output-dir', output]
+    # object id is passed as a single element list to support multiple id's on other clients.
     code = run_command(call_args)
     return code
 
 
-def gdc_manifest_call(manifest, token, tool_path, output, udt):
+def icgc_manifest_call(manifest, token, tool_path, file_from, parallel, output, repo):
 
-    call_args = [tool_path, 'download', '-m', manifest,  '--dir', output]
-    if token is not None:  # Enables download of unsecured gdc data
-        call_args.extend(['-t', token])
-    if udt:
-        call_args.append('--udt')
+    os.environ['ACCESSTOKEN'] = token
+    os.environ['TRANSPORT_PARALLEL'] = parallel
+    if file_from is not None:
+        os.environ['TRANSPORT_FILEFROM'] = file_from
+    call_args = [tool_path, '--profile', repo, 'download', '--manifest', manifest,  '--output-dir', output]
     code = run_command(call_args)
     return code
+

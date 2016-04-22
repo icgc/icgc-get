@@ -48,12 +48,14 @@ ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
 #
 
 RUN apt-get install -y python && \
-    wget -qO- http://pyyaml.org/download/pyyaml/PyYAML-3.11.tar.gz | \
+    wget -qO- https://pypi.python.org/packages/source/P/PyYAML/PyYAML-3.11.tar.gz#md5=f50e08ef0fe55178479d3a618efe21db | \
     tar xvz --strip-components 1 && \
     python setup.py install && \
     mkdir -p /icgc/cli/clients
 
 COPY /lib/cli/ /icgc/cli/
+
+RUN cd /icgc
 
 ENV PATH=$PATH:/icgc/cli
 
@@ -102,4 +104,4 @@ RUN mkdir -p /icgc/gdc-data-transfer-tool && \
 
 WORKDIR /icgc
 
-
+ENTRYPOINT ["python", "/icgc/cli/icgc_download_client.py"]
