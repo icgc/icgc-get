@@ -1,5 +1,6 @@
-from lib.cli import icgc_download_client
 from argparse import Namespace
+
+from icgcget import cli
 from conftest import file_test, get_info
 
 
@@ -8,7 +9,7 @@ class TestIcgcMethods():
     def test_icgc(self, config, data_dir):
         args = Namespace(config=config, file=['a5a6d87b-e599-528b-aea0-73f5084205d5'], manifest=None,output=data_dir,
                          repo='collab')
-        icgc_download_client.call_client(args)
+        cli.call_client(args)
         file_info = get_info(data_dir, 'fc447d55-95d8-0b34-e040-11ac0d483afa.embl-delly_1-0-0-preFilter.20150618' +
                              '.germline.sv.vcf.gz/a5a6d87b-e599-528b-aea0-73f5084205d5')
         file2_info = get_info(data_dir, 'fc447d55-95d8-0b34-e040-11ac0d483afa.embl-delly_1-0-0-preFilter.20150618.' +
@@ -18,8 +19,8 @@ class TestIcgcMethods():
     def test_icgc_manifest(self, config, data_dir, manifest_dir):
 
         args = Namespace(config=config, file=None, manifest=manifest_dir + 'manifest.collaboratory.1461082640538.txt',
-                         output='/Users/GavinWilson/git/icgc-download-client/mnt/downloads', repo='collab')
-        icgc_download_client.call_client(args)
+                         output=data_dir, repo='collab')
+        cli.call_client(args)
         file1_info = get_info(data_dir, 'f37971bd-ec65-4840-8d4f-678692cee695.embl-delly_1-3-0-preFilter.20151106.' +
                               'germline.sv.vcf.gz/ec37ddf9-9ea4-5b8b-ac38-c9e415b302c4')
         file2_info = get_info(data_dir, 'f37971bd-ec65-4840-8d4f-678692cee695.embl-delly_1-3-0-preFilter' +

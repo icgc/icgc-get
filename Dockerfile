@@ -1,9 +1,8 @@
-#    ______________________   ____                      __                __   _________            __ 
-#   /  _/ ____/ ____/ ____/  / __ \____ _      ______  / /___  ____ _____/ /  / ____/ (_)__  ____  / /_
-#   / // /   / / __/ /      / / / / __ \ | /| / / __ \/ / __ \/ __ `/ __  /  / /   / / / _ \/ __ \/ __/
-# _/ // /___/ /_/ / /___   / /_/ / /_/ / |/ |/ / / / / / /_/ / /_/ / /_/ /  / /___/ / /  __/ / / / /_  
-#/___/\____/\____/\____/  /_____/\____/|__/|__/_/ /_/_/\____/\__,_/\__,_/   \____/_/_/\___/_/ /_/\__/ 
-                                   
+#    ______________________   ______     __
+#   /  _/ ____/ ____/ ____/  / ____/__  / /_
+#   / // /   / / __/ /      / / __/ _ \/ __/
+# _/ // /___/ /_/ / /___   / /_/ /  __/ /_
+#/___/\____/\____/\____/   \____/\___/\__/
 # Banner @ http://goo.gl/VCY0tD
 
 FROM       ubuntu:14.04
@@ -44,20 +43,18 @@ RUN apt-get install -y \
 ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
 
 #
-# Install python 2.7 and dependancies for Genetorrent.
+# Install python 2.7 and dependancies for Genetorrent and icgc-get.
 #
 
-RUN apt-get install -y python && \
-    wget -qO- https://pypi.python.org/packages/source/P/PyYAML/PyYAML-3.11.tar.gz#md5=f50e08ef0fe55178479d3a618efe21db | \
-    tar xvz --strip-components 1 && \
-    python setup.py install && \
-    mkdir -p /icgc/cli/clients
+RUN apt-get install -y python-pip && \
+    pip install -U pip setuptools
 
-COPY /lib/cli/ /icgc/cli/
+COPY . /icgc/icgcget/
+COPY /conf/ /icgc/conf
 
-RUN cd /icgc
-
-ENV PATH=$PATH:/icgc/cli
+RUN cd /icgc/icgcget && \
+    pip install -r requirements.txt && \
+    python setup.py install
 
 #
 # Download and install latest EGA download client version
@@ -96,7 +93,8 @@ RUN mkdir -p /icgc/gdc-data-transfer-tool && \
     cd /icgc/gdc-data-transfer-tool && \
     wget -qO- https://gdc.nci.nih.gov/files/public/file/gdc-clientv07ubuntu1404x64_1.zip -O temp.zip ; \
     unzip temp.zip -d /icgc/gdc-data-transfer-tool ; \
-    rm temp.zip
+    rm temp.zip && \
+    cd /icgc
 
 #
 # Set working directory for convenience with interactive usage
@@ -104,4 +102,4 @@ RUN mkdir -p /icgc/gdc-data-transfer-tool && \
 
 WORKDIR /icgc
 
-ENTRYPOINT ["python", "/icgc/cli/icgc_download_client.py"]
+ENTRYPOINT ["icgc-get"]

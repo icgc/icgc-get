@@ -1,4 +1,7 @@
 .idea/
+*.egg-info/
+build/
+dist/
 *.pyc
 *.iml
 config_dev.yaml

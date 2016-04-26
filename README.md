@@ -1,9 +1,9 @@
-# ICGC Download Client
+# ICGC Get
 Universal download client for ICGC data residing in various environments. 
 
 ## Installing the Python Script
 
-The python script can be installed by simply navigating to the `icgc-download-client` directory and running the command:
+The python script can be installed by simply navigating to the `icgc-get` directory and running the command:
 
 ```shell
 python setup.py install
@@ -32,26 +32,25 @@ and the `--config`, the location of the configuration file.  **Absolute paths ar
 
 First, pull the docker image using the command
 
-`docker pull icgc/icgc-download-client`
+`docker pull icgc/icgc-get`
 
 To save some typing, you can add a convenience bash alias to make working with the container easier:
 
 ```shell
-alias icgc-download-client="docker run -it --rm -v {PATH}/icgc-download-client/mnt:/icgc/mnt icgc-download-client"
+alias icgc-get="docker run -it --rm -v {MNT_DIR}:/icgc/mnt icgc/icgc-get"
 ```
 
-replacing `{PATH}` with the path to your mounted directory.  This directory must contain three subdirectories:
- * an empty`downloads` directory.
- * a `conf` directory containing the config.yaml file.
- * an empty logs directory`logs`.
+replacing `{PATH}` with the path to your mounted directory. This directory will be populated by the script with
+process logs and
 
-This will enable the invocation of the python script with the command `icgc-download-client`.  When running through the docker container there is no
+
+This will enable the invocation of the python script with the command `icgc-get`.  When running through the docker container there is no
  need to use the `--output` or `--config` arguments.
 
 Then execute the command as normal:
 
 ```shell
-icgc-download-client collab -f  FI378424
+icgc-get collab -f  FI378424
 ```
 
 #### Manifest files in the docker container
@@ -64,7 +63,7 @@ Once you have saved them in your mounted directory, you will need to provided th
 
 Unit tests have been provided in the tests directory of the repository.  They require a configuration file with valid
 EGA and cghub credentials to be saved in the root of the repository.  They also require the command
-`export $PYTHONPATH = {PATH}/lib/cli` to be entered prior to running unit tests.  To run unit tests, simply enter
+`export PYTHONPATH ={PATH}/icgcget` to be entered prior to running unit tests.  To run unit tests, simply enter
 `py.test` in the test directory
 
 

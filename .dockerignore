@@ -1,7 +1,8 @@
-mnt/downloads/
-mnt/logs/
+*.egg-info/
+build/
+dist/
 passfile.txt
-test
+tests
 .idea/
 .git
 .DS_store

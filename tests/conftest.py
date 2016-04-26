@@ -1,5 +1,6 @@
 import pytest
 import os
+import tempfile
 
 
 @pytest.fixture(scope="session")
@@ -11,13 +12,14 @@ def config():
 
 @pytest.fixture(scope="session")
 def data_dir():
-    path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-    dir = path + '/mnt/downloads/'
-    return dir
+    path = os.path.abspath(os.path.join(os.path.dirname(__file__)))
+    directory = tempfile.tempdir
+    return directory
+
 
 @pytest.fixture(scope="session")
 def manifest_dir():
-    manifest_directory = os.path.abspath(os.path.dirname(__file__))
+    manifest_directory = os.path.abspath(os.path.dirname(__file__)) + '/data/'
     return manifest_directory
 
 
@@ -26,8 +28,8 @@ def file_test(file_info, size):
 
 
 def get_info(data, filename):
-    if os.path.isfile(data + filename):
-        file_info = os.stat(data + filename)
+    if os.path.isfile(data + '/' + filename):
+        file_info = os.stat(data + '/' + filename)
         return file_info
     else:
         assert 0  # file not found

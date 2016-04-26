@@ -17,18 +17,18 @@
 #
 
 from setuptools import setup, find_packages
-import os
 
-setup(name='icgc-download-client',
+
+setup(name='icgc-get',
       verison='0.2',
-      description='A python wrapper for icgc download clients',
-      url="https://github.com/icgc/icgc-download-client",
+      description='A python wrapper for icgc-get',
+      url="https://github.com/icgc/icgc-get",
       packages=find_packages(exclude=['utils']),
-      install_requieres=['argparse', 'PyYaml', 'logging'],
+      install_requires=['argparse', 'PyYaml', 'logging'],
 
       entry_points={
           'console_scripts': [
-              'icgc_download_client=icgc_download_client:main'
+              'icgc-get=icgcget.cli:main'
           ]
       }
-)
+      )

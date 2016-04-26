@@ -1,3 +1,0 @@
-*
-!.gitignore
-#This directory is needed for compatability with the docker container, but should not have any files in it commited.
