@@ -32,18 +32,21 @@ from clients.icgc import icgc_client
 
 
 def config_parse(filename):
+    config = {}
     try:
         config_text = open(filename, 'r')
     except IOError:
-        print("Config file {} not found: Aborting".format(filename.name))
-        sys.exit(1)
+        print("Config file {} not found".format(filename))
+        return config
     try:
         config_temp = yaml.safe_load(config_text)
         config_download = flatten_dict(normalize_keys(config_temp))
         config = {'download': config_download, 'logfile': config_temp['logfile']}
     except yaml.YAMLError:
-        print("Could not read config file {}: Aborting".format(filename.name))
-        sys.exit(1)
+
+        print("Could not read config file {}".format(filename))
+        return {}
+
     return config
 
 
@@ -76,18 +79,15 @@ def make_directory(path):
 
 
 def logger_setup(logfile):
-    if logfile is None:
-        print("Logging file not specified: Aborting")
-        sys.exit(1)
     logger = logging.getLogger('__log__')
     logger.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 
-    # make_directory(os.path.dirname(logfile))
-    fh = logging.FileHandler(logfile)
-    fh.setLevel(logging.DEBUG)
-    fh.setFormatter(formatter)
-    logger.addHandler(fh)
+    if logfile is not None:
+        fh = logging.FileHandler(logfile)
+        fh.setLevel(logging.DEBUG)
+        fh.setFormatter(formatter)
+        logger.addHandler(fh)
 
     sh = logging.StreamHandler()
     sh.setLevel(logging.INFO)
@@ -96,13 +96,20 @@ def logger_setup(logfile):
 
 
 @click.group()
-@click.option('--config', default=os.path.join(click.get_app_dir('icgc-get'), 'config.yaml'),
-              type=click.Path(exists=True))
-@click.option('--logfile', default=None, type=click.Path(exists=True))
+@click.option('--config', default=os.path.join(click.get_app_dir('icgc-get'), 'config.yaml'))
+@click.option('--logfile', default=None)
 @click.pass_context
 def cli(cli_context, config, logfile):
     config_file = config_parse(config)
-    logger_setup(logfile) if logfile else logger_setup(config_file['logfile'])
+    if config is not os.path.join(click.get_app_dir('icgc-get'), 'config.yaml'):
+        if not config_file:
+            raise click.BadParameter(message="Invalid config file")
+    if logfile is not None:
+        logger_setup(logfile)
+    elif config_file.has_key('logfile'):
+        logger_setup(config_file['logfile'])
+    else:
+        logger_setup(None)
     cli_context.default_map = config_file
     return config_file
 
