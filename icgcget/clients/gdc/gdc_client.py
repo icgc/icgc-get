@@ -20,7 +20,6 @@ from ..run_command import run_command
 
 
 def gdc_call(uuid, token, tool_path, output, udt, processes):
-
     call_args = [tool_path, 'download']
     call_args.extend(uuid)
     if token is not None:  # Enables download of unsecured gdc-data
@@ -33,8 +32,7 @@ def gdc_call(uuid, token, tool_path, output, udt, processes):
 
 
 def gdc_manifest_call(manifest, token, tool_path, output, udt, processes):
-
-    call_args = [tool_path, 'download', '-m', manifest,  '--dir', output, '-n', processes]
+    call_args = [tool_path, 'download', '-m', manifest, '--dir', output, '-n', processes]
     if token is not None:  # Enables download of unsecured gdc data
         call_args.extend(['-t', token])
     if udt:

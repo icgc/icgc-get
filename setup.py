@@ -24,7 +24,7 @@ setup(name='icgc-get',
       description='A python wrapper for icgc-get',
       url="https://github.com/icgc/icgc-get",
       packages=find_packages(exclude=['utils']),
-      install_requires=['argparse', 'PyYaml', 'logging'],
+      install_requires=[ 'PyYaml', 'logging', 'click'],
 
       entry_points={
           'console_scripts': [

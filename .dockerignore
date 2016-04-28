@@ -1,8 +1,9 @@
-*.egg-info/
-build/
-dist/
-passfile.txt
-tests
 .idea/
 .git
 .DS_store
+*.egg-info/
+build/
+dist/
+
+tests
+passfile.txt

@@ -18,26 +18,38 @@
 # ICGC Download Client - Configuration
 #
 
-ega.username:
-ega.password:
-ega.access:
-ega.tool: /icgc/ega-download-demo/EgaDemoClient.jar
-ega.transport.parallel: '1'
-
-icgc.access:
-icgc.tool: /icgc/icgc-storage-client/bin/icgc-storage-client
-icgc.transport.file.from: remote
-icgc.transport.parallel: '6'
-
-gdc.access:
-gdc.tool: /icgc/gdc-data-transfer-tool/gdc-client
-gdc.transport.parallel: '6'
-
-cghub.access: https://cghub.ucsc.edu/software/downloads/cghub_public.key
-cghub.tool: /icgc/genetorrent/bin/gtdownload
-cghub.transport.parallel: '8'
-
-udt: false
-transport.parallel: '6'
+# Common
+logfile: /Users/g2wilson/git/icgc-get/mnt/logfile.log
 transport.memory: 1
-logfile: /icgc/mnt/logs/logfile.txt
+
+# IGCC Storage
+icgc:
+  access:
+  path: /icgc/icgc-storage-client/bin/icgc-storage-client
+  transport.file.from: remote
+  transport.parallel: 6
+
+# GDC
+gdc:
+  access:
+  path: /icgc/gdc-data-transfer-tool/gdc-client
+  transport.parallel: 6
+  udt: false
+
+# EGA
+ega:
+  username:
+  password:
+  access:
+  path: /icgc/ega-download-demo/EgaDemoClient.jar
+  transport.parallel: 1
+  udt: false
+
+# CGHub
+cghub:
+  access: https://cghub.ucsc.edu/software/downloads/cghub_public.key
+  path: /icgc/genetorrent/bin/gtdownload
+  transport.parallel: 8
+
+
+

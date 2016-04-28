@@ -17,15 +17,15 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from ..run_command import run_command
+import fnmatch
+import os
 from random import SystemRandom
 from string import ascii_uppercase, digits
-import os
-import fnmatch
+
+from ..run_command import run_command
 
 
 def ega_call(object_id, username, password, tool_path, parallel, udt, download_dir):
-
     object_id = ''.join(object_id)  # object id is  a single element list to support multiple id's on other clients
     label = object_id + '_request'
     key = ''.join(SystemRandom().choice(ascii_uppercase + digits) for _ in range(4))  # Make randomized decryption key

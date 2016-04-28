@@ -20,7 +20,7 @@ Valid repositories are:
 * `gdc` _(Genomic data commons)_
 * `cghub` _(Cancer genomic hub)_
 
-Second you must specify either a file id using the tag `-f` or `--file`, a manifest file using the tags `-m` or `--manifest`
+Second you must specify an object identifier or path to manifest file. If this object is a manifest file append the tags `-m` or `--manifest`
 or both.  This will specify the file or files to be downloaded.  **The EGA repository does not currently support
 downloads using a manifest file.**  It is possible to specify multiple file ID's using the `-f` flag when downloading from the
 gdc or cghub repositories.  **The EGA and ICGC repositories do not support this functionality**
@@ -50,21 +50,18 @@ This will enable the invocation of the python script with the command `icgc-get`
 Then execute the command as normal:
 
 ```shell
-icgc-get collab -f  FI378424
+icgc-get collab FI378424
 ```
 
-#### Manifest files in the docker container
+### Manifest files in the docker container
 
 Because manifest files need to be accessible by the clients to be parsed, they should be saved in the directory being mounted.
 Once you have saved them in your mounted directory, you will need to provided the path to the manifest file starting from the `/icgc/mnt` directory, so it can be found in the docker client filesystem
 
 
-#### Unit tests
+### Unit tests
 
 Unit tests have been provided in the tests directory of the repository.  They require a configuration file with valid
 EGA and cghub credentials to be saved in the root of the repository.  They also require the command
-`export PYTHONPATH ={PATH}/icgcget` to be entered prior to running unit tests.  To run unit tests, simply enter
+`export PYTHONPATH={PATH}/icgcget` to be entered prior to running unit tests.  To run unit tests, simply enter
 `py.test` in the test directory
-
-
-
