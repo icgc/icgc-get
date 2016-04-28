@@ -1,2 +1,0 @@
-id	submitter_id	entity_type	entity_id	category	classification	creator	created_datetime	status	notes
-d6c87f60-fd96-5d6a-bab5-ca5173ea520c	11824	case	18e79a01-07a2-4cd5-b700-71d41724e041	Prior malignancy	Notification	snyderee	2012-10-31T14:32:42-04:00	Approved	Prior malignancy lung cancer. No systemic chemotherapy or radiation.
