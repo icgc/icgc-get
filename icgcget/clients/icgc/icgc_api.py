@@ -16,24 +16,20 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import os
-
-from ..run_command import run_command
-
-
-def icgc_call(object_id, token, tool_path, file_from, parallel, output, repo):
-    env = dict(os.environ, ACCESSTOKEN=token, TRANSPORT_PARALLEL=parallel, TRANSPORT_FILEFROM=file_from)
-    call_args = [tool_path, '--profile', repo, 'download', '--object-id', ''.join(object_id), '--output-dir', output]
-    # object id is passed as a single element list to support multiple id's on other clients.
-    code = run_command(call_args, env)
-    return code
+import requests
+import logging
 
 
-def icgc_manifest_call(manifest, token, tool_path, file_from, parallel, output, repo):
-    os.environ['ACCESSTOKEN'] = token
-    os.environ['TRANSPORT_PARALLEL'] = parallel
-    if file_from is not None:
-        os.environ['TRANSPORT_FILEFROM'] = file_from
-    call_args = [tool_path, '--profile', repo, 'download', '--manifest', manifest, '--output-dir', output]
-    code = run_command(call_args)
-    return code
+def check_file(file_id):
+    logger = logging.getLogger("__log__")
+
+    resp = requests.get("https://dcc.icgc.org:443/api/v1/repository/files/" + file_id)
+    if resp.status_code != 200:
+        logger.debug(resp.raw)
+        logger.info("API request {} failed with status code {}".format(resp.request, resp.status_code))
+        return resp.status_code
+    copies = []
+    for item in resp.json()["fileCopies"]:
+        if item.has_key("repoCode"):
+            copies.append(item)
+    return copies

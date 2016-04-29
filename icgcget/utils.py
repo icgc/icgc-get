@@ -47,3 +47,11 @@ def make_directory(path):
             pass
         else:
             raise
+
+
+def match_repositories(repo, info):
+    for repository in repo:
+        for copy in info:
+            if repository == copy["repoCode"]:
+                return repository, copy
+    return None, None

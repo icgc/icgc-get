@@ -20,10 +20,10 @@ import logging
 import subprocess
 
 
-def run_command(args):
+def run_command(args, env=None):
     logger = logging.getLogger("__log__")
     logger.info(args)
-    process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
     while True:
         output = process.stdout.readline()
         if process.poll() is not None:
