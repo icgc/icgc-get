@@ -28,6 +28,10 @@ from clients.gnos import gt_client
 from clients.icgc import icgc_client
 from utils import flatten_dict, normalize_keys
 
+REPOS = ['collab', 'aws', 'ega', 'gdc', 'cghub']
+
+DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgc-get', force_posix=True), 'config.yaml')
+
 
 def config_parse(filename):
     config = {}
@@ -68,25 +72,25 @@ def logger_setup(logfile):
 
 
 @click.group()
-@click.option('--config', default=os.path.join(click.get_app_dir('icgc-get'), 'config.yaml'))
+@click.option('--config', default=DEFAULT_CONFIG_FILE)
 @click.option('--logfile', default=None)
 @click.pass_context
 def cli(ctx, config, logfile):
     config_file = config_parse(config)
-    if config is not os.path.join(click.get_app_dir('icgc-get'), 'config.yaml'):
-        if not config_file:
-            raise click.BadParameter(message="Invalid config file")
+    if config != DEFAULT_CONFIG_FILE and not config_file:
+        raise click.BadParameter(message="Invalid config file")
+    ctx.default_map = config_file
+
     if logfile is not None:
         logger_setup(logfile)
     elif config_file.has_key('logfile'):
         logger_setup(config_file['logfile'])
     else:
         logger_setup(None)
-    ctx.default_map = config_file
 
 
 @cli.command()
-@click.argument('repo', type=click.Choice(['collab', 'aws', 'ega', 'gdc', 'cghub']))
+@click.argument('repo', type=click.Choice(REPOS))
 @click.argument('fileid', nargs=-1)
 @click.option('--manifest', '-m', default=False)
 @click.option('--output', type=click.Path(exists=False))
