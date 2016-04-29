@@ -16,14 +16,13 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+import collections
 import errno
 import logging
 import os
-import sys
 
 import click
 import yaml
-import collections
 
 from clients.ega import ega_client
 from clients.gdc import gdc_client
@@ -101,7 +100,7 @@ def logger_setup(logfile):
 @click.option('--config', default=os.path.join(click.get_app_dir('icgc-get'), 'config.yaml'))
 @click.option('--logfile', default=None)
 @click.pass_context
-def cli(cli_context, config, logfile):
+def cli(ctx, config, logfile):
     config_file = config_parse(config)
     if config is not os.path.join(click.get_app_dir('icgc-get'), 'config.yaml'):
         if not config_file:
@@ -112,12 +111,10 @@ def cli(cli_context, config, logfile):
         logger_setup(config_file['logfile'])
     else:
         logger_setup(None)
-    cli_context.default_map = config_file
-    return 0
+    ctx.default_map = config_file
 
 
-
-@click.command()
+@cli.command()
 @click.argument('repo', type=click.Choice(['collab', 'aws', 'ega', 'gdc', 'cghub']))
 @click.argument('fileid', nargs=-1)
 @click.option('--manifest', '-m', default=False)
@@ -140,94 +137,90 @@ def cli(cli_context, config, logfile):
 @click.option('--icgc-transport-file-from')
 @click.option('--icgc-transport-memory')
 @click.option('--icgc-transport-parallel')
-def download(repo, fileid, manifest, output, cghub_access, cghub_path, cghub_transport_parallel,   ega_access,
-             ega_password, ega_path, ega_transport_parallel, ega_username, ega_udt, gdc_access, gdc_path,
-             gdc_transport_parallel, gdc_udt, icgc_access, icgc_path, icgc_transport_file_from, icgc_transport_memory,
-             icgc_transport_parallel):
+def download(repo, fileid, manifest, output,
+             cghub_access, cghub_path, cghub_transport_parallel,
+             ega_access, ega_password, ega_path, ega_transport_parallel, ega_udt, ega_username,
+             gdc_access, gdc_path, gdc_transport_parallel, gdc_udt,
+             icgc_access, icgc_path, icgc_transport_file_from, icgc_transport_memory, icgc_transport_parallel):
+    logger = logging.getLogger('__log__')
+    code = 0
 
-        logger = logging.getLogger('__log__')
-        code = 0
+    if fileid is None and manifest is None:
+        logger.error("Please provide either a file id value or a manifest file to download.")
+        code = 1
+        return code
 
-        if fileid is None and manifest is None:
-            logger.error("Please provide either a file id value or a manifest file to download.")
+    if repo == 'ega':
+        if ega_username is None or ega_password is None:
+            if ega_access is None:
+                logger.error("No credentials provided for the ega repository.")
+                code = 1
+                return code
+        if fileid is not None:
+            if len(fileid) > 1:
+                logger.error("The ega repository does not support input of multiple file id values.")
+                code = 1
+                return code
+            else:
+                if ega_transport_parallel != '1':
+                    logger.warning("Parallel streams on the ega client may cause reliability issues and failed " +
+                                   "downloads.  This option is not recommended.")
+                code = ega_client.ega_call(fileid, ega_username, ega_password, ega_path, ega_transport_parallel,
+                                           ega_udt, output)
+                if code != 0:
+                    logger.error("{} exited with a nonzero error code.".format(repo))
+
+        if manifest is True:
+            logger.warning(
+                "The ega repository doesn't support downloading from manifest files. Use the -f tag instead")
             code = 1
             return code
 
-        if repo == 'ega':
-            if ega_username is None or ega_password is None:
-                if ega_access is None:
-                    logger.error("No credentials provided for the ega repository.")
-                    code = 1
-                    return code
-            if fileid is not None:
-                if len(fileid) > 1:
-                    logger.error("The ega repository does not support input of multiple file id values.")
-                    code = 1
-                    return code
-                else:
-                    if ega_transport_parallel != '1':
-                        logger.warning("Parallel streams on the ega client may cause reliability issues and failed " +
-                                       "downloads.  This option is not recommended.")
-                    code = ega_client.ega_call(fileid, ega_username, ega_password, ega_path, ega_transport_parallel,
-                                               ega_udt, output)
-                    if code != 0:
-                        logger.error("{} exited with a nonzero error code.".format(repo))
-
-            if manifest is True:
-                logger.warning(
-                    "The ega repository doesn't support downloading from manifest files. Use the -f tag instead")
+    elif repo == 'collab' or repo == 'aws':
+        if icgc_access is None:
+            logger.error("No credentials provided for the icgc repository")
+            code = 1
+            return code
+        elif manifest is not True:
+            code = icgc_client.icgc_manifest_call(fileid, icgc_access, icgc_path, icgc_transport_file_from,
+                                                  icgc_transport_parallel, output, repo)
+        elif fileid is not None:  # This code exists to let users use both file id's and manifests in one command
+            if len(fileid) > 1:
+                logger.error("The icgc repository does not support input of multiple file id values.")
                 code = 1
                 return code
+            else:
+                code = icgc_client.icgc_call(fileid, icgc_access, icgc_path, icgc_transport_file_from,
+                                             icgc_transport_parallel, output, repo)
+        if code != 0:
+            logger.error(repo + " exited with a nonzero error code.")
 
-        elif repo == 'collab' or repo == 'aws':
-            if icgc_access is None:
-                logger.error("No credentials provided for the icgc repository")
-                code = 1
-                return code
-            elif manifest is not True:
-                code = icgc_client.icgc_manifest_call(fileid, icgc_access, icgc_path, icgc_transport_file_from,
-                                                      icgc_transport_parallel, output, repo)
-            elif fileid is not None:  # This code exists to let users use both file id's and manifests in one command
-                if len(fileid) > 1:
-                    logger.error("The icgc repository does not support input of multiple file id values.")
-                    code = 1
-                    return code
-                else:
-                    code = icgc_client.icgc_call(fileid, icgc_access, icgc_path, icgc_transport_file_from,
-                                                 icgc_transport_parallel, output, repo)
-            if code != 0:
-                logger.error(repo + " exited with a nonzero error code.")
+    elif repo == 'cghub':
+        if cghub_access is None:
+            logger.error("No credentials provided for the cghub repository.")
+            code = 1
+            return code
+        if manifest is True:
+            code = gt_client.genetorrent_manifest_call(fileid, cghub_access, cghub_path, cghub_transport_parallel,
+                                                       output)
+        elif fileid is not None:
+            code = gt_client.genetorrent_call(fileid, cghub_access, cghub_path,
+                                              cghub_transport_parallel, output)
+        if code != 0:
+            logger.error(repo + " exited with a nonzero error code.")
 
-        elif repo == 'cghub':
-            if cghub_access is None:
-                logger.error("No credentials provided for the cghub repository.")
-                code = 1
-                return code
-            if manifest is True:
-                code = gt_client.genetorrent_manifest_call(fileid, cghub_access, cghub_path, cghub_transport_parallel,
-                                                           output)
-            elif fileid is not None:
-                code = gt_client.genetorrent_call(fileid, cghub_access, cghub_path,
-                                                  cghub_transport_parallel, output)
-            if code != 0:
-                logger.error(repo + " exited with a nonzero error code.")
+    elif repo == 'gdc':
+        if manifest is True:
 
-        elif repo == 'gdc':
-            if manifest is True:
+            code = gdc_client.gdc_manifest_call(fileid, gdc_access, gdc_path, output, gdc_udt,
+                                                gdc_transport_parallel)
+        elif fileid is not None:
+            code = gdc_client.gdc_call(fileid, gdc_access, gdc_path, output, gdc_udt, gdc_transport_parallel)
+        if code != 0:
+            logger.error(repo + " exited with a nonzero error code.")
 
-                code = gdc_client.gdc_manifest_call(fileid, gdc_access, gdc_path, output, gdc_udt,
-                                                    gdc_transport_parallel)
-            elif fileid is not None:
-                code = gdc_client.gdc_call(fileid, gdc_access, gdc_path, output, gdc_udt, gdc_transport_parallel)
-            if code != 0:
-                logger.error(repo + " exited with a nonzero error code.")
+    return code
 
-        return code
-
-
-def main():
-    cli.add_command(download)
-    sys.exit(cli(auto_envvar_prefix='ICGCGET'))
 
 if __name__ == "__main__":
-    main()
+    cli(auto_envvar_prefix='ICGCGET')
