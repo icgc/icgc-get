@@ -16,8 +16,6 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import collections
-import errno
 import logging
 import os
 
@@ -28,6 +26,7 @@ from clients.ega import ega_client
 from clients.gdc import gdc_client
 from clients.gnos import gt_client
 from clients.icgc import icgc_client
+from utils import flatten_dict, normalize_keys
 
 
 def config_parse(filename):
@@ -49,34 +48,6 @@ def config_parse(filename):
         return {}
 
     return config
-
-
-def flatten_dict(d, parent_key='', sep='_'):
-    items = []
-    for k, v in d.items():
-        new_key = parent_key + sep + k if parent_key else k
-        if isinstance(v, collections.MutableMapping):
-            items.extend(flatten_dict(v, new_key, sep=sep).items())
-        else:
-            items.append((new_key, v))
-    return dict(items)
-
-
-def normalize_keys(obj):
-    if type(obj) != dict:
-        return obj
-    else:
-        return {k.replace('.', '_'): normalize_keys(v) for k, v in obj.items()}
-
-
-def make_directory(path):
-    try:
-        os.makedirs(path)
-    except OSError as exc:
-        if exc.errno == errno.EEXIST and os.path.isdir(path):
-            pass
-        else:
-            raise
 
 
 def logger_setup(logfile):
