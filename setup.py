@@ -25,9 +25,11 @@ setup(name='icgc-get',
       url="https://github.com/icgc/icgc-get",
       packages=find_packages(exclude=['utils']),
       install_requires=['PyYaml', 'logging', 'click', 'requests'],
+      setup_requires=['pytest-runner'],
+      tests_require=['pytest'],
       entry_points={
           'console_scripts': [
               'icgc-get=icgcget.cli:main'
           ]
       }
-      )
+)

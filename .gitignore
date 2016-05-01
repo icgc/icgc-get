@@ -1,9 +1,11 @@
 # Python
 *.egg-info/
+.eggs/
 build/
 dist/
 *.pyc
 .cache/
+
 # IDE
 *.iml
 .idea/
