@@ -14,11 +14,13 @@ python setup.py install
 The required arguments for the python script are the repository that is being targeted for download.
 Valid repositories are:
 
-* `aws` _(Amazon Web Services)_
-* `collab` _(Collabratory)_
-* `ega` _(European Genome Association)_
-* `gdc` _(Genomic data commons)_
-* `cghub` _(Cancer genomic hub)_
+| Code     | Repository                  |
+| -------- | --------------------------- |
+| `aws`    | Amazon Web Services         |
+| `collab` | Collaboratory               |
+| `ega`    | European Genome Association |
+| `gdc`    | Genomic data commons        |
+| `cghub`  | Cancer genomic hub          |
 
 Second you must specify an object identifier or path to manifest file. If this object is a manifest file append the tags `-m` or `--manifest`
 or both.  This will specify the file or files to be downloaded.  **The EGA repository does not currently support
@@ -53,15 +55,19 @@ Then execute the command as normal:
 icgc-get collab FI378424
 ```
 
-### Manifest files in the docker container
+### Manifest Files
 
 Because manifest files need to be accessible by the clients to be parsed, they should be saved in the directory being mounted.
 Once you have saved them in your mounted directory, you will need to provided the path to the manifest file starting from the `/icgc/mnt` directory, so it can be found in the docker client filesystem
 
 
-### Unit tests
+## Unit Tests
 
 Unit tests have been provided in the tests directory of the repository.  They require a configuration file with valid
-EGA and cghub credentials to be saved in the root of the repository.  They also require the command
-`export PYTHONPATH={PATH}/icgcget` to be entered prior to running unit tests.  To run unit tests, simply enter
-`py.test` in the test directory
+EGA and cghub credentials to be saved in the root of the repository.
+
+To run unit tests, execute the following:
+
+```shell
+python setup.py test
+```

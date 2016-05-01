@@ -24,4 +24,3 @@ requests >= 2.9.1
 
 # Test dependencies
 pytest >= 2.9.1
-tox >= 2.3.1
