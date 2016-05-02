@@ -31,9 +31,7 @@ def config():
 
 @pytest.fixture(scope="session")
 def data_dir():
-    path = os.path.abspath(os.path.join(os.path.dirname(__file__)))
-    directory = tempfile.tempdir
-    return directory
+    return tempfile.gettempdir()
 
 
 @pytest.fixture(scope="session")
