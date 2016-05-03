@@ -22,8 +22,11 @@
 
 logfile: /icgc/mnt/logs/logfile.log
 output:
+repos:
 
-
+portal:
+  url: https://staging.dcc.icgc.org
+  api: /api/v1/repository/
 # IGCC Storage
 icgc:
   access:

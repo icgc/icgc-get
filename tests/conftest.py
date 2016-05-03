@@ -18,8 +18,13 @@
 
 import os
 import tempfile
+import threading
 
 import pytest
+from click.testing import CliRunner
+
+from icgcget import cli
+from tests.data import stub_thread
 
 
 @pytest.fixture(scope="session")
@@ -49,4 +54,32 @@ def get_info(data, filename):
         file_info = os.stat(data + '/' + filename)
         return file_info
     else:
-        assert 0  # file not found
+        assert filename is None  # Unable to download file as expected
+
+
+def start_server():
+    thread = stub_thread.stubThread(1, "TestThread")
+    thread.start()
+
+
+def stop_server():
+    for thread in threading.enumerate():
+
+        thread.join()
+
+
+def download_test(file_id, repo, file_names, sizes, conf, data):
+    runner = CliRunner()
+    start_server()
+    args = ['--config', conf, 'download']
+    args.extend(file_id)
+    args.extend(['-r', repo, '--output', data, '--portal-api', '', '--portal-url', 'http://127.0.0.1:8000/'])
+    rc = runner.invoke(cli.cli, args)
+    if rc.exit_code != 0:
+        assert rc == 0
+    for i in range(len(file_names)):
+        file_info = get_info(data, file_names[i])
+        result = file_test(file_info, sizes[i])
+        if not result:
+            assert file_test(file_info, sizes[i])
+

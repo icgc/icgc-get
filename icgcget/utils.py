@@ -49,9 +49,9 @@ def make_directory(path):
             raise
 
 
-def match_repositories(repo, info):
-    for repository in repo:
-        for copy in info:
+def match_repositories(repos, copies):
+    for repository in repos:
+        for copy in copies["fileCopies"]:
             if repository == copy["repoCode"]:
                 return repository, copy
     return None, None

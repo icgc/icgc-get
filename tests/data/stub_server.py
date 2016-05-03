@@ -20,7 +20,6 @@ def run():
 
     server_address = ('localhost', 8000)
     httpd = BaseHTTPServer.HTTPServer(server_address, ServerHandler)
-    sa = httpd.socket.getsockname()
     httpd.serve_forever()
 
 

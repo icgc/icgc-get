@@ -25,8 +25,8 @@ import yaml
 from clients.ega import ega_client
 from clients.gdc import gdc_client
 from clients.gnos import gt_client
-from clients.icgc import icgc_client
 from clients.icgc import icgc_api
+from clients.icgc import icgc_client
 from utils import flatten_dict, normalize_keys, match_repositories
 
 REPOS = ['collaboratory', 'aws-virginia', 'ega', 'gdc', 'cghub']  # Updated for codes used by api
@@ -72,6 +72,19 @@ def logger_setup(logfile):
     return logger
 
 
+def check_code(code):
+    if code != 0:
+        logger = logging.getLogger('__log__')
+        logger.error("client exited with a nonzero error code {}.".format(code))
+        click.ClickException("Please check client output for error messages")
+
+
+def check_access(access, name):
+    if access is None:
+        logger = logging.getLogger('__log__')
+        logger.error("No credentials provided for the {} repository".format(name))
+        raise click.BadParameter
+
 @click.group()
 @click.option('--config', default=DEFAULT_CONFIG_FILE)
 @click.option('--logfile', default=None)
@@ -92,9 +105,11 @@ def cli(ctx, config, logfile):
 
 @cli.command()
 @click.argument('fileids', nargs=-1, required=True)
-@click.option('--repo', '-r', type=click.Choice(REPOS), multiple=True, required=True)
-@click.option('--manifest', '-m', default=False)
+@click.option('--repos', '-r', type=click.Choice(REPOS), multiple=True, required=True)
+@click.option('--manifest', '-m', is_flag=True, default=False)
 @click.option('--output', type=click.Path(exists=False))
+@click.option('--portal-api')
+@click.option('--portal-url')
 @click.option('--cghub-access')
 @click.option('--cghub-path')
 @click.option('--cghub-transport-parallel')
@@ -111,55 +126,56 @@ def cli(ctx, config, logfile):
 @click.option('--icgc-access')
 @click.option('--icgc-path')
 @click.option('--icgc-transport-file-from')
-@click.option('--icgc-transport-memory')
 @click.option('--icgc-transport-parallel')
-def download(repo, fileids, manifest, output,
+def download(repos, fileids, manifest, output, portal_api, portal_url,
              cghub_access, cghub_path, cghub_transport_parallel,
              ega_access, ega_password, ega_path, ega_transport_parallel, ega_udt, ega_username,
              gdc_access, gdc_path, gdc_transport_parallel, gdc_udt,
-             icgc_access, icgc_path, icgc_transport_file_from, icgc_transport_memory, icgc_transport_parallel):
+             icgc_access, icgc_path, icgc_transport_file_from, icgc_transport_parallel):
     logger = logging.getLogger('__log__')
-
+    api_url = portal_url+portal_api
     object_ids = {}
-    if 'ega' in repo:
+    if 'ega' in repos:
         if ega_username is None or ega_password is None:
-            if ega_access is None:  # Do we want to raise exceptions on these, or just run them all?
-                logger.error("No credentials provided for the ega repository.")
-                raise click.BadParameter
-    if 'collaboratory' in repo or 'aws-virginia' in repo:
-        if icgc_access is None:
-            logger.error("No credentials provided for the icgc repository")
-            raise click.BadParameter
-    if 'cghub' in repo:
-        if cghub_access is None:
-            logger.error("No credentials provided for the cghub repository.")
-            raise click.BadParameter
-    if 'gdc' in repo:
-        if gdc_access is None:
-            logger.error("No credentials provided for the gdc repository.")
-            raise click.BadParameter
+            check_access(ega_access, 'ega')
+    if 'collaboratory' in repos or 'aws-virginia' in repos:
+        check_access(icgc_access, 'icgc')
+    if 'cghub' in repos:
+        check_access(cghub_access, 'cghub')
+    if 'gdc' in repos:
+        check_access(gdc_access, 'gdc')
 
-    for repository in repo:
+    for repository in repos:
         object_ids[repository] = []
-
-    for fileid in fileids:
-        info = icgc_api.check_file(fileid)
-        if type(info) is int:
-            raise click.ClickException("File not found")
-        repository, copy = match_repositories(repo, info)
+    entities = []
+    if manifest:
+        entities = icgc_api.read_entity_set(fileids, api_url)
+    else:
+        for fileid in fileids:
+            entity = icgc_api.get_metadata(fileid, api_url)
+            if not entity:
+                raise click.ClickException("File not found")
+            entities.append(entity)
+    for entity in entities:
+        repository, copy = match_repositories(repos, entity)
         if repository is None:
-            logger.error("File {} specified not found on repositories {}".format(info["id"], repo))
-        object_ids[repository].append(copy["indexFile"]["objectId"])
+            logger.error("File {} not found on repositories {}".format(entity["id"], repos))
+            raise click.BadParameter("File {} not found on repositories {}".format(entity["id"], repos))
+        elif repository == 'collaboratory' or repository == 'aws-virginia':
+            object_ids[repository].append(entity["objectId"])
+        else:
+            object_ids[repository].append(entity["dataBundle"]["dataBundleId"])
 
-    if 'aws-virginia' in repo:
+    if 'aws-virginia' in repos:
         if 'aws-virginia' in object_ids and object_ids['aws-virginia']:
             if len(object_ids['aws-virginia']) > 1:  # Todo-find a workaround for this: dynamic manifest generation?
                 logger.error("The icgc repository does not support input of multiple file id values.")
                 raise click.BadParameter
             code = icgc_client.icgc_call(object_ids['aws-virginia'], icgc_access, icgc_path, icgc_transport_file_from,
                                          icgc_transport_parallel, output, 'aws')
+            check_code(code)
 
-    if 'ega' in repo:
+    if 'ega' in repos:
         if object_ids['ega']:
             if len(object_ids['ega']) > 1:  # Todo-find a workaround for this rather than throw errors
                 logger.error("The ega repository does not support input of multiple file id values.")
@@ -170,19 +186,15 @@ def download(repo, fileids, manifest, output,
                                    "downloads.  This option is not recommended.")
                 code = ega_client.ega_call(object_ids['ega'], ega_username, ega_password, ega_path,
                                            ega_transport_parallel, ega_udt, output)
-                if code != 0:
-                    logger.error("client exited with a nonzero error code {}.".format(code))
-                    click.ClickException("Please check client output for error messages")
+                check_code(code)
 
-    if 'cghub' in repo:
+    if 'cghub' in repos:
         if object_ids['cghub']:
             code = gt_client.genetorrent_call(object_ids['cghub'], cghub_access, cghub_path,
                                               cghub_transport_parallel, output)
-            if code != 0:
-                logger.error("client exited with a nonzero error code {}.".format(code))
-                click.ClickException("Please check client output for error messages")
+            check_code(code)
 
-    if 'collaboratory' in repo:
+    if 'collaboratory' in repos:
         if 'collaboratory' in object_ids and object_ids['collaboratory']:
             if len(object_ids['collaboratory']) > 1:  # Todo-find a workaround for this: ask for extra functionality?
                 logger.error("The icgc repository does not support input of multiple file id values.")
@@ -190,16 +202,16 @@ def download(repo, fileids, manifest, output,
             else:
                 code = icgc_client.icgc_call(object_ids['collaboratory'], icgc_access, icgc_path,
                                              icgc_transport_file_from, icgc_transport_parallel, output, 'collab')
-                if code != 0:
-                    logger.error("client exited with a nonzero error code {}.".format(code))
-                    click.ClickException("Please check client output for error messages")
+                check_code(code)
 
-    if 'gdc' in repo:
+    if 'gdc' in repos:
         if object_ids['gdc']:
             code = gdc_client.gdc_call(object_ids['gdc'], gdc_access, gdc_path, output, gdc_udt, gdc_transport_parallel)
-            if code != 0:
-                logger.error("client exited with a nonzero error code {}.".format(code))
-                click.ClickException("Please check client output for error messages")
+            check_code(code)
+
+
+def main():
+    cli(auto_envvar_prefix='ICGCGET')
 
 if __name__ == "__main__":
-    cli(auto_envvar_prefix='ICGCGET')
+    main()
