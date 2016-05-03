@@ -39,16 +39,6 @@ def normalize_keys(obj):
         return {k.replace('.', '_'): normalize_keys(v) for k, v in obj.items()}
 
 
-def make_directory(path):
-    try:
-        os.makedirs(path)
-    except OSError as exc:
-        if exc.errno == errno.EEXIST and os.path.isdir(path):
-            pass
-        else:
-            raise
-
-
 def match_repositories(repos, copies):
     for repository in repos:
         for copy in copies["fileCopies"]:

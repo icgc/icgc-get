@@ -72,10 +72,10 @@ def logger_setup(logfile):
     return logger
 
 
-def check_code(code):
+def check_code(client, code):
     if code != 0:
         logger = logging.getLogger('__log__')
-        logger.error("client exited with a nonzero error code {}.".format(code))
+        logger.error("{} client exited with a nonzero error code {}.".format(client, code))
         click.ClickException("Please check client output for error messages")
 
 
@@ -83,7 +83,8 @@ def check_access(access, name):
     if access is None:
         logger = logging.getLogger('__log__')
         logger.error("No credentials provided for the {} repository".format(name))
-        raise click.BadParameter
+        raise click.BadParameter("Please provide credentials for {}".format(name))
+
 
 @click.group()
 @click.option('--config', default=DEFAULT_CONFIG_FILE)
@@ -154,7 +155,7 @@ def download(repos, fileids, manifest, output, portal_api, portal_url,
         for fileid in fileids:
             entity = icgc_api.get_metadata(fileid, api_url)
             if not entity:
-                raise click.ClickException("File not found")
+                raise click.ClickException("File {} does not exist".format(fileid))
             entities.append(entity)
     for entity in entities:
         repository, copy = match_repositories(repos, entity)
@@ -173,7 +174,7 @@ def download(repos, fileids, manifest, output, portal_api, portal_url,
                 raise click.BadParameter
             code = icgc_client.icgc_call(object_ids['aws-virginia'], icgc_access, icgc_path, icgc_transport_file_from,
                                          icgc_transport_parallel, output, 'aws')
-            check_code(code)
+            check_code('Icgc', code)
 
     if 'ega' in repos:
         if object_ids['ega']:
@@ -186,13 +187,13 @@ def download(repos, fileids, manifest, output, portal_api, portal_url,
                                    "downloads.  This option is not recommended.")
                 code = ega_client.ega_call(object_ids['ega'], ega_username, ega_password, ega_path,
                                            ega_transport_parallel, ega_udt, output)
-                check_code(code)
+                check_code('Ega', code)
 
     if 'cghub' in repos:
         if object_ids['cghub']:
             code = gt_client.genetorrent_call(object_ids['cghub'], cghub_access, cghub_path,
                                               cghub_transport_parallel, output)
-            check_code(code)
+            check_code('Cghub', code)
 
     if 'collaboratory' in repos:
         if 'collaboratory' in object_ids and object_ids['collaboratory']:
@@ -202,12 +203,12 @@ def download(repos, fileids, manifest, output, portal_api, portal_url,
             else:
                 code = icgc_client.icgc_call(object_ids['collaboratory'], icgc_access, icgc_path,
                                              icgc_transport_file_from, icgc_transport_parallel, output, 'collab')
-                check_code(code)
+                check_code('Icgc', code)
 
     if 'gdc' in repos:
         if object_ids['gdc']:
             code = gdc_client.gdc_call(object_ids['gdc'], gdc_access, gdc_path, output, gdc_udt, gdc_transport_parallel)
-            check_code(code)
+            check_code('Gdc', code)
 
 
 def main():

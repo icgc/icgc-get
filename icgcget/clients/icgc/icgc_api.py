@@ -34,11 +34,11 @@ def get_metadata(file_id, api_url):
 
 def read_entity_set(es_id, api_url):
     logger = logging.getLogger("__log__")
-
-    resp = requests.get(api_url + 'files?filters={file:{"id":{"is":["' + ''.join(es_id) + '"]}}}&from=1&size=100',)
+    request = api_url + 'files?filters={file:{"id":{"is":["' + ''.join(es_id) + '"]}}}&from=1&size=100'
+    resp = requests.get(request)
     if resp.status_code != 200:
         logger.debug(resp.raw)
         logger.info("API request {} failed with status code {}", resp.request, resp.status_code)
-        raise Exception
+        raise Exception("API request {} failed with status code {}".format(request, resp.status_code))
     entity_set = resp.json()["hits"]
     return entity_set

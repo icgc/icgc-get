@@ -76,10 +76,10 @@ def download_test(file_id, repo, file_names, sizes, conf, data):
     args.extend(['-r', repo, '--output', data, '--portal-api', '', '--portal-url', 'http://127.0.0.1:8000/'])
     rc = runner.invoke(cli.cli, args)
     if rc.exit_code != 0:
-        assert rc == 0
+        assert rc == 0  # An error occured during the download attempt
     for i in range(len(file_names)):
         file_info = get_info(data, file_names[i])
         result = file_test(file_info, sizes[i])
         if not result:
-            assert file_test(file_info, sizes[i])
+            assert file_test(file_info, sizes[i])  # File was not of the expected file size
 
