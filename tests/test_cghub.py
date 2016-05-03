@@ -28,9 +28,3 @@ def test_cghub_double(config, data_dir):
     file_names = ['f3d43f0e-f734-47d5-954e-ed847b463c2c.sorted_genome_alignments.bam',
                   'TCGA-CV-6938-01A-11R-1914-13_mirna.bam']
     download_test(['FI99996', 'FI99994'], 'cghub', file_names, [3520000000, 97270000], config, data_dir)
-
-
-
-
-
-

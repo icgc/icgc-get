@@ -15,13 +15,10 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-from click.testing import CliRunner
 
 from conftest import download_test
-
 
 
 def test_ega_file(config, data_dir):
     data = data_dir
     download_test(['FIEGAID'], 'ega', ['_methylationCEL_CLL-174.CEL'], [5556766], config, data)
-
