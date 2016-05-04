@@ -11,21 +11,26 @@ python setup.py install
 
 ## Using the Python Script
 
-The required arguments for the python script are the repository that is being targeted for download.
+The synatx for calling the python client is
+```shell
+icgc-get --config [CONFIG] download [REPO] [FILEIDS] [OPTIONS]
+```
+
+The first requied for the python script are the repository or repositories that are being targeted for download.
 Valid repositories are:
 
-| Code     | Repository                  |
-| -------- | --------------------------- |
-| `aws`    | Amazon Web Services         |
-| `collab` | Collaboratory               |
-| `ega`    | European Genome Association |
-| `gdc`    | Genomic data commons        |
-| `cghub`  | Cancer genomic hub          |
+| Code             | Repository                  |
+| --------         | --------------------------- |
+| `aws-virginia`   | Amazon Web Services         |
+| `collaboratory`  | Collaboratory               |
+| `ega`            | European Genome Association |
+| `gdc`            | Genomic data commons        |
+| `cghub`          | Cancer genomic hub          |
 
-Second you must specify an object identifier or path to manifest file. If this object is a manifest file append the tags `-m` or `--manifest`
-or both.  This will specify the file or files to be downloaded.  **The EGA repository does not currently support
-downloads using a manifest file.**  It is possible to specify multiple file ID's using the `-f` flag when downloading from the
-gdc or cghub repositories.  **The EGA and ICGC repositories do not support this functionality**
+Prepend each repository with the `-r`, for example `-r aws-virginia -r ega`.  The repositories will be processed with priority corresponding to theorder they are specified
+Second you must specify an ICGC File id or maifest file id corresponding to the file you wish to download. If this is for a manifest file append the tags `-m` or `--manifest`.  This will specify the file or files to be downloaded.  **The EGA repository does not currently support
+downloads using a manifest file.**  It is possible to specify multiple file ID's when downloading from the
+gdc or cghub repositories.  **The EGA and ICGC repositories do not currently support this functionality**
 
 If not running the tool in a docker container, a user must also specify the `--output` where files are to be saved
 and the `--config`, the location of the configuration file.  **Absolute paths are required for both arguments.**
@@ -39,26 +44,21 @@ First, pull the docker image using the command
 To save some typing, you can add a convenience bash alias to make working with the container easier:
 
 ```shell
-alias icgc-get="docker run -it --rm -v {MNT_DIR}:/icgc/mnt icgc/icgc-get"
+alias icgc-get="docker run -it --rm -v {MNT_DIR}:/icgc/mnt icgc/icgc-get download"
 ```
 
 replacing `{PATH}` with the path to your mounted directory. This directory will be populated by the script with
-process logs and
+process logs and downloaded files.
 
 
 This will enable the invocation of the python script with the command `icgc-get`.  When running through the docker container there is no
- need to use the `--output` or `--config` arguments.
+need to use the `--output` or `--config` arguments.
 
 Then execute the command as normal:
 
 ```shell
-icgc-get collab FI378424
+icgc-get -r collab FI378424
 ```
-
-### Manifest Files
-
-Because manifest files need to be accessible by the clients to be parsed, they should be saved in the directory being mounted.
-Once you have saved them in your mounted directory, you will need to provided the path to the manifest file starting from the `/icgc/mnt` directory, so it can be found in the docker client filesystem
 
 
 ## Unit Tests
