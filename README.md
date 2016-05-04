@@ -11,12 +11,12 @@ python setup.py install
 
 ## Using the Python Script
 
-The synatx for calling the python client is
+The syntax for calling the python client is
 ```shell
 icgc-get --config [CONFIG] download [REPO] [FILEIDS] [OPTIONS]
 ```
 
-The first requied for the python script are the repository or repositories that are being targeted for download.
+The first required for the python script are the repository or repositories that are being targeted for download.
 Valid repositories are:
 
 | Code             | Repository                  |
@@ -28,7 +28,7 @@ Valid repositories are:
 | `cghub`          | Cancer genomic hub          |
 
 Prepend each repository with the `-r`, for example `-r aws-virginia -r ega`.  The repositories will be processed with priority corresponding to theorder they are specified
-Second you must specify an ICGC File id or maifest file id corresponding to the file you wish to download. If this is for a manifest file append the tags `-m` or `--manifest`.  This will specify the file or files to be downloaded.  **The EGA repository does not currently support
+Second you must specify an ICGC File id or manifest file id corresponding to the file you wish to download. If this is for a manifest file append the tags `-m` or `--manifest`.  This will specify the file or files to be downloaded.  **The EGA repository does not currently support
 downloads using a manifest file.**  It is possible to specify multiple file ID's when downloading from the
 gdc or cghub repositories.  **The EGA and ICGC repositories do not currently support this functionality**
 
