@@ -24,7 +24,7 @@ import pytest
 from click.testing import CliRunner
 
 from icgcget import cli
-from tests.data import stub_thread
+from tests.fixtures import stub_thread
 
 
 @pytest.fixture(scope="session")
@@ -73,7 +73,8 @@ def download_test(file_id, repo, file_names, sizes, conf, data):
     start_server()
     args = ['--config', conf, 'download']
     args.extend(file_id)
-    args.extend(['-r', repo, '--output', data, '--portal-api', '', '--portal-url', 'http://127.0.0.1:8000/'])
+    args.extend(['-r', repo, '--output', data])
+    runner.env = dict(os.environ, ICGCGET_API_URL="http://127.0.0.1:8000/")
     rc = runner.invoke(cli.cli, args)
     if rc.exit_code != 0:
         assert rc == 0  # An error occured during the download attempt
@@ -82,4 +83,3 @@ def download_test(file_id, repo, file_names, sizes, conf, data):
         result = file_test(file_info, sizes[i])
         if not result:
             assert file_test(file_info, sizes[i])  # File was not of the expected file size
-

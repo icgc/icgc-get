@@ -32,6 +32,7 @@ from utils import flatten_dict, normalize_keys, match_repositories
 REPOS = ['collaboratory', 'aws-virginia', 'ega', 'gdc', 'cghub']  # Updated for codes used by api
 
 DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgc-get', force_posix=True), 'config.yaml')
+global logger
 
 
 def config_parse(filename):
@@ -56,6 +57,7 @@ def config_parse(filename):
 
 
 def logger_setup(logfile):
+    global logger
     logger = logging.getLogger('__log__')
     logger.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
@@ -74,14 +76,12 @@ def logger_setup(logfile):
 
 def check_code(client, code):
     if code != 0:
-        logger = logging.getLogger('__log__')
         logger.error("{} client exited with a nonzero error code {}.".format(client, code))
         click.ClickException("Please check client output for error messages")
 
 
 def check_access(access, name):
     if access is None:
-        logger = logging.getLogger('__log__')
         logger.error("No credentials provided for the {} repository".format(name))
         raise click.BadParameter("Please provide credentials for {}".format(name))
 
@@ -94,6 +94,7 @@ def cli(ctx, config, logfile):
     config_file = config_parse(config)
     if config != DEFAULT_CONFIG_FILE and not config_file:
         raise click.BadParameter(message="Invalid config file")
+
     ctx.default_map = config_file
 
     if logfile is not None:
@@ -109,8 +110,6 @@ def cli(ctx, config, logfile):
 @click.option('--repos', '-r', type=click.Choice(REPOS), multiple=True, required=True)
 @click.option('--manifest', '-m', is_flag=True, default=False)
 @click.option('--output', type=click.Path(exists=False))
-@click.option('--portal-api')
-@click.option('--portal-url')
 @click.option('--cghub-access')
 @click.option('--cghub-path')
 @click.option('--cghub-transport-parallel')
@@ -128,13 +127,16 @@ def cli(ctx, config, logfile):
 @click.option('--icgc-path')
 @click.option('--icgc-transport-file-from')
 @click.option('--icgc-transport-parallel')
-def download(repos, fileids, manifest, output, portal_api, portal_url,
+@click.pass_context
+def download(ctx, repos, fileids, manifest, output,
              cghub_access, cghub_path, cghub_transport_parallel,
              ega_access, ega_password, ega_path, ega_transport_parallel, ega_udt, ega_username,
              gdc_access, gdc_path, gdc_transport_parallel, gdc_udt,
              icgc_access, icgc_path, icgc_transport_file_from, icgc_transport_parallel):
-    logger = logging.getLogger('__log__')
-    api_url = portal_url+portal_api
+    if os.getenv("ICGCGET_API_URL"):
+        api_url = os.getenv("ICGCGET_API_URL")
+    else:
+        api_url = ctx.default_map["portal_url"] + ctx.default_map["portal_api"]
     object_ids = {}
     if 'ega' in repos:
         if ega_username is None or ega_password is None:

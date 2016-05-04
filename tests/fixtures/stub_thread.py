@@ -18,7 +18,7 @@
 
 import threading
 
-from tests.data import stub_server
+from tests.fixtures import stub_server
 
 exitFlag = 0
 

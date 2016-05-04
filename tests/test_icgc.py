@@ -22,8 +22,11 @@ from conftest import download_test
 
 def test_icgc(config, data_dir):
     file_name = ['fc447d55-95d8-0b34-e040-11ac0d483afa.embl-delly_1-0-0-preFilter.20150618' +
-                 '.germline.sv.vcf.gz/a5a6d87b-e599-528b-aea0-73f5084205d5']
-    download_test(['FI250134'], 'collaboratory', file_name, [202180], config, data_dir)
+                 '.germline.sv.vcf.gz/a5a6d87b-e599-528b-aea0-73f5084205d5',
+                 'fc447d55-95d8-0b34-e040-11ac0d483afa.embl-delly_1-0-0-preFilter.20150618.' +
+                 'germline.sv.vcf.gz.tbi/efcb7a5c-ff36-5557-84a3-7d4aa0e416b8']
+    download_test(['FI250134'], 'collaboratory', file_name, [202180, 21701], config, data_dir)
+
 
 
 
