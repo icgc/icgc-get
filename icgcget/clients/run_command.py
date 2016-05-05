@@ -23,12 +23,24 @@ import subprocess
 def run_command(args, env=None):
     logger = logging.getLogger("__log__")
     logger.info(args)
-    process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
+    if None in args:
+        logger.warning("Missing argument in {}".format(args))
+        return 1
+    try:
+        process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
+    except subprocess.CalledProcessError as e:
+        logger.info(e.output)
+        return e.returncode
+    except OSError:
+        logger.warning("Path to download tool does not lead to expected application")
+        return 2
     while True:
         output = process.stdout.readline()
         if process.poll() is not None:
             break
         if output:
             logger.info(output.strip())
+        else:
+            logger.info("dead_timey")
     rc = process.poll()
     return rc

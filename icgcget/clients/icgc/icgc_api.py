@@ -23,11 +23,15 @@ import logging
 def get_metadata(file_id, api_url):
     logger = logging.getLogger("__log__")
     request = api_url + "files/" + file_id
-    resp = requests.get(request)
+    try:
+        resp = requests.get(request, timeout=0.1)
+    except requests.exceptions.RequestException as e:
+        logger.info(e.message)
+        raise Exception(e.message)
     if resp.status_code != 200:
         logger.debug(resp.raw)
         logger.info("API request {} failed with status code {}", request, resp.status_code)
-        raise Exception("API request {} failed with status code {}".format(request, resp.status_code))
+        raise RuntimeError("API request {} failed with status code {}".format(request, resp.status_code))
     datafile = resp.json()
     return datafile
 
@@ -39,6 +43,6 @@ def read_entity_set(es_id, api_url):
     if resp.status_code != 200:
         logger.debug(resp.raw)
         logger.info("API request {} failed with status code {}", resp.request, resp.status_code)
-        raise Exception("API request {} failed with status code {}".format(request, resp.status_code))
+        raise RuntimeError("API request {} failed with status code {}".format(request, resp.status_code))
     entity_set = resp.json()["hits"]
     return entity_set

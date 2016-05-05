@@ -27,7 +27,7 @@ from clients.gdc import gdc_client
 from clients.gnos import gt_client
 from clients.icgc import icgc_api
 from clients.icgc import icgc_client
-from utils import flatten_dict, normalize_keys, match_repositories
+from utils import flatten_dict, normalize_keys, match_repositories, file_size
 
 REPOS = ['collaboratory', 'aws-virginia', 'ega', 'gdc', 'cghub']  # Updated for codes used by api
 
@@ -77,7 +77,7 @@ def logger_setup(logfile):
 def check_code(client, code):
     if code != 0:
         logger.error("{} client exited with a nonzero error code {}.".format(client, code))
-        click.ClickException("Please check client output for error messages")
+        raise click.ClickException("Please check client output for error messages")
 
 
 def check_access(access, name):
@@ -109,24 +109,24 @@ def cli(ctx, config, logfile):
 @click.argument('fileids', nargs=-1, required=True)
 @click.option('--repos', '-r', type=click.Choice(REPOS), multiple=True, required=True)
 @click.option('--manifest', '-m', is_flag=True, default=False)
-@click.option('--output', type=click.Path(exists=False))
-@click.option('--cghub-access')
-@click.option('--cghub-path')
-@click.option('--cghub-transport-parallel')
-@click.option('--ega-access')
-@click.option('--ega-password')
-@click.option('--ega-path')
-@click.option('--ega-transport-parallel')
-@click.option('--ega-udt')
-@click.option('--ega-username')
-@click.option('--gdc-access')
-@click.option('--gdc-path')
-@click.option('--gdc-transport-parallel')
-@click.option('--gdc-udt')
-@click.option('--icgc-access')
-@click.option('--icgc-path')
-@click.option('--icgc-transport-file-from')
-@click.option('--icgc-transport-parallel')
+@click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True))
+@click.option('--cghub-access', type=click.STRING)
+@click.option('--cghub-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
+@click.option('--cghub-transport-parallel', type=click.STRING)
+@click.option('--ega-access', type=click.STRING)
+@click.option('--ega-password', type=click.STRING)
+@click.option('--ega-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
+@click.option('--ega-transport-parallel', type=click.STRING)
+@click.option('--ega-udt', type=click.BOOL)
+@click.option('--ega-username', type=click.STRING)
+@click.option('--gdc-access', type=click.STRING)
+@click.option('--gdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
+@click.option('--gdc-transport-parallel', type=click.STRING)
+@click.option('--gdc-udt', type=click.BOOL)
+@click.option('--icgc-access', type=click.STRING)
+@click.option('--icgc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
+@click.option('--icgc-transport-file-from', type=click.STRING)
+@click.option('--icgc-transport-parallel', type=click.STRING)
 @click.pass_context
 def download(ctx, repos, fileids, manifest, output,
              cghub_access, cghub_path, cghub_transport_parallel,
@@ -152,13 +152,26 @@ def download(ctx, repos, fileids, manifest, output,
         object_ids[repository] = []
     entities = []
     if manifest:
-        entities = icgc_api.read_entity_set(fileids, api_url)
+        try:
+            entities = icgc_api.read_entity_set(fileids, api_url)
+        except RuntimeError:
+            raise click.Abort
     else:
         for fileid in fileids:
-            entity = icgc_api.get_metadata(fileid, api_url)
+            try:
+                entity = icgc_api.get_metadata(fileid, api_url)
+            except RuntimeError:
+                raise click.Abort
             if not entity:
                 raise click.ClickException("File {} does not exist".format(fileid))
             entities.append(entity)
+
+    size = 0
+    for entity in entities:
+        size += entity["fileCopies"][0]["fileSize"]
+    if not click.confirm("Ok to download {}s of files?".format(file_size(size))):
+        logger.info("User aborted download")
+        raise click.Abort
     for entity in entities:
         repository, copy = match_repositories(repos, entity)
         if repository is None:
@@ -203,6 +216,7 @@ def download(ctx, repos, fileids, manifest, output,
                 logger.error("The icgc repository does not support input of multiple file id values.")
                 raise click.BadParameter
             else:
+
                 code = icgc_client.icgc_call(object_ids['collaboratory'], icgc_access, icgc_path,
                                              icgc_transport_file_from, icgc_transport_parallel, output, 'collab')
                 check_code('Icgc', code)

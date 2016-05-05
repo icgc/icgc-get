@@ -32,6 +32,14 @@ def flatten_dict(d, parent_key='', sep='_'):
     return dict(items)
 
 
+def file_size(num, suffix='B'):
+    for unit in ['', 'K', 'M', 'G', 'T']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Yi', suffix)
+
+
 def normalize_keys(obj):
     if type(obj) != dict:
         return obj

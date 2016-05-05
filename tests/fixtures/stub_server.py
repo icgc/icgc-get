@@ -27,28 +27,29 @@ def parse_id(path):
     path_split = path.split('/')
     id = path_split[len(path_split) - 1]
     if id == "FI250134":
-        return {'objectId': 'a5a6d87b-e599-528b-aea0-73f5084205d5', 'fileCopies': [{'repoCode': 'collaboratory'}]}
+        return {'objectId': 'a5a6d87b-e599-528b-aea0-73f5084205d5', 'fileCopies': [{'repoCode': 'collaboratory',
+                                                                                    'fileSize': 202180}]}
     elif id == "FI99990":
         return {"dataBundle": {"dataBundleId": "78388918-f748-4bc0-8d07-28fb83840045"},
-                'fileCopies': [{'repoCode': 'cghub'}]}
+                'fileCopies': [{'repoCode': 'cghub', 'fileSize': 202180}]}
     elif id == "FI99996":
         return {"dataBundle": {"dataBundleId": "79182d51-d38f-4003-82a7-1cd8c6dba21e"},
-                'fileCopies': [{'repoCode': 'cghub'}]}
+                'fileCopies': [{'repoCode': 'cghub', 'fileSize': 202180}]}
     elif id == "FI99994":
         return {"dataBundle": {"dataBundleId": "78388918-f748-4bc0-8d07-28fb83840045"},
-                'fileCopies': [{'repoCode': 'cghub'}]}
+                'fileCopies': [{'repoCode': 'cghub', 'fileSize': 202180}]}
     elif id == "FIEGAID":
         return {"dataBundle": {"dataBundleId": "EGAF00000112559"},
-                'fileCopies': [{'repoCode': 'ega'}]}
+                'fileCopies': [{'repoCode': 'ega', 'fileSize': 202180}]}
     elif id == "FIGDCID":
         return {"dataBundle": {"dataBundleId": "f483ad78-b092-4d10-9afb-eccacec9d9dc"},
-                'fileCopies': [{'repoCode': 'gdc'}]}
+                'fileCopies': [{'repoCode': 'gdc', 'fileSize': 202180}]}
     elif id == "FIGDCID2":
         return {"dataBundle": {"dataBundleId": "2c759eb8-7ee0-43f5-a008-de4317ab8c70"},
-                'fileCopies': [{'repoCode': 'gdc'}]}
+                'fileCopies': [{'repoCode': 'gdc', 'fileSize': 202180}]}
     elif id == "FIGDCID3":
         return {"dataBundle": {"dataBundleId": "a6b2f1ff-5c71-493c-b65d-e344ed29b7bb"},
-                'fileCopies': [{'repoCode': 'gdc'}]}
+                'fileCopies': [{'repoCode': 'gdc', 'fileSize': 202180}]}
     else:
         return {}
 
