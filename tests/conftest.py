@@ -64,7 +64,6 @@ def start_server():
 
 def stop_server():
     for thread in threading.enumerate():
-
         thread.join()
 
 
@@ -73,7 +72,7 @@ def download_test(file_id, repo, file_names, sizes, conf, data):
     start_server()
     args = ['--config', conf, 'download']
     args.extend(file_id)
-    args.extend(['-r', repo, '--output', data])
+    args.extend(['-r', repo, '--output', data, '-y'])
     runner.env = dict(os.environ, ICGCGET_API_URL="http://127.0.0.1:8000/")
     rc = runner.invoke(cli.cli, args)
     if rc.exit_code != 0:

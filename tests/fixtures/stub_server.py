@@ -50,6 +50,14 @@ def parse_id(path):
     elif id == "FIGDCID3":
         return {"dataBundle": {"dataBundleId": "a6b2f1ff-5c71-493c-b65d-e344ed29b7bb"},
                 'fileCopies': [{'repoCode': 'gdc', 'fileSize': 202180}]}
+    elif id == "MAGDC":
+        return [{"repo": "gdc", "fileIds": ["FIGDCID","FIGDCID2","FIGDCID3"]}]
+    elif id == "MAEGA":
+        return [{"repo": "ega", "fileIds": ["FIEGAID"]}]
+    elif id == "MAICGC":
+        return [{"repo": "collaboratory", "fileIds": ["FI250134"]}]
+    elif id == "MACGHUB":
+        return [{"repo": "gdc", "fileIds": ["FI99996", "FI99994", "FI99990"]}]
     else:
         return {}
 

@@ -17,9 +17,7 @@
 #
 
 import collections
-import errno
-import os
-
+import logging
 
 def flatten_dict(d, parent_key='', sep='_'):
     items = []
@@ -52,4 +50,5 @@ def match_repositories(repos, copies):
         for copy in copies["fileCopies"]:
             if repository == copy["repoCode"]:
                 return repository, copy
-    return None, None
+    else:
+        raise RuntimeError("File {} not found on repositories {}".format(copies["id"], repos))

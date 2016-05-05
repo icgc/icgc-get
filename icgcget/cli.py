@@ -21,6 +21,7 @@ import os
 
 import click
 import yaml
+import psutil
 
 from clients.ega import ega_client
 from clients.gdc import gdc_client
@@ -86,6 +87,25 @@ def check_access(access, name):
         raise click.BadParameter("Please provide credentials for {}".format(name))
 
 
+def repository_sort(repo, entity):
+    try:
+         repository, copy = match_repositories(repo, entity)
+    except RuntimeError:
+        logger.error("File {} not found on repositories {}".format(entity["id"], repo))
+        raise click.BadParameter("File {} not found on repositories {}".format(entity["id"], repo))
+    return repository, copy
+
+
+def api_call(file_id, url):
+    try:
+        entity = icgc_api.get_metadata(file_id, url)
+    except RuntimeError:
+        raise click.Abort
+    if not entity:
+        raise click.ClickException("File {} does not exist".format(file_id))
+    return entity
+
+
 @click.group()
 @click.option('--config', default=DEFAULT_CONFIG_FILE)
 @click.option('--logfile', default=None)
@@ -107,7 +127,7 @@ def cli(ctx, config, logfile):
 
 @cli.command()
 @click.argument('fileids', nargs=-1, required=True)
-@click.option('--repos', '-r', type=click.Choice(REPOS), multiple=True, required=True)
+@click.option('--repos', '-r', type=click.Choice(REPOS), multiple=True)
 @click.option('--manifest', '-m', is_flag=True, default=False)
 @click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True))
 @click.option('--cghub-access', type=click.STRING)
@@ -127,12 +147,13 @@ def cli(ctx, config, logfile):
 @click.option('--icgc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--icgc-transport-file-from', type=click.STRING)
 @click.option('--icgc-transport-parallel', type=click.STRING)
+@click.option('--yes-to-all', '-y', is_flag=True, default=False, help="Bypass all confirmation prompts")
 @click.pass_context
 def download(ctx, repos, fileids, manifest, output,
              cghub_access, cghub_path, cghub_transport_parallel,
              ega_access, ega_password, ega_path, ega_transport_parallel, ega_udt, ega_username,
              gdc_access, gdc_path, gdc_transport_parallel, gdc_udt,
-             icgc_access, icgc_path, icgc_transport_file_from, icgc_transport_parallel):
+             icgc_access, icgc_path, icgc_transport_file_from, icgc_transport_parallel, yes_to_all):
     if os.getenv("ICGCGET_API_URL"):
         api_url = os.getenv("ICGCGET_API_URL")
     else:
@@ -147,40 +168,47 @@ def download(ctx, repos, fileids, manifest, output,
         check_access(cghub_access, 'cghub')
     if 'gdc' in repos:
         check_access(gdc_access, 'gdc')
-
-    for repository in repos:
-        object_ids[repository] = []
+    size = 0
     entities = []
     if manifest:
         try:
-            entities = icgc_api.read_entity_set(fileids, api_url)
+            manifest_json = icgc_api.read_manifest(fileids, api_url)
         except RuntimeError:
             raise click.Abort
-    else:
-        for fileid in fileids:
-            try:
-                entity = icgc_api.get_metadata(fileid, api_url)
-            except RuntimeError:
-                raise click.Abort
-            if not entity:
-                raise click.ClickException("File {} does not exist".format(fileid))
+        for file_info in manifest_json:
+            repo = file_info["repo"]
+            fi_id = file_info
+            entity = api_call(fi_id, api_url)
             entities.append(entity)
+            size += entity["fileCopies"][0]["fileSize"]
+            repository, copy = repository_sort(repo, entity)
+            if repository == 'collaboratory' or repository == 'aws-virginia':
+                object_ids[repository].append(entity["objectId"])
+            else:
+                object_ids[repository].append(entity["dataBundle"]["dataBundleId"])
+    else:
+        if repos is None:
+            raise click.BadOptionUsage("Need to specify a repository if not using a manifest ID")
+        for repository in repos:
+            object_ids[repository] = []
 
-    size = 0
-    for entity in entities:
-        size += entity["fileCopies"][0]["fileSize"]
-    if not click.confirm("Ok to download {}s of files?".format(file_size(size))):
-        logger.info("User aborted download")
+        for fileid in fileids:
+            entity = api_call(fileid, api_url)
+            entities.append(entity)
+            size += entity["fileCopies"][0]["fileSize"]
+            repository, copy = repository_sort(repos, entity)
+            if repository == 'collaboratory' or repository == 'aws-virginia':
+                object_ids[repository].append(entity["objectId"])
+            else:
+                object_ids[repository].append(entity["dataBundle"]["dataBundleId"])
+
+    free = psutil.disk_usage(output)[2]
+    if free > size and not yes_to_all:
+        if not click.confirm("Ok to download {0}s of files? There is {1}s of free space in {2}".format(file_size(size),
+                                                                                                       file_size(free),
+                                                                                                       output)):
+            logger.info("User aborted download")
         raise click.Abort
-    for entity in entities:
-        repository, copy = match_repositories(repos, entity)
-        if repository is None:
-            logger.error("File {} not found on repositories {}".format(entity["id"], repos))
-            raise click.BadParameter("File {} not found on repositories {}".format(entity["id"], repos))
-        elif repository == 'collaboratory' or repository == 'aws-virginia':
-            object_ids[repository].append(entity["objectId"])
-        else:
-            object_ids[repository].append(entity["dataBundle"]["dataBundleId"])
 
     if 'aws-virginia' in repos:
         if 'aws-virginia' in object_ids and object_ids['aws-virginia']:
