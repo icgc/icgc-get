@@ -20,29 +20,37 @@ import requests
 import logging
 
 
-def get_metadata(file_id, api_url):
+def call_api(request, api_url):
     logger = logging.getLogger("__log__")
-    request = api_url + "files/" + file_id
     try:
         resp = requests.get(request, timeout=0.1)
+    except requests.exceptions.ConnectionError as e:
+        logger.info("Unable to connect to the icgc api at {}.".format(api_url))
+        logger.debug(e.message)
+        raise RuntimeError("Unable to connect to the icgc at {}.".format(api_url))
+    except requests.exceptions.Timeout as e:
+        logger.info("Error: Connection timed out")
+        logger.debug(e.message)
+        raise RuntimeError(e.message)
     except requests.exceptions.RequestException as e:
         logger.info(e.message)
-        raise Exception(e.message)
+        raise RuntimeError(e.message)
     if resp.status_code != 200:
         logger.debug(resp.raw)
         logger.info("API request {} failed with status code {}", request, resp.status_code)
         raise RuntimeError("API request {} failed with status code {}".format(request, resp.status_code))
+    return resp
+
+def get_metadata(file_id, api_url):
+
+    request = api_url + "files/" + file_id
+    resp = call_api(request, api_url)
     datafile = resp.json()
     return datafile
 
 
 def read_entity_set(es_id, api_url):
-    logger = logging.getLogger("__log__")
     request = api_url + 'files?filters={file:{"id":{"is":["' + ''.join(es_id) + '"]}}}&from=1&size=100'
-    resp = requests.get(request)
-    if resp.status_code != 200:
-        logger.debug(resp.raw)
-        logger.info("API request {} failed with status code {}", resp.request, resp.status_code)
-        raise RuntimeError("API request {} failed with status code {}".format(request, resp.status_code))
+    resp = call_api(request, api_url)
     entity_set = resp.json()["hits"]
     return entity_set
