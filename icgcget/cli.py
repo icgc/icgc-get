@@ -98,7 +98,7 @@ def repository_sort(repo, entity):
 
 def api_call(file_id, url):
     try:
-        entity = icgc_api.get_metadata(file_id, url)
+        entity = icgc_api.get_metadata_bulk(file_id, url)
     except RuntimeError:
         raise click.Abort
     if not entity:
@@ -159,42 +159,46 @@ def download(ctx, repos, fileids, manifest, output,
     else:
         api_url = ctx.default_map["portal_url"] + ctx.default_map["portal_api"]
     object_ids = {}
-    if 'ega' in repos:
-        if ega_username is None or ega_password is None:
-            check_access(ega_access, 'ega')
-    if 'collaboratory' in repos or 'aws-virginia' in repos:
-        check_access(icgc_access, 'icgc')
-    if 'cghub' in repos:
-        check_access(cghub_access, 'cghub')
-    if 'gdc' in repos:
-        check_access(gdc_access, 'gdc')
+
     size = 0
     entities = []
     if manifest:
+        if len(fileids) > 1:
+            logger.warning("For download from manifest files, multilple manifest id arguments is not supported")
+            raise click.BadArgumentUsage("Multiple manifest files specified.")
+        if not all(repos):
+            logger.warning("For download from manifest files, there is no need to specify repositories")
+            raise click.BadArgumentUsage("Repositories specified during manifest download")
         try:
-            manifest_json = icgc_api.read_manifest(fileids, api_url)
+            manifest_json = icgc_api.read_manifest(fileids[0], api_url)
         except RuntimeError:
             raise click.Abort
-        for file_info in manifest_json:
+        for file_info in manifest_json["files"]:
             repo = file_info["repo"]
-            fi_id = file_info
-            entity = api_call(fi_id, api_url)
-            entities.append(entity)
-            size += entity["fileCopies"][0]["fileSize"]
-            repository, copy = repository_sort(repo, entity)
-            if repository == 'collaboratory' or repository == 'aws-virginia':
-                object_ids[repository].append(entity["objectId"])
+            object_ids[repo] = []
+            if "fileIds" in file_info:
+                fi_ids = file_info["fileIds"]
             else:
-                object_ids[repository].append(entity["dataBundle"]["dataBundleId"])
+                logger.error("Manifest file must include FileIds to be processed")
+                raise click.Abort
+
+            entities = api_call(fi_ids, api_url)
+            for entity in entities:
+                size += entity["fileCopies"][0]["fileSize"]
+                repository, copy = repository_sort([repo], entity)
+                if repository == 'collaboratory' or repository == 'aws-virginia':
+                    object_ids[repository].append(entity["objectId"])
+                else:
+                    object_ids[repository].append(entity["dataBundle"]["dataBundleId"])
     else:
         if repos is None:
             raise click.BadOptionUsage("Need to specify a repository if not using a manifest ID")
         for repository in repos:
             object_ids[repository] = []
 
-        for fileid in fileids:
-            entity = api_call(fileid, api_url)
-            entities.append(entity)
+
+        entities = api_call(fileids, api_url)
+        for entity in entities:
             size += entity["fileCopies"][0]["fileSize"]
             repository, copy = repository_sort(repos, entity)
             if repository == 'collaboratory' or repository == 'aws-virginia':
@@ -208,49 +212,60 @@ def download(ctx, repos, fileids, manifest, output,
                                                                                                        file_size(free),
                                                                                                        output)):
             logger.info("User aborted download")
+            raise click.Abort
+    elif free <= size:
+        logger.warning("Not enough space detected for download of {0}. {1} of space in {2}".format(file_size(size),
+                                                                                                    file_size(free),
+                                                                                                    output))
         raise click.Abort
 
-    if 'aws-virginia' in repos:
-        if 'aws-virginia' in object_ids and object_ids['aws-virginia']:
-            if len(object_ids['aws-virginia']) > 1:  # Todo-find a workaround for this: dynamic manifest generation?
-                logger.error("The icgc repository does not support input of multiple file id values.")
-                raise click.BadParameter
-            code = icgc_client.icgc_call(object_ids['aws-virginia'], icgc_access, icgc_path, icgc_transport_file_from,
-                                         icgc_transport_parallel, output, 'aws')
+    if 'collaboratory' in object_ids and object_ids['collaboratory']:
+        check_access(icgc_access, 'icgc')
+    if 'aws-virginia' in object_ids and object_ids['aws-virginia']:
+        check_access(icgc_access, 'icgc')
+    if 'cghub' in repos:
+        check_access(cghub_access, 'cghub')
+    if 'gdc' in repos:
+        check_access(gdc_access, 'gdc')
+
+    if 'aws-virginia' in object_ids and object_ids['aws-virginia']:
+        if len(object_ids['aws-virginia']) > 1:  # Todo-find a workaround for this: dynamic manifest generation?
+            logger.error("The icgc repository does not support input of multiple file id values.")
+            raise click.BadParameter
+        code = icgc_client.icgc_call(object_ids['aws-virginia'], icgc_access, icgc_path, icgc_transport_file_from,
+                                     icgc_transport_parallel, output, 'aws')
+        check_code('Icgc', code)
+
+    if 'ega' in object_ids and object_ids['ega']:
+        if 'ega' in repos:
+            if ega_username is None or ega_password is None:
+                check_access(ega_access, 'ega')
+        if len(object_ids['ega']) > 1:  # Todo-find a workaround for this rather than throw errors
+            logger.error("The ega repository does not support input of multiple file id values.")
+            raise click.BadParameter
+        else:
+            if ega_transport_parallel != '1':
+                logger.warning("Parallel streams on the ega client may cause reliability issues and failed " +
+                               "downloads.  This option is not recommended.")
+            code = ega_client.ega_call(object_ids['ega'], ega_username, ega_password, ega_path,
+                                       ega_transport_parallel, ega_udt, output)
+            check_code('Ega', code)
+
+    if 'cghub' in object_ids and object_ids['cghub']:
+        code = gt_client.genetorrent_call(object_ids['cghub'], cghub_access, cghub_path,
+                                          cghub_transport_parallel, output)
+        check_code('Cghub', code)
+
+    if 'collaboratory' in object_ids and object_ids['collaboratory']:
+        if len(object_ids['collaboratory']) > 1:  # Todo-find a workaround for this: ask for extra functionality?
+            logger.error("The icgc repository does not support input of multiple file id values.")
+            raise click.BadParameter
+        else:
+            code = icgc_client.icgc_call(object_ids['collaboratory'], icgc_access, icgc_path,
+                                         icgc_transport_file_from, icgc_transport_parallel, output, 'collab')
             check_code('Icgc', code)
 
-    if 'ega' in repos:
-        if object_ids['ega']:
-            if len(object_ids['ega']) > 1:  # Todo-find a workaround for this rather than throw errors
-                logger.error("The ega repository does not support input of multiple file id values.")
-                raise click.BadParameter
-            else:
-                if ega_transport_parallel != '1':
-                    logger.warning("Parallel streams on the ega client may cause reliability issues and failed " +
-                                   "downloads.  This option is not recommended.")
-                code = ega_client.ega_call(object_ids['ega'], ega_username, ega_password, ega_path,
-                                           ega_transport_parallel, ega_udt, output)
-                check_code('Ega', code)
-
-    if 'cghub' in repos:
-        if object_ids['cghub']:
-            code = gt_client.genetorrent_call(object_ids['cghub'], cghub_access, cghub_path,
-                                              cghub_transport_parallel, output)
-            check_code('Cghub', code)
-
-    if 'collaboratory' in repos:
-        if 'collaboratory' in object_ids and object_ids['collaboratory']:
-            if len(object_ids['collaboratory']) > 1:  # Todo-find a workaround for this: ask for extra functionality?
-                logger.error("The icgc repository does not support input of multiple file id values.")
-                raise click.BadParameter
-            else:
-
-                code = icgc_client.icgc_call(object_ids['collaboratory'], icgc_access, icgc_path,
-                                             icgc_transport_file_from, icgc_transport_parallel, output, 'collab')
-                check_code('Icgc', code)
-
-    if 'gdc' in repos:
-        if object_ids['gdc']:
+    if 'gdc' in object_ids and object_ids['gdc']:
             code = gdc_client.gdc_call(object_ids['gdc'], gdc_access, gdc_path, output, gdc_udt, gdc_transport_parallel)
             check_code('Gdc', code)
 

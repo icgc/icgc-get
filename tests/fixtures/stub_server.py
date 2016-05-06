@@ -6,7 +6,8 @@ from json import dumps
 class ServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
     def do_GET(self):
-        json_dict = parse_id(self.translate_path(path=self.path))
+        requestline = self.requestline
+        json_dict = parse_id(requestline)
         if json_dict == {}:
             self.send_response((400, "Bad Request: File ID does not exist"))
         self.send_response(200)
@@ -51,13 +52,13 @@ def parse_id(path):
         return {"dataBundle": {"dataBundleId": "a6b2f1ff-5c71-493c-b65d-e344ed29b7bb"},
                 'fileCopies': [{'repoCode': 'gdc', 'fileSize': 202180}]}
     elif id == "MAGDC":
-        return [{"repo": "gdc", "fileIds": ["FIGDCID","FIGDCID2","FIGDCID3"]}]
+        return {"files":[{"repo": "gdc", "fileIds": ["FIGDCID","FIGDCID2","FIGDCID3"]}]}
     elif id == "MAEGA":
-        return [{"repo": "ega", "fileIds": ["FIEGAID"]}]
+        return {"files":[{"repo": "ega", "fileIds": ["FIEGAID"]}]}
     elif id == "MAICGC":
-        return [{"repo": "collaboratory", "fileIds": ["FI250134"]}]
+        return {"files":[{"repo": "collaboratory", "fileIds": ["FI250134"]}]}
     elif id == "MACGHUB":
-        return [{"repo": "gdc", "fileIds": ["FI99996", "FI99994", "FI99990"]}]
+        return {"files":[{"repo": "gdc", "fileIds": ["FI99996", "FI99994", "FI99990"]}]}
     else:
         return {}
 

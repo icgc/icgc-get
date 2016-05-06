@@ -82,3 +82,18 @@ def download_test(file_id, repo, file_names, sizes, conf, data):
         result = file_test(file_info, sizes[i])
         if not result:
             assert file_test(file_info, sizes[i])  # File was not of the expected file size
+
+
+def download_manifest(manifest_id, file_names, sizes, conf, data):
+    runner = CliRunner()
+    start_server()
+    args = ['--config', conf, 'download', manifest_id, '-m', '--output', data, '-y']
+    runner.env = dict(os.environ, ICGCGET_API_URL="http://127.0.0.1:8000/")
+    rc = runner.invoke(cli.cli, args)
+    if rc.exit_code != 0:
+        assert rc == 0  # An error occurred during the download attempt
+    for i in range(len(file_names)):
+        file_info = get_info(data, file_names[i])
+        result = file_test(file_info, sizes[i])
+        if not result:
+            assert file_test(file_info, sizes[i])  # File was not of the expected file size

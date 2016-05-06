@@ -17,7 +17,7 @@
 #
 
 
-from conftest import download_test
+from conftest import download_test, download_manifest
 
 
 def test_gdc(config, data_dir):
@@ -30,3 +30,11 @@ def test_gdc_double(config, data_dir):
     file_names = ['2c759eb8-7ee0-43f5-a008-de4317ab8c70/14-3-3_beta-R-V_GBL11066140.tif',
                   'a6b2f1ff-5c71-493c-b65d-e344ed29b7bb/14-3-3_beta-R-V_GBL11066140.txt']
     download_test(['FIGDCID2', 'FIGDCID2'], 'gdc', file_names, [6261580, 1399430], config, data_dir)
+
+
+def test_gdc_manifest(config, data_dir):
+    file_names = ['f483ad78-b092-4d10-9afb-eccacec9d9dc/TCGA-CH-5763-01A-11D-1572-02_AC1JWAACXX' +
+                 '---TCGA-CH-5763-11A-01D-1572-02_AC1JWAACXX---Segment.tsv'
+                 '2c759eb8-7ee0-43f5-a008-de4317ab8c70/14-3-3_beta-R-V_GBL11066140.tif',
+                 'a6b2f1ff-5c71-493c-b65d-e344ed29b7bb/14-3-3_beta-R-V_GBL11066140.txt']
+    download_manifest("MAGDC", file_names, [1483, 6261580, 1399430], config, data_dir)

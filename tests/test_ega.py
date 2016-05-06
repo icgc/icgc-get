@@ -16,9 +16,12 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from conftest import download_test
+from conftest import download_test, download_manifest
 
 
 def test_ega_file(config, data_dir):
-    data = data_dir
-    download_test(['FIEGAID'], 'ega', ['_methylationCEL_CLL-174.CEL'], [5556766], config, data)
+    download_test(['FIEGAID'], 'ega', ['_methylationCEL_CLL-174.CEL'], [5556766], config, data_dir)
+
+
+def test_ega_manifest(config, data_dir):
+    download_manifest("MAEGA", ['_methylationCEL_CLL-174.CEL'], [5556766], config, data_dir)
