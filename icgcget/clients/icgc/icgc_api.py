@@ -42,14 +42,6 @@ def call_api(request, api_url):
     return resp
 
 
-def get_metadata(file_id, api_url):
-
-    request = api_url + "repository/files/" + file_id
-    resp = call_api(request, api_url)
-    datafile = resp.json()
-    return datafile
-
-
 def read_manifest(manifest_id, api_url):
 
     request = api_url + 'manifests/' + manifest_id + '?render=true'
