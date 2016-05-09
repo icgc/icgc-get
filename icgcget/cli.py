@@ -187,16 +187,23 @@ def download(ctx, repos, fileids, manifest, output,
             manifest_json = icgc_api.read_manifest(fileids[0], api_url)
         except RuntimeError:
             raise click.Abort
-        if manifest_json["unique"] or len(manifest_json["entries"]) == 1:
+        if not manifest_json["unique"] or len(manifest_json["entries"]) != 1:
+            fi_ids = []
             for repo_info in manifest_json["entries"]:
-                repo = repo_info["repo"]
-                object_ids[repo] = b64decode(repo_info["content"])
-                for file_info in repo_info["files"]:
-                    size += file_info["size"]
-        else:
-            logger.error("Supplied manifest does not have unique file identifiers.  Please specify a manifest with " +
-                         "prioritized repositories")
-            raise click.Abort
+                if repo_info["repo"] in REPOS:
+                    for file_info in repo_info["files"]:
+                        if file_info["id"] in fi_ids:
+                            logger.error("Supplied manifest has repeated file identifiers.  Please specify a " +
+                                         "manifest with prioritized repositories")
+                            raise click.Abort
+                        else:
+                            fi_ids.append(file_info["id"])
+
+        for repo_info in manifest_json["entries"]:
+            repo = repo_info["repo"]
+            object_ids[repo] = b64decode(repo_info["content"])
+            for file_info in repo_info["files"]:
+                size += file_info["size"]
         size_check(size, yes_to_all, output)
 
     else:
