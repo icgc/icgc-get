@@ -19,6 +19,7 @@
 import os
 
 from ..run_command import run_command
+import tempfile
 
 
 def icgc_call(object_id, token, tool_path, file_from, parallel, output, repo):
@@ -34,6 +35,9 @@ def icgc_manifest_call(manifest, token, tool_path, file_from, parallel, output, 
     os.environ['TRANSPORT_PARALLEL'] = parallel
     if file_from is not None:
         os.environ['TRANSPORT_FILEFROM'] = file_from
-    call_args = [tool_path, '--profile', repo, 'download', '--manifest', manifest, '--output-dir', output]
+    t = tempfile.NamedTemporaryFile()
+    t.write(manifest)
+    t.seek(0)
+    call_args = [tool_path, '--profile', repo, 'download', '--manifest', t.name, '--output-dir', output]
     code = run_command(call_args)
     return code

@@ -40,7 +40,5 @@ def run_command(args, env=None):
             break
         if output:
             logger.info(output.strip())
-        else:
-            logger.info("dead_timey")
     rc = process.poll()
     return rc

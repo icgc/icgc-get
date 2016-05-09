@@ -44,7 +44,7 @@ def call_api(request, api_url):
 
 def read_manifest(manifest_id, api_url):
 
-    request = api_url + 'manifests/' + manifest_id + '?render=true'
+    request = api_url + 'manifests/' + manifest_id + '?fields=id,size,content'
     resp = call_api(request, api_url)
     entity_set = resp.json()
     return entity_set
@@ -54,7 +54,7 @@ def get_metadata_bulk(file_ids, api_url):
 
     entity_set = []
     request = api_url + 'repository/files?filters={"file":{"id":{"is":["' + '","'.join(file_ids) + \
-              '"]}}}&&from=1&size=10&sort=id&order=desc'
+                        '"]}}}&&from=1&size=10&sort=id&order=desc'
     resp = call_api(request, api_url)
     entity_set.extend(resp.json()["hits"])
     pages = resp.json()["pagination"]["pages"]

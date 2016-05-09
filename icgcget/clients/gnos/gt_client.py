@@ -15,8 +15,8 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 from ..run_command import run_command
+import tempfile
 
 
 def genetorrent_call(uuid, token, tool_path, children, output):
@@ -28,6 +28,9 @@ def genetorrent_call(uuid, token, tool_path, children, output):
 
 
 def genetorrent_manifest_call(manifest, token, tool_path, children, output):
-    call_args = [tool_path, '-vv', '--max-children', children, '-c', token, '-d', manifest, '-p', output]
+    t = tempfile.NamedTemporaryFile()
+    t.write(manifest)
+    t.seek(0)
+    call_args = [tool_path, '-vv', '--max-children', children, '-c', token, '-d', t.name, '-p', output]
     code = run_command(call_args)
     return code
