@@ -24,7 +24,9 @@ import tempfile
 
 def icgc_call(object_id, token, tool_path, file_from, parallel, output, repo):
     env = dict(os.environ, ACCESSTOKEN=token, TRANSPORT_PARALLEL=parallel, TRANSPORT_FILEFROM=file_from)
-    call_args = [tool_path, '--profile', repo, 'download', '--object-id', ''.join(object_id), '--output-dir', output]
+    call_args = [tool_path, '-profile',  repo,  'download', '--object-id']
+    call_args.extend(object_id)
+    call_args.extend(['--output-dir', output])
     # object id is passed as a single element list to support multiple id's on other clients.
     code = run_command(call_args, env)
     return code
