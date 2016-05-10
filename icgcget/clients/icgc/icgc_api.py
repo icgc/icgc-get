@@ -27,7 +27,7 @@ def call_api(request, api_url):
     except requests.exceptions.ConnectionError as e:
         logger.info("Unable to connect to the icgc api at {}.".format(api_url))
         logger.debug(e.message)
-        raise RuntimeError("Unable to connect to the icgc at {}.".format(api_url))
+        raise RuntimeError("Unable to connect to the icgc api at {}".format(api_url))
     except requests.exceptions.Timeout as e:
         logger.info("Error: Connection timed out")
         logger.debug(e.message)

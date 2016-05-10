@@ -26,8 +26,8 @@ def run():
 
 
 def parse_id(path):
-    ids = re.findall(r'FI250134', path)
-    uuids = re.search(r'\\w{8,8}(-\\w{4,4}){3,3}-\\w{12,12}', path)
+    ids = re.findall(r'FI\d*', path)
+    uuids = re.findall(r'\w{8,8}-\w{4,4}-\w{4,4}-\w{4,4}-\w{12,12}', path)
     if ids:
         resp = {"hits": [], "pagination": {"pages": 1}}
         if "FI250134" in ids:

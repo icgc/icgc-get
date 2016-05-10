@@ -15,7 +15,7 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
+import tempfile
 from ..run_command import run_command
 
 
@@ -32,7 +32,10 @@ def gdc_call(uuid, token, tool_path, output, udt, processes):
 
 
 def gdc_manifest_call(manifest, token, tool_path, output, udt, processes):
-    call_args = [tool_path, 'download', '-m', manifest, '--dir', output, '-n', processes]
+    t = tempfile.NamedTemporaryFile()
+    t.write(manifest)
+    t.seek(0)
+    call_args = [tool_path, 'download', '-m', t.Name, '--dir', output, '-n', processes]
     if token is not None:  # Enables download of unsecured gdc data
         call_args.extend(['-t', token])
     if udt:
