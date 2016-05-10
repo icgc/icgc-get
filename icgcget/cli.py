@@ -18,7 +18,7 @@
 
 import logging
 import os
-
+from tabulate import tabulate
 import click
 import yaml
 import psutil
@@ -49,7 +49,7 @@ def config_parse(filename):
     try:
         config_temp = yaml.safe_load(config_text)
         config_download = flatten_dict(normalize_keys(config_temp))
-        config = {'download': config_download, 'logfile': config_temp['logfile']}
+        config = {'download': config_download, 'dryrun': config_download, 'logfile': config_temp['logfile']}
     except yaml.YAMLError:
 
         print("Could not read config file {}".format(filename))
@@ -274,6 +274,81 @@ def download(ctx, repos, fileids, manifest, output,
         else:
             code = gdc_client.gdc_call(object_ids['gdc'], gdc_access, gdc_path, output, gdc_udt, gdc_transport_parallel)
         check_code('Gdc', code)
+
+
+@cli.command()
+@click.argument('fileids', nargs=-1, required=True)
+@click.option('--repos', '-r', type=click.Choice(REPOS), multiple=True)
+@click.option('--manifest', '-m', is_flag=True, default=False)
+@click.option('--cghub-access', type=click.STRING)
+@click.option('--ega-access', type=click.STRING)
+@click.option('--ega-username', type=click.STRING)
+@click.option('--ega-password', type=click.STRING)
+@click.option('--gdc-access', type=click.STRING)
+@click.option('--icgc-access', type=click.STRING)
+@click.pass_context
+def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_access, ega_username, ega_password, gdc_access,
+           icgc_access):
+
+    if os.getenv("ICGCGET_API_URL"):
+        api_url = os.getenv("ICGCGET_API_URL")
+    else:
+        api_url = ctx.default_map["portal_url"] + ctx.default_map["portal_api"]
+    total_size = 0
+    table = [["", "Size"]]
+    if manifest:
+        if len(fileids) > 1:
+            logger.warning("For download from manifest files, multiple manifest id arguments is not supported")
+            raise click.BadArgumentUsage("Multiple manifest files specified.")
+        if not all(repos):
+            logger.warning("For download from manifest files, there is no need to specify repositories")
+            raise click.BadArgumentUsage("Repositories specified during manifest download")
+        try:
+            manifest_json = icgc_api.read_manifest(fileids[0], api_url)
+        except RuntimeError:
+            raise click.Abort
+        if not manifest_json["unique"] or len(manifest_json["entries"]) != 1:
+            fi_ids = []
+            for repo_info in manifest_json["entries"]:
+                if repo_info["repo"] in REPOS:
+                    for file_info in repo_info["files"]:
+                        if file_info["id"] in fi_ids:
+                            logger.error("Supplied manifest has repeated file identifiers.  Please specify a " +
+                                         "manifest with prioritized repositories")
+                            raise click.Abort
+                        else:
+                            fi_ids.append(file_info["id"])
+
+        for repo_info in manifest_json["entries"]:
+            repo = repo_info["repo"]
+            repo_size = 0
+            for file_info in repo_info["files"]:
+                size = file_info["size"]
+                repo_size += size
+                total_size += size
+                table.append([file_info["id"], file_size(size)])
+
+            table.append([repo, file_size(repo_size)])
+
+    else:
+        repo_sizes = {}
+        if repos:
+            for repository in repos:
+                repo_sizes[repository] = 0
+        total_size = 0
+        entities = api_call(fileids, api_url)
+        for entity in entities:
+            size = entity["fileCopies"][0]["fileSize"]
+            total_size += size
+            table.append([entity["id"], file_size(size)])
+
+            if repos:
+                repository, copy = repository_sort(repos, entity)
+                repo_sizes[repository] += size
+        for repo in repo_sizes:
+            table.append([repo, file_size(repo_sizes[repo])])
+    table.append(["Total Size", file_size(total_size)])
+    logger.info(tabulate(table, headers="firstrow", tablefmt="fancy_grid"))
 
 
 def main():

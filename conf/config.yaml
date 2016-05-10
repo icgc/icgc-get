@@ -25,8 +25,8 @@ output:
 repos:
 
 portal:
-  url: https://staging.dcc.icgc.org
-  api: /api/v1/repository/
+  url: https://dev.dcc.icgc.org
+  api: /api/v1/
 # IGCC Storage
 icgc:
   access:

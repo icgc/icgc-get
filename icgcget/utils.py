@@ -19,6 +19,7 @@
 import collections
 import logging
 
+
 def flatten_dict(d, parent_key='', sep='_'):
     items = []
     for k, v in d.items():

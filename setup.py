@@ -24,7 +24,7 @@ setup(name='icgcget',
       description='Universal download client for ICGC data residing in various environments',
       url="https://github.com/icgc/icgc-get",
       packages=find_packages(exclude=['tests']),
-      install_requires=['PyYaml', 'logging', 'click', 'requests', 'psutil'],
+      install_requires=['PyYaml', 'logging', 'click', 'requests', 'psutil', 'tabulate'],
       setup_requires=['pytest-runner'],
       tests_require=['pytest'],
       entry_points={
