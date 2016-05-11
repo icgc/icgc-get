@@ -18,6 +18,7 @@
 import tempfile
 from ..run_command import run_command
 from ..icgc.icgc_api import call_api
+from requests import HTTPError
 
 
 def gdc_call(uuid, token, tool_path, output, udt, processes):
@@ -45,7 +46,14 @@ def gdc_manifest_call(manifest, token, tool_path, output, udt, processes):
     return code
 
 
-def gdc_access_check(token):
-    request = 'https://gdc-api.nci.nih.gov/v0/manifest/'
+def gdc_access_check(token, uuids):
+    request = 'https://gdc-api.nci.nih.gov/data/' + ','.join(uuids)
     header = {'X-auth-Token': token}
-    resp = call_api(request, 'https://gdc-api.nci.nih.gov/v0/', header)
+    try:
+        resp = call_api(request, 'https://gdc-api.nci.nih.gov/v0/', header, head=True)
+        return True
+    except HTTPError as e:
+        if e.message == 403:
+            return False
+        else:
+            raise RuntimeError

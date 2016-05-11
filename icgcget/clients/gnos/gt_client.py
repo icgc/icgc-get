@@ -34,3 +34,6 @@ def genetorrent_manifest_call(manifest, token, tool_path, children, output):
     call_args = [tool_path, '-vv', '--max-children', children, '-c', token, '-d', t.name, '-p', output]
     code = run_command(call_args)
     return code
+
+
+

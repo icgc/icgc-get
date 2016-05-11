@@ -50,6 +50,6 @@ def match_repositories(repos, copies):
     for repository in repos:
         for copy in copies["fileCopies"]:
             if repository == copy["repoCode"]:
-                return repository, copy
+                return repository
     else:
         raise RuntimeError("File {} not found on repositories {}".format(copies["id"], repos))

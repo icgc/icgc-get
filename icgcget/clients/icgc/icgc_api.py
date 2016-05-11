@@ -20,10 +20,13 @@ import requests
 import logging
 
 
-def call_api(request, api_url, headers=None):
+def call_api(request, api_url, headers=None, head=False):
     logger = logging.getLogger("__log__")
     try:
-        resp = requests.get(request, headers=headers)
+        if head:
+            resp = requests.head(request, headers=headers)
+        else:
+            resp = requests.get(request, headers=headers)
     except requests.exceptions.ConnectionError as e:
         logger.info("Unable to connect to the icgc api at {}.".format(api_url))
         logger.debug(e.message)
@@ -36,9 +39,8 @@ def call_api(request, api_url, headers=None):
         logger.info(e.message)
         raise RuntimeError(e.message)
     if resp.status_code != 200:
-        logger.debug(resp.raw)
-        logger.info("API request {} failed with status code {}", request, resp.status_code)
-        raise RuntimeError("API request {} failed with status code {}".format(request, resp.status_code))
+        logger.warning("API request failed due to {} error.\n  {} ".format(resp.reason, resp.text))
+        raise requests.HTTPError(resp.status_code)
     return resp.json()
 
 

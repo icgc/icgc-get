@@ -90,11 +90,11 @@ def check_access(access, name):
 
 def repository_sort(repo, entity):
     try:
-        repository, copy = match_repositories(repo, entity)
+        repository = match_repositories(repo, entity)
     except RuntimeError:
         logger.error("File {} not found on repositories {}".format(entity["id"], repo))
         raise click.BadParameter("File {} not found on repositories {}".format(entity["id"], repo))
-    return repository, copy
+    return repository
 
 
 def api_call(file_id, url):
@@ -127,6 +127,7 @@ def access_response(result, repo):
         logger.info("Valid access to the " + repo)
     else:
         logger.info("Invalid access to the " + repo)
+
 
 @click.group()
 @click.option('--config', default=DEFAULT_CONFIG_FILE)
@@ -222,7 +223,7 @@ def download(ctx, repos, fileids, manifest, output,
         entities = api_call(fileids, api_url)
         for entity in entities:
             size += entity["fileCopies"][0]["fileSize"]
-            repository, copy = repository_sort(repos, entity)
+            repository = repository_sort(repos, entity)
             if repository == 'collaboratory' or repository == 'aws-virginia':
                 object_ids[repository].append(entity["objectId"])
             else:
@@ -298,6 +299,8 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_access, ega_username
            icgc_access):
 
     repo_list = []
+    gdc_ids = []
+    cghub_ids = []
     if os.getenv("ICGCGET_API_URL"):
         api_url = os.getenv("ICGCGET_API_URL")
     else:
@@ -351,7 +354,11 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_access, ega_username
             size = entity["fileCopies"][0]["fileSize"]
             total_size += size
             table.append([entity["id"], file_size(size)])
-            repository, copy = repository_sort(repos, entity)
+            repository = repository_sort(repos, entity)
+            if repository == "gdc":
+                gdc_ids.append(entity["dataBundle"]["dataBundleId"])
+            elif repository == "cghub":
+                cghub_ids.append(entity["dataBundle"]["dataBundleId"])
             repo_sizes[repository] += size
         for repo in repo_sizes:
             table.append([repo, file_size(repo_sizes[repo])])
@@ -366,7 +373,7 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_access, ega_username
     if 'ega' in repo_list:
         access_response(ega_client.ega_access_check(ega_username, ega_password), "ega.")
     if 'gdc' in repo_list:
-        access_response(gdc_client.gdc_access_check(gdc_access), "gdc.")
+        access_response(gdc_client.gdc_access_check(gdc_access, gdc_ids), "gdc.")
 
 
 def main():
