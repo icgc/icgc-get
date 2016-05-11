@@ -20,10 +20,10 @@ import requests
 import logging
 
 
-def call_api(request, api_url):
+def call_api(request, api_url, headers=None):
     logger = logging.getLogger("__log__")
     try:
-        resp = requests.get(request)
+        resp = requests.get(request, headers=headers)
     except requests.exceptions.ConnectionError as e:
         logger.info("Unable to connect to the icgc api at {}.".format(api_url))
         logger.debug(e.message)
@@ -39,14 +39,13 @@ def call_api(request, api_url):
         logger.debug(resp.raw)
         logger.info("API request {} failed with status code {}", request, resp.status_code)
         raise RuntimeError("API request {} failed with status code {}".format(request, resp.status_code))
-    return resp
+    return resp.json()
 
 
 def read_manifest(manifest_id, api_url):
 
     request = api_url + 'manifests/' + manifest_id + '?fields=id,size,content'
-    resp = call_api(request, api_url)
-    entity_set = resp.json()
+    entity_set = call_api(request, api_url)
     return entity_set
 
 
@@ -56,13 +55,13 @@ def get_metadata_bulk(file_ids, api_url):
     request = api_url + 'repository/files?filters={"file":{"id":{"is":["' + '","'.join(file_ids) + \
                         '"]}}}&&from=1&size=10&sort=id&order=desc'
     resp = call_api(request, api_url)
-    entity_set.extend(resp.json()["hits"])
-    pages = resp.json()["pagination"]["pages"]
+    entity_set.extend(resp["hits"])
+    pages = resp["pagination"]["pages"]
     page = 1
     while page < pages:
         request = api_url + 'files?filters={"file":{"id":{"is":["' + '","'.join(file_ids) + \
                   '"]}}}&&from={}&size=10&sort=id&order=desc'.format(page*10 + 1)
         resp = call_api(request, api_url)
-        entity_set.append(resp.json()["hits"])
-        page = resp.json()["pagination"]["pages"]
+        entity_set.append(resp["hits"])
+        page = resp["pagination"]["pages"]
     return entity_set

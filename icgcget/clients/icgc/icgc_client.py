@@ -20,6 +20,7 @@ import os
 
 from ..run_command import run_command
 import tempfile
+from icgc_api import call_api
 
 
 def icgc_call(object_id, token, tool_path, file_from, parallel, output, repo):
@@ -43,3 +44,10 @@ def icgc_manifest_call(manifest, token, tool_path, file_from, parallel, output, 
     call_args = [tool_path, '--profile', repo, 'download', '--manifest', t.name, '--output-dir', output]
     code = run_command(call_args)
     return code
+
+
+def icgc_access_check(token, repo, api_url):
+    request = api_url + 'settings/tokens/' + token
+    resp = call_api(request, api_url)
+    match = repo + ".download"
+    return match in resp["scope"]

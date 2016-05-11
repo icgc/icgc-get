@@ -17,6 +17,7 @@
 #
 import tempfile
 from ..run_command import run_command
+from ..icgc.icgc_api import call_api
 
 
 def gdc_call(uuid, token, tool_path, output, udt, processes):
@@ -42,3 +43,9 @@ def gdc_manifest_call(manifest, token, tool_path, output, udt, processes):
         call_args.append('--udt')
     code = run_command(call_args)
     return code
+
+
+def gdc_access_check(token):
+    request = 'https://gdc-api.nci.nih.gov/v0/manifest/'
+    header = {'X-auth-Token': token}
+    resp = call_api(request, 'https://gdc-api.nci.nih.gov/v0/', header)

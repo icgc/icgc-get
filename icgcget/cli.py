@@ -121,6 +121,13 @@ def size_check(size, override, output):
                                                                                                    output))
         raise click.Abort
 
+
+def access_response(result, repo):
+    if result:
+        logger.info("Valid access to the " + repo)
+    else:
+        logger.info("Invalid access to the " + repo)
+
 @click.group()
 @click.option('--config', default=DEFAULT_CONFIG_FILE)
 @click.option('--logfile', default=None)
@@ -278,7 +285,7 @@ def download(ctx, repos, fileids, manifest, output,
 
 @cli.command()
 @click.argument('fileids', nargs=-1, required=True)
-@click.option('--repos', '-r', type=click.Choice(REPOS), multiple=True)
+@click.option('--repos', '-r', type=click.Choice(REPOS),  multiple=True)
 @click.option('--manifest', '-m', is_flag=True, default=False)
 @click.option('--cghub-access', type=click.STRING)
 @click.option('--ega-access', type=click.STRING)
@@ -290,6 +297,7 @@ def download(ctx, repos, fileids, manifest, output,
 def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_access, ega_username, ega_password, gdc_access,
            icgc_access):
 
+    repo_list = []
     if os.getenv("ICGCGET_API_URL"):
         api_url = os.getenv("ICGCGET_API_URL")
     else:
@@ -321,6 +329,7 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_access, ega_username
 
         for repo_info in manifest_json["entries"]:
             repo = repo_info["repo"]
+            repo_list.append(repo)
             repo_size = 0
             for file_info in repo_info["files"]:
                 size = file_info["size"]
@@ -332,23 +341,32 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_access, ega_username
 
     else:
         repo_sizes = {}
-        if repos:
-            for repository in repos:
-                repo_sizes[repository] = 0
+        if not repos:
+            raise click.BadOptionUsage("Must include repositories if not specifying a manifest fil")
+        for repository in repos:
+            repo_sizes[repository] = 0
         total_size = 0
         entities = api_call(fileids, api_url)
         for entity in entities:
             size = entity["fileCopies"][0]["fileSize"]
             total_size += size
             table.append([entity["id"], file_size(size)])
-
-            if repos:
-                repository, copy = repository_sort(repos, entity)
-                repo_sizes[repository] += size
+            repository, copy = repository_sort(repos, entity)
+            repo_sizes[repository] += size
         for repo in repo_sizes:
             table.append([repo, file_size(repo_sizes[repo])])
+            repo_list.append(repo)
     table.append(["Total Size", file_size(total_size)])
     logger.info(tabulate(table, headers="firstrow", tablefmt="fancy_grid"))
+
+    if "collaboratory" in repo_list:
+        access_response(icgc_client.icgc_access_check(icgc_access, "collab", api_url), "Collaboratory.")
+    if "aws-virginia" in repo_list:
+        access_response(icgc_client.icgc_access_check(icgc_access, "aws", api_url), "Amazon Web server.")
+    if 'ega' in repo_list:
+        access_response(ega_client.ega_access_check(ega_username, ega_password), "ega.")
+    if 'gdc' in repo_list:
+        access_response(gdc_client.gdc_access_check(gdc_access), "gdc.")
 
 
 def main():
