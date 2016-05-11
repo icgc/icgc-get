@@ -24,6 +24,7 @@ from string import ascii_uppercase, digits
 from urllib import quote
 from ..run_command import run_command
 from ..icgc.icgc_api import call_api
+from requests import HTTPError
 
 
 def ega_call(object_id, username, password, tool_path, parallel, udt, download_dir):
@@ -66,7 +67,7 @@ def ega_access_check(username, password):
     request = "https://ega.ebi.ac.uk/ega/rest/access/v2/users/" + quote(username) + "?pass=" + quote(password)
     try:
         resp = call_api(request, "https://ega.ebi.ac.uk/ega/rest/")
-    except RuntimeError:
+    except HTTPError:
         return False
     if resp["header"]["userMessage"] == "OK":
         session_id = resp["response"]["result"][1]
@@ -74,7 +75,7 @@ def ega_access_check(username, password):
         try:
             resp2 = call_api(request2, "https://ega.ebi.ac.uk/ega/rest/")
             data_sets = resp2["response"]["result"]
-        except RuntimeError:
+        except HTTPError:
             return False
         if "EGAD00001000023" in data_sets and "EGAD00010000562" in data_sets:
             return True
