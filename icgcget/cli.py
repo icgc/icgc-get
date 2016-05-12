@@ -160,7 +160,6 @@ def cli(ctx, config, logfile):
 @click.option('--cghub-access', type=click.STRING)
 @click.option('--cghub-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--cghub-transport-parallel', type=click.STRING)
-@click.option('--ega-access', type=click.STRING)
 @click.option('--ega-password', type=click.STRING)
 @click.option('--ega-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--ega-transport-parallel', type=click.STRING)
@@ -178,7 +177,7 @@ def cli(ctx, config, logfile):
 @click.pass_context
 def download(ctx, repos, fileids, manifest, output,
              cghub_access, cghub_path, cghub_transport_parallel,
-             ega_access, ega_password, ega_path, ega_transport_parallel, ega_udt, ega_username,
+             ega_password, ega_path, ega_transport_parallel, ega_udt, ega_username,
              gdc_access, gdc_path, gdc_transport_parallel, gdc_udt,
              icgc_access, icgc_path, icgc_transport_file_from, icgc_transport_parallel, yes_to_all):
     if os.getenv("ICGCGET_API_URL"):
@@ -246,7 +245,7 @@ def download(ctx, repos, fileids, manifest, output,
 
     if 'ega' in object_ids and object_ids['ega']:
         if ega_username is None or ega_password is None:
-            check_access(ega_access, 'ega')
+            check_access(None, 'ega')
         if len(object_ids['ega']) > 1:  # Todo-find a workaround for this rather than throw errors
             logger.error("The ega repository does not support input of multiple file id values.")
             raise click.BadParameter
@@ -293,13 +292,12 @@ def download(ctx, repos, fileids, manifest, output,
 @click.option('--repos', '-r', type=click.Choice(REPOS),  multiple=True)
 @click.option('--manifest', '-m', is_flag=True, default=False)
 @click.option('--cghub-access', type=click.STRING)
-@click.option('--ega-access', type=click.STRING)
 @click.option('--ega-username', type=click.STRING)
 @click.option('--ega-password', type=click.STRING)
 @click.option('--gdc-access', type=click.STRING)
 @click.option('--icgc-access', type=click.STRING)
 @click.pass_context
-def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_access, ega_username, ega_password, gdc_access,
+def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_username, ega_password, gdc_access,
            icgc_access):
 
     repo_list = []
@@ -374,13 +372,22 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_access, ega_username
     logger.info(tabulate(table, headers="firstrow", tablefmt="fancy_grid", numalign="right"))
 
     if "collaboratory" in repo_list:
+        check_access(icgc_access, "icgc")
         access_response(icgc_client.icgc_access_check(icgc_access, "collab", api_url), "Collaboratory.")
     if "aws-virginia" in repo_list:
+        check_access(icgc_access, "icgc")
         access_response(icgc_client.icgc_access_check(icgc_access, "aws", api_url), "Amazon Web server.")
     if 'ega' in repo_list:
-        access_response(ega_client.ega_access_check(ega_username, ega_password), "ega.")
+        if ega_username is None or ega_password is None:
+            check_access(None, 'ega')
+            access_response(ega_client.ega_access_check(ega_username, ega_password), "ega.")
+        else:
+            access_response(ega_client.ega_access_check(ega_username, ega_password), "ega.")
     if 'gdc' in repo_list and gdc_ids:  # We don't get general access credentials to gdc, can't check without files.
+        check_access(gdc_access, 'gdc')
         access_response(gdc_client.gdc_access_check(gdc_access, gdc_ids), "gdc files specified.")
+    if 'cghub' in repo_list:
+        check_access(cghub_access, 'cghub')
 
 
 def main():
