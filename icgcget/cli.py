@@ -110,14 +110,18 @@ def api_call(file_id, url):
 def size_check(size, override, output):
     free = psutil.disk_usage(output)[2]
     if free > size and not override:
-        if not click.confirm("Ok to download {0}s of files? There is {1}s of free space in {2}".format(file_size(size),
-                                                                                                       file_size(free),
+        if not click.confirm("Ok to download {0}s of files? There is {1}s of free space in {2}".format(''.join(
+                                                                                                       file_size(size)),
+                                                                                                       ''.join(
+                                                                                                       file_size(free)),
                                                                                                        output)):
             logger.info("User aborted download")
             raise click.Abort
     elif free <= size:
-        logger.warning("Not enough space detected for download of {0}. {1} of space in {2}".format(file_size(size),
-                                                                                                   file_size(free),
+        logger.warning("Not enough space detected for download of {0}. {1} of space in {2}".format(''.join(
+                                                                                                   file_size(size)),
+                                                                                                   ''.join(
+                                                                                                   file_size(free)),
                                                                                                    output))
         raise click.Abort
 
@@ -306,7 +310,7 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_access, ega_username
     else:
         api_url = ctx.default_map["portal_url"] + ctx.default_map["portal_api"]
     total_size = 0
-    table = [["", "Size", "Repo"]]
+    table = [["", "Size", "Unit", "Repo"]]
     if manifest:
         if len(fileids) > 1:
             logger.warning("For download from manifest files, multiple manifest id arguments is not supported")
@@ -337,9 +341,10 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_access, ega_username
                 size = file_info["size"]
                 repo_size += size
                 total_size += size
-                table.append([file_info["id"], file_size(size), repo])
-
-            table.append([repo, file_size(repo_size), ""])
+                filesize = file_size(size)
+                table.append([file_info["id"], filesize[0], filesize[1], repo])
+            filesize = file_size(repo_size)
+            table.append([repo, filesize[0], filesize[1], ""])
 
     else:
         repo_sizes = {}
@@ -353,17 +358,20 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_access, ega_username
             size = entity["fileCopies"][0]["fileSize"]
             total_size += size
             repository = repository_sort(repos, entity)
-            table.append([entity["id"], file_size(size), repository])
+            filesize = file_size(size)
+            table.append([entity["id"], filesize[0], filesize[1], repository])
             if repository == "gdc":
                 gdc_ids.append(entity["dataBundle"]["dataBundleId"])
             elif repository == "cghub":
                 cghub_ids.append(entity["dataBundle"]["dataBundleId"])
             repo_sizes[repository] += size
         for repo in repo_sizes:
-            table.append([repo, file_size(repo_sizes[repo]), ''])
+            filesize = file_size(repo_sizes[repo])
+            table.append([repo, filesize[0], filesize[1], ''])
             repo_list.append(repo)
-    table.append(["Total Size", file_size(total_size), ""])
-    logger.info(tabulate(table, headers="firstrow", tablefmt="fancy_grid"))
+    filesize = file_size(total_size)
+    table.append(["Total Size", filesize[0], filesize[1], ""])
+    logger.info(tabulate(table, headers="firstrow", tablefmt="fancy_grid", numalign="right"))
 
     if "collaboratory" in repo_list:
         access_response(icgc_client.icgc_access_check(icgc_access, "collab", api_url), "Collaboratory.")
