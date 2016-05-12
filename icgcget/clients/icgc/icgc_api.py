@@ -44,9 +44,13 @@ def call_api(request, api_url, headers=None, head=False):
     return resp.json()
 
 
-def read_manifest(manifest_id, api_url):
+def read_manifest(manifest_id, api_url, repos=None):
 
-    request = api_url + 'manifests/' + manifest_id + '?fields=id,size,content'
+    if repos:
+        request = api_url + 'manifests/' + manifest_id + '?repos=' + ','.join(repos) + \
+                  '&unique=true&fields=id,size,content'
+    else:
+        request = api_url + 'manifests/' + manifest_id + '?fields=id,size,content'
     entity_set = call_api(request, api_url)
     return entity_set
 

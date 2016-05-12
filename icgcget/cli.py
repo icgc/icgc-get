@@ -192,7 +192,7 @@ def download(ctx, repos, fileids, manifest, output,
             logger.warning("For download from manifest files, there is no need to specify repositories")
             raise click.BadArgumentUsage("Repositories specified during manifest download")
         try:
-            manifest_json = icgc_api.read_manifest(fileids[0], api_url)
+            manifest_json = icgc_api.read_manifest(fileids[0], api_url, repos)
         except RuntimeError:
             raise click.Abort
         if not manifest_json["unique"] or len(manifest_json["entries"]) != 1:
@@ -202,7 +202,7 @@ def download(ctx, repos, fileids, manifest, output,
                     for file_info in repo_info["files"]:
                         if file_info["id"] in fi_ids:
                             logger.error("Supplied manifest has repeated file identifiers.  Please specify a " +
-                                         "manifest with prioritized repositories")
+                                         "")
                             raise click.Abort
                         else:
                             fi_ids.append(file_info["id"])
@@ -306,7 +306,7 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_access, ega_username
     else:
         api_url = ctx.default_map["portal_url"] + ctx.default_map["portal_api"]
     total_size = 0
-    table = [["", "Size"]]
+    table = [["", "Size", "Repo"]]
     if manifest:
         if len(fileids) > 1:
             logger.warning("For download from manifest files, multiple manifest id arguments is not supported")
@@ -315,7 +315,7 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_access, ega_username
             logger.warning("For download from manifest files, there is no need to specify repositories")
             raise click.BadArgumentUsage("Repositories specified during manifest download")
         try:
-            manifest_json = icgc_api.read_manifest(fileids[0], api_url)
+            manifest_json = icgc_api.read_manifest(fileids[0], api_url, repos)
         except RuntimeError:
             raise click.Abort
         if not manifest_json["unique"] or len(manifest_json["entries"]) != 1:
@@ -324,8 +324,7 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_access, ega_username
                 if repo_info["repo"] in REPOS:
                     for file_info in repo_info["files"]:
                         if file_info["id"] in fi_ids:
-                            logger.error("Supplied manifest has repeated file identifiers.  Please specify a " +
-                                         "manifest with prioritized repositories")
+                            logger.error("Supplied manifest has repeated file identifiers.  Please specify repositries")
                             raise click.Abort
                         else:
                             fi_ids.append(file_info["id"])
@@ -338,9 +337,9 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_access, ega_username
                 size = file_info["size"]
                 repo_size += size
                 total_size += size
-                table.append([file_info["id"], file_size(size)])
+                table.append([file_info["id"], file_size(size), repo])
 
-            table.append([repo, file_size(repo_size)])
+            table.append([repo, file_size(repo_size), ""])
 
     else:
         repo_sizes = {}
@@ -353,17 +352,17 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_access, ega_username
         for entity in entities:
             size = entity["fileCopies"][0]["fileSize"]
             total_size += size
-            table.append([entity["id"], file_size(size)])
             repository = repository_sort(repos, entity)
+            table.append([entity["id"], file_size(size), repository])
             if repository == "gdc":
                 gdc_ids.append(entity["dataBundle"]["dataBundleId"])
             elif repository == "cghub":
                 cghub_ids.append(entity["dataBundle"]["dataBundleId"])
             repo_sizes[repository] += size
         for repo in repo_sizes:
-            table.append([repo, file_size(repo_sizes[repo])])
+            table.append([repo, file_size(repo_sizes[repo]), ''])
             repo_list.append(repo)
-    table.append(["Total Size", file_size(total_size)])
+    table.append(["Total Size", file_size(total_size), ""])
     logger.info(tabulate(table, headers="firstrow", tablefmt="fancy_grid"))
 
     if "collaboratory" in repo_list:
@@ -372,8 +371,8 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_access, ega_username
         access_response(icgc_client.icgc_access_check(icgc_access, "aws", api_url), "Amazon Web server.")
     if 'ega' in repo_list:
         access_response(ega_client.ega_access_check(ega_username, ega_password), "ega.")
-    if 'gdc' in repo_list:
-        access_response(gdc_client.gdc_access_check(gdc_access, gdc_ids), "gdc.")
+    if 'gdc' in repo_list and gdc_ids:  # We don't get general access credentials to gdc, can't check without files.
+        access_response(gdc_client.gdc_access_check(gdc_access, gdc_ids), "gdc files specified.")
 
 
 def main():
