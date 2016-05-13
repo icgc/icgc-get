@@ -44,7 +44,7 @@ def call_api(request, api_url, headers=None, head=False):
     return resp.json()
 
 
-def read_manifest(manifest_id, api_url, repos=None):
+def get_manifest_id(manifest_id, api_url, repos=None):
 
     if repos:
         request = api_url + 'manifests/' + manifest_id + '?repos=' + ','.join(repos) + \
@@ -55,7 +55,7 @@ def read_manifest(manifest_id, api_url, repos=None):
     return entity_set
 
 
-def get_metadata_bulk(file_ids, api_url, repos=None):
+def get_manifest(file_ids, api_url, repos=None):
 
     if repos:
         request = api_url + 'manifests?filters={"file":{"id":{"is":["' + '","'.join(file_ids) + \
@@ -64,4 +64,22 @@ def get_metadata_bulk(file_ids, api_url, repos=None):
         request = api_url + 'manifests?filters={"file":{"id":{"is":["' + '","'.join(file_ids) + \
                             '"]}}}&fields=id,size,content,repoFileId'
     entity_set = call_api(request, api_url)
+    return entity_set
+
+
+def get_metadata_bulk(file_ids, api_url):
+
+    entity_set = []
+    request = api_url + 'repository/files?filters={"file":{"id":{"is":["' + '","'.join(file_ids) + \
+                        '"]}}}&&from=1&size=10&sort=id&order=desc'
+    resp = call_api(request, api_url)
+    entity_set.extend(resp["hits"])
+    pages = resp["pagination"]["pages"]
+    page = 1
+    while page < pages:
+        request = api_url + 'files?filters={"file":{"id":{"is":["' + '","'.join(file_ids) + \
+                  '"]}}}&&from={}&size=10&sort=id&order=desc'.format(page*10 + 1)
+        resp = call_api(request, api_url)
+        entity_set.append(resp["hits"])
+        page = resp["pagination"]["pages"]
     return entity_set

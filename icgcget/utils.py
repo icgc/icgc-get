@@ -17,6 +17,7 @@
 #
 
 import collections
+import yaml
 
 
 def flatten_dict(d, parent_key='', sep='_'):
@@ -33,9 +34,9 @@ def flatten_dict(d, parent_key='', sep='_'):
 def file_size(num, suffix='B'):
     for unit in ['', 'K', 'M', 'G', 'T']:
         if abs(num) < 1024.0:
-            return ["%3.1f" % num,  "%s%s" % (unit, suffix)]
+            return ["%3.2f" % num,  "%s%s" % (unit, suffix)]
         num /= 1024.0
-    return ["%.1f" % num, "%s%s" % ('Yi', suffix)]
+    return ["%.2f" % num, "%s%s" % ('Yi', suffix)]
 
 
 def normalize_keys(obj):
@@ -45,3 +46,31 @@ def normalize_keys(obj):
         return {k.replace('.', '_'): normalize_keys(v) for k, v in obj.items()}
 
 
+def config_parse(filename):
+    config = {}
+    try:
+        config_text = open(filename, 'r')
+    except IOError:
+
+        print("Config file {} not found".format(filename))
+        return config
+
+    try:
+        config_temp = yaml.safe_load(config_text)
+        config_download = flatten_dict(normalize_keys(config_temp))
+        config = {'download': config_download, 'dryrun': config_download, 'logfile': config_temp['logfile']}
+    except yaml.YAMLError:
+
+        print("Could not read config file {}".format(filename))
+        return {}
+
+    return config
+
+
+def match_repositories(repos, copies):
+    for repository in repos:
+        for copy in copies["fileCopies"]:
+            if repository == copy["repoCode"]:
+                return repository, copy
+    else:
+        raise RuntimeError("File {} not found on repositories {}".format(copies["id"], repos))

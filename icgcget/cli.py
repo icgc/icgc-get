@@ -20,7 +20,7 @@ import logging
 import os
 from tabulate import tabulate
 import click
-import yaml
+
 import psutil
 from base64 import b64decode
 
@@ -29,33 +29,12 @@ from clients.gdc import gdc_client
 from clients.gnos import gt_client
 from clients.icgc import icgc_api
 from clients.icgc import icgc_client
-from utils import flatten_dict, normalize_keys, file_size
+from utils import file_size, config_parse, match_repositories
 
 REPOS = ['collaboratory', 'aws-virginia', 'ega', 'gdc', 'cghub']  # Updated for codes used by api
 
 DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgc-get', force_posix=True), 'config.yaml')
 global logger
-
-
-def config_parse(filename):
-    config = {}
-    try:
-        config_text = open(filename, 'r')
-    except IOError:
-
-        print("Config file {} not found".format(filename))
-        return config
-
-    try:
-        config_temp = yaml.safe_load(config_text)
-        config_download = flatten_dict(normalize_keys(config_temp))
-        config = {'download': config_download, 'dryrun': config_download, 'logfile': config_temp['logfile']}
-    except yaml.YAMLError:
-
-        print("Could not read config file {}".format(filename))
-        return {}
-
-    return config
 
 
 def logger_setup(logfile):
@@ -86,25 +65,6 @@ def check_access(access, name):
     if access is None:
         logger.error("No credentials provided for the {} repository".format(name))
         raise click.BadParameter("Please provide credentials for {}".format(name))
-
-
-def repository_sort(repo, entity):
-    try:
-        repository, copy = match_repositories(repo, entity)
-    except RuntimeError:
-        logger.error("File {} not found on repositories {}".format(entity["id"], repo))
-        raise click.BadParameter("File {} not found on repositories {}".format(entity["id"], repo))
-    return repository, copy
-
-
-def api_call(file_id, url):
-    try:
-        entity = icgc_api.get_metadata_bulk(file_id, url)
-    except RuntimeError:
-        raise click.Abort
-    if not entity:
-        raise click.ClickException("File {} does not exist".format(file_id))
-    return entity
 
 
 def size_check(size, override, output):
@@ -192,12 +152,12 @@ def download(ctx, repos, fileids, manifest, output,
             logger.warning("For download from manifest files, multiple manifest id arguments is not supported")
             raise click.BadArgumentUsage("Multiple manifest files specified.")
         try:
-            manifest_json = icgc_api.read_manifest(fileids[0], api_url, repos)
+            manifest_json = icgc_api.get_manifest_id(fileids[0], api_url, repos)
         except RuntimeError:
             raise click.Abort
     else:
         try:
-            manifest_json = icgc_api.get_metadata_bulk(fileids, api_url, repos)
+            manifest_json = icgc_api.get_manifest(fileids, api_url, repos)
         except RuntimeError:
             raise click.Abort
     if not manifest_json["unique"] or len(manifest_json["entries"]) != 1:
@@ -225,6 +185,16 @@ def download(ctx, repos, fileids, manifest, output,
                 size += file_info["size"]
     size_check(size, yes_to_all, output)
 
+    if 'cghub' in object_ids and object_ids['cghub']:
+        check_access(cghub_access, 'cghub')
+        if manifest:
+            code = gt_client.genetorrent_manifest_call(object_ids['cghub'], cghub_access, cghub_path,
+                                                       cghub_transport_parallel, output)
+        else:
+            code = gt_client.genetorrent_call(object_ids['cghub'], cghub_access, cghub_path,
+                                              cghub_transport_parallel, output)
+        check_code('Cghub', code)
+
     if 'aws-virginia' in object_ids and object_ids['aws-virginia']:
         check_access(icgc_access, 'icgc')
         if manifest:
@@ -246,15 +216,7 @@ def download(ctx, repos, fileids, manifest, output,
                                        ega_transport_parallel, ega_udt, output)
             check_code('Ega', code)
 
-    if 'cghub' in object_ids and object_ids['cghub']:
-        check_access(cghub_access, 'cghub')
-        if manifest:
-            code = gt_client.genetorrent_manifest_call(object_ids['cghub'], cghub_access, cghub_path,
-                                                       cghub_transport_parallel, output)
-        else:
-            code = gt_client.genetorrent_call(object_ids['cghub'], cghub_access, cghub_path,
-                                              cghub_transport_parallel, output)
-        check_code('Cghub', code)
+
 
     if 'collaboratory' in object_ids and object_ids['collaboratory']:
         check_access(icgc_access, 'icgc')
@@ -292,7 +254,6 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access,
 
     repo_list = []
     gdc_ids = []
-    cghub_ids = []
     if os.getenv("ICGCGET_API_URL"):
         api_url = os.getenv("ICGCGET_API_URL")
     else:
@@ -304,15 +265,10 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access,
             logger.warning("For download from manifest files, multiple manifest id arguments is not supported")
             raise click.BadArgumentUsage("Multiple manifest files specified.")
         try:
-            manifest_json = icgc_api.read_manifest(fileids[0], api_url, repos)
+            manifest_json = icgc_api.get_manifest_id(fileids[0], api_url, repos)
         except RuntimeError:
             raise click.Abort
-    else:
-        try:
-            manifest_json = icgc_api.get_metadata_bulk(fileids, api_url, repos)
-        except RuntimeError:
-            raise click.Abort
-    if not manifest_json["unique"] or len(manifest_json["entries"]) != 1:
+
         fi_ids = []
         for repo_info in manifest_json["entries"]:
             if repo_info["repo"] in REPOS:
@@ -322,24 +278,28 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access,
                         raise click.Abort
                     else:
                         fi_ids.append(file_info["id"])
-
-    for repo_info in manifest_json["entries"]:
-        repo = repo_info["repo"]
+        else:
+            fileids = fi_ids
+    repo_sizes = {}
+    if not repos:
+        raise click.BadOptionUsage("Must include prioritized repositories")
+    for repository in repos:
+        repo_sizes[repository] = 0
+    total_size = 0
+    entities = icgc_api.get_metadata_bulk(fileids, api_url)
+    for entity in entities:
+        size = entity["fileCopies"][0]["fileSize"]
+        total_size += size
+        repository, copy = match_repositories(repos, entity)
+        filesize = file_size(size)
+        table.append([entity["id"], filesize[0], filesize[1], repository])
+        if repository == "gdc":
+            gdc_ids.append(entity["dataBundle"]["dataBundleId"])
+        repo_sizes[repository] += size
+    for repo in repo_sizes:
+        filesize = file_size(repo_sizes[repo])
+        table.append([repo, filesize[0], filesize[1], ''])
         repo_list.append(repo)
-        repo_size = 0
-        for file_info in repo_info["files"]:
-            size = file_info["size"]
-            repo_size += size
-            total_size += size
-            filesize = file_size(size)
-            if repo == "gdc":
-                gdc_ids.append(file_info["id"])
-            elif repo == "cghub":
-                cghub_ids.append(file_info["id"])
-            table.append([file_info["id"], filesize[0], filesize[1], repo])
-        filesize = file_size(repo_size)
-        table.append([repo, filesize[0], filesize[1], ""])
-
     filesize = file_size(total_size)
     table.append(["Total Size", filesize[0], filesize[1], ""])
     logger.info(tabulate(table, headers="firstrow", tablefmt="fancy_grid", numalign="right"))
