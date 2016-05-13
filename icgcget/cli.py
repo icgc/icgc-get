@@ -29,7 +29,7 @@ from clients.gdc import gdc_client
 from clients.gnos import gt_client
 from clients.icgc import icgc_api
 from clients.icgc import icgc_client
-from utils import file_size, config_parse, match_repositories
+from utils import file_size, config_parse, match_repositories, get_api_url
 
 REPOS = ['collaboratory', 'aws-virginia', 'ega', 'gdc', 'cghub']  # Updated for codes used by api
 
@@ -55,6 +55,38 @@ def logger_setup(logfile):
     return logger
 
 
+def filter_manifest_ids(manifest_json):
+    fi_ids = []
+    for repo_info in manifest_json["entries"]:
+        if repo_info["repo"] in REPOS:
+            for file_info in repo_info["files"]:
+                if file_info["id"] in fi_ids:
+                    logger.error("Supplied manifest has repeated file identifiers.  Please specify a " +
+                                 "list of repositories to prioritize")
+                    raise click.Abort
+                else:
+                    fi_ids.append(file_info["id"])
+    else:
+        return fi_ids
+
+
+def calculate_size(manifest_json):
+    size = 0
+    object_ids = {}
+    for repo_info in manifest_json["entries"]:
+        repo = repo_info["repo"]
+        if repo == 'ega':
+            object_ids['ega'] = []
+            for file_info in repo_info["files"]:
+                object_ids[repo].append(file_info["repoFileId"])
+                size += file_info["size"]
+        else:
+            object_ids[repo] = b64decode(repo_info["content"])
+            for file_info in repo_info["files"]:
+                size += file_info["size"]
+    return size, object_ids
+
+
 def check_code(client, code):
     if code != 0:
         logger.error("{} client exited with a nonzero error code {}.".format(client, code))
@@ -70,13 +102,13 @@ def check_access(access, name):
 def size_check(size, override, output):
     free = psutil.disk_usage(output)[2]
     if free > size and not override:
-        if not click.confirm("Ok to download {0}s of files?".format(''.join(file_size(size))) +
+        if not click.confirm("Ok to download {0}s of files?  ".format(''.join(file_size(size))) +
                              "There is {}s of free space in {}".format(''.join(file_size(free)), output)):
             logger.info("User aborted download")
             raise click.Abort
     elif free <= size:
-        logger.warning("Not enough space detected for download of {0}.".format(''.join(file_size(size))) +
-                       "{} of space in {}".format(''.join(file_size(free)), output))
+        logger.error("Not enough space detected for download of {0}.".format(''.join(file_size(size))) +
+                     "{} of space in {}".format(''.join(file_size(free)), output))
         raise click.Abort
 
 
@@ -134,13 +166,8 @@ def download(ctx, repos, fileids, manifest, output,
              ega_password, ega_path, ega_transport_parallel, ega_udt, ega_username,
              gdc_access, gdc_path, gdc_transport_parallel, gdc_udt,
              icgc_access, icgc_path, icgc_transport_file_from, icgc_transport_parallel, yes_to_all):
-    if os.getenv("ICGCGET_API_URL"):
-        api_url = os.getenv("ICGCGET_API_URL")
-    else:
-        api_url = ctx.default_map["portal_url"] + ctx.default_map["portal_api"]
-    object_ids = {}
+    api_url = get_api_url(ctx.default_map)
 
-    size = 0
     if manifest:
         if len(fileids) > 1:
             logger.warning("For download from manifest files, multiple manifest id arguments is not supported")
@@ -155,28 +182,9 @@ def download(ctx, repos, fileids, manifest, output,
         except RuntimeError:
             raise click.Abort
     if not manifest_json["unique"] or len(manifest_json["entries"]) != 1:
-        fi_ids = []
-        for repo_info in manifest_json["entries"]:
-            if repo_info["repo"] in REPOS:
-                for file_info in repo_info["files"]:
-                    if file_info["id"] in fi_ids:
-                        logger.error("Supplied manifest has repeated file identifiers.  Please specify a " +
-                                     "list of repositories to prioritize")
-                        raise click.Abort
-                    else:
-                        fi_ids.append(file_info["id"])
+        filter_manifest_ids(manifest_json,)
+    size, object_ids = calculate_size(manifest_json)
 
-    for repo_info in manifest_json["entries"]:
-        repo = repo_info["repo"]
-        if repo == 'ega':
-            object_ids['ega'] = []
-            for file_info in repo_info["files"]:
-                object_ids[repo].append(file_info["repoFileId"])
-                size += file_info["size"]
-        else:
-            object_ids[repo] = b64decode(repo_info["content"])
-            for file_info in repo_info["files"]:
-                size += file_info["size"]
     size_check(size, yes_to_all, output)
 
     if 'cghub' in object_ids and object_ids['cghub']:
@@ -218,20 +226,20 @@ def download(ctx, repos, fileids, manifest, output,
 @click.argument('fileids', nargs=-1, required=True)
 @click.option('--repos', '-r', type=click.Choice(REPOS),  multiple=True)
 @click.option('--manifest', '-m', is_flag=True, default=False)
+@click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True))
 @click.option('--cghub-access', type=click.STRING)
+@click.option('--cghub-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--ega-username', type=click.STRING)
 @click.option('--ega-password', type=click.STRING)
 @click.option('--gdc-access', type=click.STRING)
 @click.option('--icgc-access', type=click.STRING)
 @click.pass_context
-def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_username, ega_password, gdc_access, icgc_access):
-
+def dryrun(ctx, repos, fileids, manifest, output,
+           cghub_access, cghub_path, ega_username, ega_password, gdc_access, icgc_access):
     repo_list = []
     gdc_ids = []
-    if os.getenv("ICGCGET_API_URL"):
-        api_url = os.getenv("ICGCGET_API_URL")
-    else:
-        api_url = ctx.default_map["portal_url"] + ctx.default_map["portal_api"]
+    cghub_ids = []
+    api_url = get_api_url(ctx.default_map)
     total_size = 0
     table = [["", "Size", "Unit", "File Format", "Repo"]]
 
@@ -243,18 +251,7 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_username, ega_passwo
             manifest_json = icgc_api.get_manifest_id(fileids[0], api_url, repos)
         except RuntimeError:
             raise click.Abort
-
-        fi_ids = []
-        for repo_info in manifest_json["entries"]:
-            if repo_info["repo"] in REPOS:
-                for file_info in repo_info["files"]:
-                    if file_info["id"] in fi_ids:
-                        logger.error("Supplied manifest has repeated file identifiers.  Please specify repositries")
-                        raise click.Abort
-                    else:
-                        fi_ids.append(file_info["id"])
-        else:
-            fileids = fi_ids
+        fileids = filter_manifest_ids(manifest_json)
 
     repo_sizes = {}
     if not repos:
@@ -270,6 +267,8 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_username, ega_passwo
         table.append([entity["id"], filesize[0], filesize[1], copy["fileFormat"], repository])
         if repository == "gdc":
             gdc_ids.append(entity["dataBundle"]["dataBundleId"])
+        if repository == "cghub":
+            cghub_ids.append(entity["dataBundle"]["dataBundleId"])
         repo_sizes[repository] += size
 
     for repo in repo_sizes:
@@ -294,9 +293,9 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_username, ega_passwo
     if 'gdc' in repo_list and gdc_ids:  # We don't get general access credentials to gdc, can't check without files.
         check_access(gdc_access, 'gdc')
         access_response(gdc_client.gdc_access_check(gdc_access, gdc_ids), "gdc files specified.")
-    if 'cghub' in repo_list:
+    if 'cghub' in repo_list and cghub_ids:
         check_access(cghub_access, 'cghub')
-
+        access_response(gt_client.genetorrent_access_check(cghub_ids, cghub_access, cghub_path, output), "cghub files.")
 
 def main():
     cli(auto_envvar_prefix='ICGCGET')

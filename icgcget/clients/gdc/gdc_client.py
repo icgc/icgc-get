@@ -48,10 +48,11 @@ def gdc_manifest_call(manifest, token, tool_path, output, udt, processes):
 
 def gdc_access_check(token, uuids):
 
-    request = 'https://gdc-api.nci.nih.gov/data/' + ','.join(uuids)
+    base_url = 'https://gdc-api.nci.nih.gov/data/'
+    request = base_url + ','.join(uuids)
     header = {'X-auth-Token': token}
     try:
-        call_api(request, 'https://gdc-api.nci.nih.gov/v0/', header, head=True)
+        call_api(request, base_url, header, head=True)
         return True
     except HTTPError as e:
         if e.message == 403:

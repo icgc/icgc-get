@@ -24,5 +24,5 @@ def test_ega_file(config, data_dir):
 
 
 def test_ega_manifest(config, data_dir):
-    download_manifest("4294ed2b-4d41-4967-8c5d-231027fa40c7", ['_methylationCEL_CLL-174.CEL'], [5556766], config,
+    download_test(["4294ed2b-4d41-4967-8c5d-231027fa40c7"], 'ega', ['_methylationCEL_CLL-174.CEL'], [5556766], config,
                       data_dir)

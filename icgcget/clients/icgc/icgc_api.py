@@ -28,15 +28,15 @@ def call_api(request, api_url, headers=None, head=False):
         else:
             resp = requests.get(request, headers=headers)
     except requests.exceptions.ConnectionError as e:
-        logger.info("Unable to connect to the icgc api at {}.".format(api_url))
+        logger.error("Unable to connect to the icgc api at {}.".format(api_url))
         logger.debug(e.message)
         raise RuntimeError("Unable to connect to the icgc api at {}".format(api_url))
     except requests.exceptions.Timeout as e:
-        logger.info("Error: Connection timed out")
+        logger.error("Error: Connection timed out")
         logger.debug(e.message)
         raise RuntimeError(e.message)
     except requests.exceptions.RequestException as e:
-        logger.info(e.message)
+        logger.error(e.message)
         raise RuntimeError(e.message)
     if resp.status_code != 200:
         logger.warning("API request failed due to {} error.\n  {} ".format(resp.reason, resp.text))
@@ -45,12 +45,12 @@ def call_api(request, api_url, headers=None, head=False):
 
 
 def get_manifest_id(manifest_id, api_url, repos=None):
-
+    fields = '&fields=id,size,content,repoFileId'
     if repos:
         request = api_url + 'manifests/' + manifest_id + '?repos=' + ','.join(repos) + \
-                  '&unique=true&fields=id,size,content,repoFileId'
+                  '&unique=true&' + fields
     else:
-        request = api_url + 'manifests/' + manifest_id + '?fields=id,size,content,repoFileId'
+        request = api_url + 'manifests/' + manifest_id + fields
     try:
         entity_set = call_api(request, api_url)
     except requests.HTTPError as e:
@@ -62,30 +62,27 @@ def get_manifest_id(manifest_id, api_url, repos=None):
 
 
 def get_manifest(file_ids, api_url, repos=None):
-
+    fields = '&fields=id,size,content,repoFileId'
     if repos:
-        request = api_url + 'manifests?filters={"file":{"id":{"is":["' + '","'.join(file_ids) + \
-                            '"]}}}&repos=' + ','.join(repos) + '&unique=true&fields=id,size,content,repoFileId'
+        request = api_url + 'manifests' + filters(file_ids) + '&repos=' + ','.join(repos) + '&unique=true&' + fields
     else:
-        request = api_url + 'manifests?filters={"file":{"id":{"is":["' + '","'.join(file_ids) + \
-                            '"]}}}&fields=id,size,content,repoFileId'
+        request = api_url + 'manifests' + filters(file_ids) + fields
     entity_set = call_api(request, api_url)
     return entity_set
 
 
 def get_metadata_bulk(file_ids, api_url):
-
     entity_set = []
-    request = api_url + 'repository/files?filters={"file":{"id":{"is":["' + '","'.join(file_ids) + \
-                        '"]}}}&&from=1&size=10&sort=id&order=desc'
-    resp = call_api(request, api_url)
-    entity_set.extend(resp["hits"])
-    pages = resp["pagination"]["pages"]
-    page = 1
-    while page < pages:
-        request = api_url + 'files?filters={"file":{"id":{"is":["' + '","'.join(file_ids) + \
-                  '"]}}}&&from={}&size=10&sort=id&order=desc'.format(page*10 + 1)
+    pages_available = True
+    while pages_available:
+        request = api_url + 'repository/files' + filters(file_ids) + '"&&from=1&size=10&sort=id&order=desc'
         resp = call_api(request, api_url)
-        entity_set.append(resp["hits"])
-        page = resp["pagination"]["pages"]
+        entity_set.extend(resp["hits"])
+        pages = resp["pagination"]["pages"]
+        page = resp["pagination"]["page"]
+        pages_available = page < pages
     return entity_set
+
+
+def filters(file_ids):
+    return '?filters={"file":{"id":{"is":["' + '","'.join(file_ids) + '"]}}}'

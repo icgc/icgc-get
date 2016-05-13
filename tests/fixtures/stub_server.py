@@ -56,14 +56,14 @@ def parse_id(path):
                                  'fileCopies': [{'repoCode': 'gdc', 'fileSize': 1399430}]})
         return resp
     elif uuids:
-        if "ed78541a-0e3a-4d89-b348-f42886442aeb" in uuids.groups():
+        if "ed78541a-0e3a-4d89-b348-f42886442aeb" in uuids:
             return {"repo": "gdc", "entities": [{"id": "FIGDCID", "size": 1483}, {"id": "FIGDCID2", "size": 6261580},
                                                 {"id": "FIGDCID3", "size": 1399430}]}
-        elif "4294ed2b-4d41-4967-8c5d-231027fa40c7" in uuids.groups():
+        elif "4294ed2b-4d41-4967-8c5d-231027fa40c7" in uuids:
             return {"repo": "ega", "entries": [{"id": "FIEGAID", "size": 5556766}]}
-        elif "76260cde-ad97-4c5d-b587-4a35bf72346f" in uuids.groups():
+        elif "76260cde-ad97-4c5d-b587-4a35bf72346f" in uuids:
             return {"repos": ["collaboratory"], "entries": [{"id": "FI250134", "size": 202180}]}
-        elif "950f60eb-1908-4b79-9b5a-060c5a29c3ae" in uuids.groups():
+        elif "950f60eb-1908-4b79-9b5a-060c5a29c3ae" in uuids:
             return {"repos": "cghub", "entries": [{"id": "FI99996", "size": 3520000000},
                                                   {"id": "FI99994", "size": 435700000},
                                                   {"id": "FI99990", "size": 97270000}]}

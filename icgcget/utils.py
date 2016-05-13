@@ -18,6 +18,7 @@
 
 import collections
 import yaml
+import os
 
 
 def flatten_dict(d, parent_key='', sep='_'):
@@ -37,6 +38,14 @@ def file_size(num, suffix='B'):
             return ["%3.2f" % num,  "%s%s" % (unit, suffix)]
         num /= 1024.0
     return ["%.2f" % num, "%s%s" % ('Yi', suffix)]
+
+
+def get_api_url(map):
+    if os.getenv("ICGCGET_API_URL"):
+       api_url = os.getenv("ICGCGET_API_URL")
+    else:
+        api_url = map["portal_url"] + 'api/v1'
+    return api_url
 
 
 def normalize_keys(obj):

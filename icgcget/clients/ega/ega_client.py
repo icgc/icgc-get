@@ -28,7 +28,6 @@ from requests import HTTPError
 
 
 def ega_call(object_ids, username, password, tool_path, parallel, udt, download_dir):
-
     key = ''.join(SystemRandom().choice(ascii_uppercase + digits) for _ in range(4))  # Make randomized decryption key
     label = object_ids[0] + '_download_request'
     args = ['java', '-jar', tool_path, '-p', username, password, '-nt', parallel]
@@ -64,20 +63,21 @@ def ega_call(object_ids, username, password, tool_path, parallel, udt, download_
 
 
 def ega_access_check(username, password):
-    request = "https://ega.ebi.ac.uk/ega/rest/access/v2/users/" + quote(username) + "?pass=" + quote(password)
+    base_url = "https://ega.ebi.ac.uk/ega/rest/access/v2/"
+    login_request = base_url + 'users/' + quote(username) + "?pass=" + quote(password)
     try:
-        resp = call_api(request, "https://ega.ebi.ac.uk/ega/rest/")
-    except HTTPError:
+        resp = call_api(login_request, base_url)
+    except HTTPError:  # invalid return code
         return False
     if resp["header"]["userMessage"] == "OK":
         session_id = resp["response"]["result"][1]
-        request2 = "https://ega.ebi.ac.uk/ega/rest/access/v2/datasets?session=" + session_id
+        dataset_request = base_url + "datasets?session=" + session_id
         try:
-            resp2 = call_api(request2, "https://ega.ebi.ac.uk/ega/rest/")
-            data_sets = resp2["response"]["result"]
+            dataset_response = call_api(dataset_request, base_url)
+            data_sets = dataset_response["response"]["result"]
         except HTTPError:
             return False
-        if "EGAD00001000023" in data_sets and "EGAD00010000562" in data_sets:
+        if "EGAD00001000023" in data_sets and "EGAD00010000562" in data_sets:  # Check if user has access to icgc data
             return True
 
     return False

@@ -18,6 +18,8 @@
 
 import logging
 import subprocess
+import subprocess32
+import re
 
 
 def run_command(args, env=None):
@@ -29,7 +31,7 @@ def run_command(args, env=None):
     try:
         process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
     except subprocess.CalledProcessError as e:
-        logger.info(e.output)
+        logger.warning(e.output)
         return e.returncode
     except OSError:
         logger.warning("Path to download tool does not lead to expected application")
@@ -42,3 +44,24 @@ def run_command(args, env=None):
             logger.info(output.strip())
     rc = process.poll()
     return rc
+
+
+def run_test_command(args, env=None):
+    logger = logging.getLogger("__log__")
+    if None in args:
+        logger.warning("Missing argument in {}".format(args))
+        return 1
+    try:
+        subprocess32.check_output(args, stderr=subprocess.STDOUT, env=env, timeout=2)
+    except subprocess32.CalledProcessError as e:
+        logger.info(e.output)
+        return e.returncode
+    except OSError:
+        logger.warning("Path to download tool does not lead to expected application")
+        return 2
+    except subprocess32.TimeoutExpired as e:
+        error = re.findall("403 Forbidden", e.output)
+        if error:
+            return 3
+        else:
+            return 0
