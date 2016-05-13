@@ -187,54 +187,36 @@ def download(ctx, repos, fileids, manifest, output,
 
     if 'cghub' in object_ids and object_ids['cghub']:
         check_access(cghub_access, 'cghub')
-        if manifest:
-            code = gt_client.genetorrent_manifest_call(object_ids['cghub'], cghub_access, cghub_path,
-                                                       cghub_transport_parallel, output)
-        else:
-            code = gt_client.genetorrent_call(object_ids['cghub'], cghub_access, cghub_path,
-                                              cghub_transport_parallel, output)
+        code = gt_client.genetorrent_manifest_call(object_ids['cghub'], cghub_access, cghub_path,
+                                                   cghub_transport_parallel, output)
         check_code('Cghub', code)
 
     if 'aws-virginia' in object_ids and object_ids['aws-virginia']:
         check_access(icgc_access, 'icgc')
-        if manifest:
-            code = icgc_client.icgc_manifest_call(object_ids['aws-virginia'], icgc_access, icgc_path,
-                                                  icgc_transport_file_from, icgc_transport_parallel, output, 'aws')
-        else:
-            code = icgc_client.icgc_call(object_ids['aws-virginia'], icgc_access, icgc_path, icgc_transport_file_from,
-                                         icgc_transport_parallel, output, 'aws')
+        code = icgc_client.icgc_manifest_call(object_ids['aws-virginia'], icgc_access, icgc_path,
+                                              icgc_transport_file_from, icgc_transport_parallel, output, 'aws')
         check_code('Icgc', code)
 
     if 'ega' in object_ids and object_ids['ega']:
         if ega_username is None or ega_password is None:
             check_access(None, 'ega')
-        else:
-            if ega_transport_parallel != '1':
-                logger.warning("Parallel streams on the ega client may cause reliability issues and failed " +
-                               "downloads.  This option is not recommended.")
-            code = ega_client.ega_call(object_ids['ega'], ega_username, ega_password, ega_path,
-                                       ega_transport_parallel, ega_udt, output)
-            check_code('Ega', code)
-
-
+        if ega_transport_parallel != '1':
+            logger.warning("Parallel streams on the ega client may cause reliability issues and failed " +
+                           "downloads.  This option is not recommended.")
+        code = ega_client.ega_call(object_ids['ega'], ega_username, ega_password, ega_path,
+                                   ega_transport_parallel, ega_udt, output)
+        check_code('Ega', code)
 
     if 'collaboratory' in object_ids and object_ids['collaboratory']:
         check_access(icgc_access, 'icgc')
-        if manifest:
-            code = icgc_client.icgc_manifest_call(object_ids['collaboratory'], icgc_access, icgc_path,
-                                                  icgc_transport_file_from, icgc_transport_parallel, output, 'collab')
-        else:
-            code = icgc_client.icgc_call(object_ids['collaboratory'], icgc_access, icgc_path,
-                                         icgc_transport_file_from, icgc_transport_parallel, output, 'collab')
+        code = icgc_client.icgc_manifest_call(object_ids['collaboratory'], icgc_access, icgc_path,
+                                              icgc_transport_file_from, icgc_transport_parallel, output, 'collab')
         check_code('Icgc', code)
 
     if 'gdc' in object_ids and object_ids['gdc']:
         check_access(gdc_access, 'gdc')
-        if manifest:
-            code = gdc_client.gdc_manifest_call(object_ids['gdc'], gdc_access, gdc_path, output, gdc_udt,
-                                                gdc_transport_parallel)
-        else:
-            code = gdc_client.gdc_call(object_ids['gdc'], gdc_access, gdc_path, output, gdc_udt, gdc_transport_parallel)
+        code = gdc_client.gdc_manifest_call(object_ids['gdc'], gdc_access, gdc_path, output, gdc_udt,
+                                            gdc_transport_parallel)
         check_code('Gdc', code)
 
 
@@ -285,7 +267,6 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access,
         raise click.BadOptionUsage("Must include prioritized repositories")
     for repository in repos:
         repo_sizes[repository] = 0
-    total_size = 0
     entities = icgc_api.get_metadata_bulk(fileids, api_url)
     for entity in entities:
         size = entity["fileCopies"][0]["fileSize"]

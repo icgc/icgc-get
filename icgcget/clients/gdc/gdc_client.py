@@ -51,7 +51,7 @@ def gdc_access_check(token, uuids):
     request = 'https://gdc-api.nci.nih.gov/data/' + ','.join(uuids)
     header = {'X-auth-Token': token}
     try:
-        resp = call_api(request, 'https://gdc-api.nci.nih.gov/v0/', header, head=True)
+        call_api(request, 'https://gdc-api.nci.nih.gov/v0/', header, head=True)
         return True
     except HTTPError as e:
         if e.message == 403:

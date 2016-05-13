@@ -30,11 +30,9 @@ from requests import HTTPError
 def ega_call(object_ids, username, password, tool_path, parallel, udt, download_dir):
 
     key = ''.join(SystemRandom().choice(ascii_uppercase + digits) for _ in range(4))  # Make randomized decryption key
+    label = object_ids[0] + '_download_request'
+    args = ['java', '-jar', tool_path, '-p', username, password, '-nt', parallel]
     for object_id in object_ids:
-        label = object_id + '_request'
-
-        args = ['java', '-jar', tool_path, '-p', username, password, '-nt', parallel]
-    # Parameters needed for all ega client commands
 
         request_call_args = args
         if object_id[3] == 'D':
@@ -83,4 +81,3 @@ def ega_access_check(username, password):
             return True
 
     return False
-
