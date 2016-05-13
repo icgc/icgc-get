@@ -161,7 +161,7 @@ def download(ctx, repos, fileids, manifest, output,
                 for file_info in repo_info["files"]:
                     if file_info["id"] in fi_ids:
                         logger.error("Supplied manifest has repeated file identifiers.  Please specify a " +
-                                     "")
+                                     "list of repositories to prioritize")
                         raise click.Abort
                     else:
                         fi_ids.append(file_info["id"])
@@ -224,9 +224,7 @@ def download(ctx, repos, fileids, manifest, output,
 @click.option('--gdc-access', type=click.STRING)
 @click.option('--icgc-access', type=click.STRING)
 @click.pass_context
-def dryrun(ctx, repos, fileids, manifest, cghub_access,
-           ega_username, ega_password, gdc_access,
-           icgc_access):
+def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_username, ega_password, gdc_access, icgc_access):
 
     repo_list = []
     gdc_ids = []
@@ -236,6 +234,7 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access,
         api_url = ctx.default_map["portal_url"] + ctx.default_map["portal_api"]
     total_size = 0
     table = [["", "Size", "Unit", "File Format", "Repo"]]
+
     if manifest:
         if len(fileids) > 1:
             logger.warning("For download from manifest files, multiple manifest id arguments is not supported")
@@ -256,6 +255,7 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access,
                         fi_ids.append(file_info["id"])
         else:
             fileids = fi_ids
+
     repo_sizes = {}
     if not repos:
         raise click.BadOptionUsage("Must include prioritized repositories")
@@ -271,10 +271,12 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access,
         if repository == "gdc":
             gdc_ids.append(entity["dataBundle"]["dataBundleId"])
         repo_sizes[repository] += size
+
     for repo in repo_sizes:
         filesize = file_size(repo_sizes[repo])
         table.append([repo, filesize[0], filesize[1], '', ''])
         repo_list.append(repo)
+
     filesize = file_size(total_size)
     table.append(["Total Size", filesize[0], filesize[1], '', ''])
     logger.info(tabulate(table, headers="firstrow", tablefmt="fancy_grid", numalign="right"))
@@ -288,9 +290,7 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access,
     if 'ega' in repo_list:
         if ega_username is None or ega_password is None:
             check_access(None, 'ega')
-            access_response(ega_client.ega_access_check(ega_username, ega_password), "ega.")
-        else:
-            access_response(ega_client.ega_access_check(ega_username, ega_password), "ega.")
+        access_response(ega_client.ega_access_check(ega_username, ega_password), "ega.")
     if 'gdc' in repo_list and gdc_ids:  # We don't get general access credentials to gdc, can't check without files.
         check_access(gdc_access, 'gdc')
         access_response(gdc_client.gdc_access_check(gdc_access, gdc_ids), "gdc files specified.")
