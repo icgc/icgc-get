@@ -70,19 +70,13 @@ def check_access(access, name):
 def size_check(size, override, output):
     free = psutil.disk_usage(output)[2]
     if free > size and not override:
-        if not click.confirm("Ok to download {0}s of files? There is {1}s of free space in {2}".format(''.join(
-                                                                                                       file_size(size)),
-                                                                                                       ''.join(
-                                                                                                       file_size(free)),
-                                                                                                       output)):
+        if not click.confirm("Ok to download {0}s of files?".format(''.join(file_size(size))) +
+                             "There is {}s of free space in {}".format(''.join(file_size(free)), output)):
             logger.info("User aborted download")
             raise click.Abort
     elif free <= size:
-        logger.warning("Not enough space detected for download of {0}. {1} of space in {2}".format(''.join(
-                                                                                                   file_size(size)),
-                                                                                                   ''.join(
-                                                                                                   file_size(free)),
-                                                                                                   output))
+        logger.warning("Not enough space detected for download of {0}.".format(''.join(file_size(size))) +
+                       "{} of space in {}".format(''.join(file_size(free)), output))
         raise click.Abort
 
 
@@ -241,7 +235,7 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access,
     else:
         api_url = ctx.default_map["portal_url"] + ctx.default_map["portal_api"]
     total_size = 0
-    table = [["", "Size", "Unit", "Repo"]]
+    table = [["", "Size", "Unit", "File Format", "Repo"]]
     if manifest:
         if len(fileids) > 1:
             logger.warning("For download from manifest files, multiple manifest id arguments is not supported")
@@ -273,16 +267,16 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access,
         total_size += size
         repository, copy = match_repositories(repos, entity)
         filesize = file_size(size)
-        table.append([entity["id"], filesize[0], filesize[1], repository])
+        table.append([entity["id"], filesize[0], filesize[1], copy["fileFormat"], repository])
         if repository == "gdc":
             gdc_ids.append(entity["dataBundle"]["dataBundleId"])
         repo_sizes[repository] += size
     for repo in repo_sizes:
         filesize = file_size(repo_sizes[repo])
-        table.append([repo, filesize[0], filesize[1], ''])
+        table.append([repo, filesize[0], filesize[1], '', ''])
         repo_list.append(repo)
     filesize = file_size(total_size)
-    table.append(["Total Size", filesize[0], filesize[1], ""])
+    table.append(["Total Size", filesize[0], filesize[1], '', ''])
     logger.info(tabulate(table, headers="firstrow", tablefmt="fancy_grid", numalign="right"))
 
     if "collaboratory" in repo_list:

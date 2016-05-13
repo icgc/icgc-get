@@ -51,7 +51,13 @@ def get_manifest_id(manifest_id, api_url, repos=None):
                   '&unique=true&fields=id,size,content,repoFileId'
     else:
         request = api_url + 'manifests/' + manifest_id + '?fields=id,size,content,repoFileId'
-    entity_set = call_api(request, api_url)
+    try:
+        entity_set = call_api(request, api_url)
+    except requests.HTTPError as e:
+        if e.message == 404:
+            logger = logging.getLogger("__log__")
+            logger.error("Manifest {} not found in database.  Please check your manifest id".format(manifest_id))
+        raise RuntimeError
     return entity_set
 
 
