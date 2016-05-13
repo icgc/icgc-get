@@ -29,7 +29,7 @@ from clients.gdc import gdc_client
 from clients.gnos import gt_client
 from clients.icgc import icgc_api
 from clients.icgc import icgc_client
-from utils import flatten_dict, normalize_keys, match_repositories, file_size
+from utils import flatten_dict, normalize_keys, file_size
 
 REPOS = ['collaboratory', 'aws-virginia', 'ega', 'gdc', 'cghub']  # Updated for codes used by api
 
