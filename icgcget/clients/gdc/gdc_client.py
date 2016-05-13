@@ -47,6 +47,7 @@ def gdc_manifest_call(manifest, token, tool_path, output, udt, processes):
 
 
 def gdc_access_check(token, uuids):
+
     request = 'https://gdc-api.nci.nih.gov/data/' + ','.join(uuids)
     header = {'X-auth-Token': token}
     try:

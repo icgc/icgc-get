@@ -45,10 +45,3 @@ def normalize_keys(obj):
         return {k.replace('.', '_'): normalize_keys(v) for k, v in obj.items()}
 
 
-def match_repositories(repos, copies):
-    for repository in repos:
-        for copy in copies["fileCopies"]:
-            if repository == copy["repoCode"]:
-                return repository
-    else:
-        raise RuntimeError("File {} not found on repositories {}".format(copies["id"], repos))

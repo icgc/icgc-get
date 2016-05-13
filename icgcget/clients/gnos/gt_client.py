@@ -16,6 +16,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 from ..run_command import run_command
+from ..icgc.icgc_api import call_api
 import tempfile
 
 
@@ -36,4 +37,11 @@ def genetorrent_manifest_call(manifest, token, tool_path, children, output):
     return code
 
 
+def genetorrent_access_check(uuid, token, tool_path, children):
+    output = tempfile.NamedTemporaryFile()
+    request = "https://cghub.ucsc.edu/cghub/metadata/analysisObject?analysis_id=" + ','.join(uuid)
 
+    resp = call_api(request, "https://cghub.ucsc.edu/cghub/metadata/")
+    call_args = [tool_path, '-vv', '--max-children', children, '-c', token, '-d']
+    call_args.extend(uuid)
+    call_args.extend(['-p', output, '--zero-storage'])

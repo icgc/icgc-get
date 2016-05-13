@@ -90,11 +90,11 @@ def check_access(access, name):
 
 def repository_sort(repo, entity):
     try:
-        repository = match_repositories(repo, entity)
+        repository, copy = match_repositories(repo, entity)
     except RuntimeError:
         logger.error("File {} not found on repositories {}".format(entity["id"], repo))
         raise click.BadParameter("File {} not found on repositories {}".format(entity["id"], repo))
-    return repository
+    return repository, copy
 
 
 def api_call(file_id, url):
@@ -191,47 +191,39 @@ def download(ctx, repos, fileids, manifest, output,
         if len(fileids) > 1:
             logger.warning("For download from manifest files, multiple manifest id arguments is not supported")
             raise click.BadArgumentUsage("Multiple manifest files specified.")
-        if not all(repos):
-            logger.warning("For download from manifest files, there is no need to specify repositories")
-            raise click.BadArgumentUsage("Repositories specified during manifest download")
         try:
             manifest_json = icgc_api.read_manifest(fileids[0], api_url, repos)
         except RuntimeError:
             raise click.Abort
-        if not manifest_json["unique"] or len(manifest_json["entries"]) != 1:
-            fi_ids = []
-            for repo_info in manifest_json["entries"]:
-                if repo_info["repo"] in REPOS:
-                    for file_info in repo_info["files"]:
-                        if file_info["id"] in fi_ids:
-                            logger.error("Supplied manifest has repeated file identifiers.  Please specify a " +
-                                         "")
-                            raise click.Abort
-                        else:
-                            fi_ids.append(file_info["id"])
-
+    else:
+        try:
+            manifest_json = icgc_api.get_metadata_bulk(fileids, api_url, repos)
+        except RuntimeError:
+            raise click.Abort
+    if not manifest_json["unique"] or len(manifest_json["entries"]) != 1:
+        fi_ids = []
         for repo_info in manifest_json["entries"]:
-            repo = repo_info["repo"]
+            if repo_info["repo"] in REPOS:
+                for file_info in repo_info["files"]:
+                    if file_info["id"] in fi_ids:
+                        logger.error("Supplied manifest has repeated file identifiers.  Please specify a " +
+                                     "")
+                        raise click.Abort
+                    else:
+                        fi_ids.append(file_info["id"])
+
+    for repo_info in manifest_json["entries"]:
+        repo = repo_info["repo"]
+        if repo == 'ega':
+            object_ids['ega'] = []
+            for file_info in repo_info["files"]:
+                object_ids[repo].append(file_info["repoFileId"])
+                size += file_info["size"]
+        else:
             object_ids[repo] = b64decode(repo_info["content"])
             for file_info in repo_info["files"]:
                 size += file_info["size"]
-        size_check(size, yes_to_all, output)
-
-    else:
-        if repos is None:
-            raise click.BadOptionUsage("Need to specify a repository if not using a manifest ID")
-        for repository in repos:
-            object_ids[repository] = []
-
-        entities = api_call(fileids, api_url)
-        for entity in entities:
-            size += entity["fileCopies"][0]["fileSize"]
-            repository = repository_sort(repos, entity)
-            if repository == 'collaboratory' or repository == 'aws-virginia':
-                object_ids[repository].append(entity["objectId"])
-            else:
-                object_ids[repository].append(entity["dataBundle"]["dataBundleId"])
-        size_check(size, yes_to_all, output)
+    size_check(size, yes_to_all, output)
 
     if 'aws-virginia' in object_ids and object_ids['aws-virginia']:
         check_access(icgc_access, 'icgc')
@@ -246,9 +238,6 @@ def download(ctx, repos, fileids, manifest, output,
     if 'ega' in object_ids and object_ids['ega']:
         if ega_username is None or ega_password is None:
             check_access(None, 'ega')
-        if len(object_ids['ega']) > 1:  # Todo-find a workaround for this rather than throw errors
-            logger.error("The ega repository does not support input of multiple file id values.")
-            raise click.BadParameter
         else:
             if ega_transport_parallel != '1':
                 logger.warning("Parallel streams on the ega client may cause reliability issues and failed " +
@@ -297,7 +286,8 @@ def download(ctx, repos, fileids, manifest, output,
 @click.option('--gdc-access', type=click.STRING)
 @click.option('--icgc-access', type=click.STRING)
 @click.pass_context
-def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_username, ega_password, gdc_access,
+def dryrun(ctx, repos, fileids, manifest, cghub_access,
+           ega_username, ega_password, gdc_access,
            icgc_access):
 
     repo_list = []
@@ -313,60 +303,43 @@ def dryrun(ctx, repos, fileids, manifest, cghub_access, ega_username, ega_passwo
         if len(fileids) > 1:
             logger.warning("For download from manifest files, multiple manifest id arguments is not supported")
             raise click.BadArgumentUsage("Multiple manifest files specified.")
-        if not all(repos):
-            logger.warning("For download from manifest files, there is no need to specify repositories")
-            raise click.BadArgumentUsage("Repositories specified during manifest download")
         try:
             manifest_json = icgc_api.read_manifest(fileids[0], api_url, repos)
         except RuntimeError:
             raise click.Abort
-        if not manifest_json["unique"] or len(manifest_json["entries"]) != 1:
-            fi_ids = []
-            for repo_info in manifest_json["entries"]:
-                if repo_info["repo"] in REPOS:
-                    for file_info in repo_info["files"]:
-                        if file_info["id"] in fi_ids:
-                            logger.error("Supplied manifest has repeated file identifiers.  Please specify repositries")
-                            raise click.Abort
-                        else:
-                            fi_ids.append(file_info["id"])
-
-        for repo_info in manifest_json["entries"]:
-            repo = repo_info["repo"]
-            repo_list.append(repo)
-            repo_size = 0
-            for file_info in repo_info["files"]:
-                size = file_info["size"]
-                repo_size += size
-                total_size += size
-                filesize = file_size(size)
-                table.append([file_info["id"], filesize[0], filesize[1], repo])
-            filesize = file_size(repo_size)
-            table.append([repo, filesize[0], filesize[1], ""])
-
     else:
-        repo_sizes = {}
-        if not repos:
-            raise click.BadOptionUsage("Must include repositories if not specifying a manifest fil")
-        for repository in repos:
-            repo_sizes[repository] = 0
-        total_size = 0
-        entities = api_call(fileids, api_url)
-        for entity in entities:
-            size = entity["fileCopies"][0]["fileSize"]
+        try:
+            manifest_json = icgc_api.get_metadata_bulk(fileids, api_url, repos)
+        except RuntimeError:
+            raise click.Abort
+    if not manifest_json["unique"] or len(manifest_json["entries"]) != 1:
+        fi_ids = []
+        for repo_info in manifest_json["entries"]:
+            if repo_info["repo"] in REPOS:
+                for file_info in repo_info["files"]:
+                    if file_info["id"] in fi_ids:
+                        logger.error("Supplied manifest has repeated file identifiers.  Please specify repositries")
+                        raise click.Abort
+                    else:
+                        fi_ids.append(file_info["id"])
+
+    for repo_info in manifest_json["entries"]:
+        repo = repo_info["repo"]
+        repo_list.append(repo)
+        repo_size = 0
+        for file_info in repo_info["files"]:
+            size = file_info["size"]
+            repo_size += size
             total_size += size
-            repository = repository_sort(repos, entity)
             filesize = file_size(size)
-            table.append([entity["id"], filesize[0], filesize[1], repository])
-            if repository == "gdc":
-                gdc_ids.append(entity["dataBundle"]["dataBundleId"])
-            elif repository == "cghub":
-                cghub_ids.append(entity["dataBundle"]["dataBundleId"])
-            repo_sizes[repository] += size
-        for repo in repo_sizes:
-            filesize = file_size(repo_sizes[repo])
-            table.append([repo, filesize[0], filesize[1], ''])
-            repo_list.append(repo)
+            if repo == "gdc":
+                gdc_ids.append(file_info["id"])
+            elif repo == "cghub":
+                cghub_ids.append(file_info["id"])
+            table.append([file_info["id"], filesize[0], filesize[1], repo])
+        filesize = file_size(repo_size)
+        table.append([repo, filesize[0], filesize[1], ""])
+
     filesize = file_size(total_size)
     table.append(["Total Size", filesize[0], filesize[1], ""])
     logger.info(tabulate(table, headers="firstrow", tablefmt="fancy_grid", numalign="right"))

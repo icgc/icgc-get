@@ -27,22 +27,24 @@ from ..icgc.icgc_api import call_api
 from requests import HTTPError
 
 
-def ega_call(object_id, username, password, tool_path, parallel, udt, download_dir):
-    object_id = ''.join(object_id)  # object id is  a single element list to support multiple id's on other clients
-    label = object_id + '_request'
+def ega_call(object_ids, username, password, tool_path, parallel, udt, download_dir):
+
     key = ''.join(SystemRandom().choice(ascii_uppercase + digits) for _ in range(4))  # Make randomized decryption key
-    args = ['java', '-jar', tool_path, '-p', username, password, '-nt', parallel]
+    for object_id in object_ids:
+        label = object_id + '_request'
+
+        args = ['java', '-jar', tool_path, '-p', username, password, '-nt', parallel]
     # Parameters needed for all ega client commands
 
-    request_call_args = args
-    if object_id[3] == 'D':
-        request_call_args.append('-rfd')
-    else:
-        request_call_args.append('-rf')
-    request_call_args.extend([object_id, '-re', key, '-label', label])
-    rc_request = run_command(request_call_args)
-    if rc_request != 0:
-        return rc_request
+        request_call_args = args
+        if object_id[3] == 'D':
+            request_call_args.append('-rfd')
+        else:
+            request_call_args.append('-rf')
+        request_call_args.extend([object_id, '-re', key, '-label', label])
+        rc_request = run_command(request_call_args)
+        if rc_request != 0:
+            return rc_request
     download_call_args = args
     download_call_args.extend(['-dr', label, '-path', download_dir])
     if udt:
