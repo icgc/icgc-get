@@ -40,11 +40,11 @@ def file_size(num, suffix='B'):
     return ["%.2f" % num, "%s%s" % ('Yi', suffix)]
 
 
-def get_api_url(map):
+def get_api_url(context_map):
     if os.getenv("ICGCGET_API_URL"):
-       api_url = os.getenv("ICGCGET_API_URL")
+        api_url = os.getenv("ICGCGET_API_URL")
     else:
-        api_url = map["portal_url"] + 'api/v1'
+        api_url = context_map["portal_url"] + 'api/v1/'
     return api_url
 
 
@@ -67,7 +67,7 @@ def config_parse(filename):
     try:
         config_temp = yaml.safe_load(config_text)
         config_download = flatten_dict(normalize_keys(config_temp))
-        config = {'download': config_download, 'dryrun': config_download, 'logfile': config_temp['logfile']}
+        config = {'download': config_download, 'status': config_download, 'logfile': config_temp['logfile']}
     except yaml.YAMLError:
 
         print("Could not read config file {}".format(filename))
@@ -75,11 +75,3 @@ def config_parse(filename):
 
     return config
 
-
-def match_repositories(repos, copies):
-    for repository in repos:
-        for copy in copies["fileCopies"]:
-            if repository == copy["repoCode"]:
-                return repository, copy
-    else:
-        raise RuntimeError("File {} not found on repositories {}".format(copies["id"], repos))

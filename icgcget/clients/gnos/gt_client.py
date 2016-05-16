@@ -17,6 +17,7 @@
 #
 from ..run_command import run_command, run_test_command
 import tempfile
+from ..icgcget_errors import SubprocessError
 
 
 def genetorrent_call(uuid, token, tool_path, children, output):
@@ -43,5 +44,7 @@ def genetorrent_access_check(uuid, token, tool_path, output):
     result = run_test_command(call_args)
     if result == 0:
         return True
-    else:
+    elif result == 3:
         return False
+    else:
+        raise SubprocessError(result, "Genetorrent failed with code {}".format(result))

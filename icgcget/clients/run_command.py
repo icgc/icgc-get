@@ -60,8 +60,11 @@ def run_test_command(args, env=None):
         logger.warning("Path to download tool does not lead to expected application")
         return 2
     except subprocess32.TimeoutExpired as e:
-        error = re.findall("403 Forbidden", e.output)
-        if error:
+        invalid_login = re.findall("403 Forbidden", e.output)
+        not_found = re.findall("404 Not Found", e.output)
+        if invalid_login:
             return 3
+        elif not_found:
+            return 403
         else:
             return 0

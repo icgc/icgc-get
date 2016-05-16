@@ -27,9 +27,9 @@ def run():
 
 def parse_id(path):
     ids = re.findall(r'FI\d*', path)
-    uuids = re.findall(r'\w{8,8}-\w{4,4}-\w{4,4}-\w{4,4}-\w{12,12}', path)
+    uuids = re.findall(r'\w{8}-\w{4}-\w{4}-\w{4}-\w{12}', path)
     if ids:
-        resp = {"hits": [], "pagination": {"pages": 1}}
+        resp = {"hits": [], "pagination": {"pages": 1, "page": 1}}
         if "FI250134" in ids:
             resp["hits"].append({'objectId': 'a5a6d87b-e599-528b-aea0-73f5084205d5',
                                  'fileCopies': [{'repoCode': 'collaboratory', 'fileSize': 202180}]})

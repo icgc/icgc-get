@@ -24,12 +24,13 @@ import click
 import psutil
 from base64 import b64decode
 
+from clients.icgcget_errors import ApiError, SubprocessError
 from clients.ega import ega_client
 from clients.gdc import gdc_client
 from clients.gnos import gt_client
 from clients.icgc import icgc_api
 from clients.icgc import icgc_client
-from utils import file_size, config_parse, match_repositories, get_api_url
+from utils import file_size, config_parse, get_api_url
 
 REPOS = ['collaboratory', 'aws-virginia', 'ega', 'gdc', 'cghub']  # Updated for codes used by api
 
@@ -55,8 +56,17 @@ def logger_setup(logfile):
     return logger
 
 
+def match_repositories(repos, copies):
+    for repository in repos:
+        for copy in copies["fileCopies"]:
+            if repository == copy["repoCode"]:
+                return repository, copy
+    logger.error("File {} not found on repositories {}".format(copies["id"], repos))
+    raise click.Abort
+
+
 def filter_manifest_ids(manifest_json):
-    fi_ids = []
+    fi_ids = []  # Function to return a list of unique  file ids from a manifest.  Throws error if not unique
     for repo_info in manifest_json["entries"]:
         if repo_info["repo"] in REPOS:
             for file_info in repo_info["files"]:
@@ -66,8 +76,10 @@ def filter_manifest_ids(manifest_json):
                     raise click.Abort
                 else:
                     fi_ids.append(file_info["id"])
-    else:
-        return fi_ids
+    if not fi_ids:
+        logger.warning("Files on manifest are not found on specified repositories")
+        raise click.Abort
+    return fi_ids
 
 
 def calculate_size(manifest_json):
@@ -174,12 +186,14 @@ def download(ctx, repos, fileids, manifest, output,
             raise click.BadArgumentUsage("Multiple manifest files specified.")
         try:
             manifest_json = icgc_api.get_manifest_id(fileids[0], api_url, repos)
-        except RuntimeError:
+        except ApiError as e:
+            logger.error(e.message)
             raise click.Abort
     else:
         try:
             manifest_json = icgc_api.get_manifest(fileids, api_url, repos)
-        except RuntimeError:
+        except ApiError as e:
+            logger.error(e.message)
             raise click.Abort
     if not manifest_json["unique"] or len(manifest_json["entries"]) != 1:
         filter_manifest_ids(manifest_json,)
@@ -233,52 +247,72 @@ def download(ctx, repos, fileids, manifest, output,
 @click.option('--ega-password', type=click.STRING)
 @click.option('--gdc-access', type=click.STRING)
 @click.option('--icgc-access', type=click.STRING)
+@click.option('--no-files', '-nf', is_flag=True, default=False, help="Do not show individual file information")
 @click.pass_context
-def dryrun(ctx, repos, fileids, manifest, output,
-           cghub_access, cghub_path, ega_username, ega_password, gdc_access, icgc_access):
+def status(ctx, repos, fileids, manifest, output,
+           cghub_access, cghub_path, ega_username, ega_password, gdc_access, icgc_access,
+           no_files):
     repo_list = []
     gdc_ids = []
     cghub_ids = []
+    repo_donors = {}
+    donors = []
     api_url = get_api_url(ctx.default_map)
     total_size = 0
-    table = [["", "Size", "Unit", "File Format", "Repo"]]
 
+    file_table = [["", "Size", "Unit", "File Format", "Data Type", "Repo"]]
+    summary_table = [["", "Size", "Unit", "File Count", "Donor_Count"]]
     if manifest:
         if len(fileids) > 1:
             logger.warning("For download from manifest files, multiple manifest id arguments is not supported")
             raise click.BadArgumentUsage("Multiple manifest files specified.")
         try:
             manifest_json = icgc_api.get_manifest_id(fileids[0], api_url, repos)
-        except RuntimeError:
+        except ApiError as e:
+            logger.error(e.message)
             raise click.Abort
         fileids = filter_manifest_ids(manifest_json)
 
     repo_sizes = {}
+    repo_counts = {}
     if not repos:
         raise click.BadOptionUsage("Must include prioritized repositories")
     for repository in repos:
         repo_sizes[repository] = 0
+        repo_counts[repository] = 0
+        repo_donors[repository] = []
     entities = icgc_api.get_metadata_bulk(fileids, api_url)
+    count = len(entities)
     for entity in entities:
         size = entity["fileCopies"][0]["fileSize"]
         total_size += size
         repository, copy = match_repositories(repos, entity)
         filesize = file_size(size)
-        table.append([entity["id"], filesize[0], filesize[1], copy["fileFormat"], repository])
+        if not no_files:
+            file_table.append([entity["id"], filesize[0], filesize[1], copy["fileFormat"],
+                               entity["dataCategorization"]["dataType"], repository])
         if repository == "gdc":
             gdc_ids.append(entity["dataBundle"]["dataBundleId"])
         if repository == "cghub":
             cghub_ids.append(entity["dataBundle"]["dataBundleId"])
+        for donor_info in entity['donors']:
+            if not donor_info["donorId"] in repo_donors[repository]:
+                repo_donors[repository].append(donor_info["donorId"])
+            if not donor_info["donorId"] in donors:
+                donors.append(donor_info["donorId"])
         repo_sizes[repository] += size
+        repo_counts[repository] += 1
 
     for repo in repo_sizes:
         filesize = file_size(repo_sizes[repo])
-        table.append([repo, filesize[0], filesize[1], '', ''])
+        summary_table.append([repo, filesize[0], filesize[1], repo_counts[repo], len(repo_donors[repo])])
         repo_list.append(repo)
 
     filesize = file_size(total_size)
-    table.append(["Total Size", filesize[0], filesize[1], '', ''])
-    logger.info(tabulate(table, headers="firstrow", tablefmt="fancy_grid", numalign="right"))
+    summary_table.append(["Total Size", filesize[0], filesize[1], count, len(donors)])
+    if not no_files:
+        logger.info(tabulate(file_table, headers="firstrow", tablefmt="fancy_grid", numalign="right"))
+    logger.info(tabulate(summary_table, headers="firstrow", tablefmt="fancy_grid", numalign="right"))
 
     if "collaboratory" in repo_list:
         check_access(icgc_access, "icgc")
@@ -292,10 +326,18 @@ def dryrun(ctx, repos, fileids, manifest, output,
         access_response(ega_client.ega_access_check(ega_username, ega_password), "ega.")
     if 'gdc' in repo_list and gdc_ids:  # We don't get general access credentials to gdc, can't check without files.
         check_access(gdc_access, 'gdc')
-        access_response(gdc_client.gdc_access_check(gdc_access, gdc_ids), "gdc files specified.")
+        try:
+            access_response(gdc_client.gdc_access_check(gdc_access, gdc_ids), "gdc files specified.")
+        except ApiError as e:
+            logger.error(e.message)
+            raise click.Abort
     if 'cghub' in repo_list and cghub_ids:
         check_access(cghub_access, 'cghub')
-        access_response(gt_client.genetorrent_access_check(cghub_ids, cghub_access, cghub_path, output), "cghub files.")
+        try:
+            access_response(gt_client.genetorrent_access_check(cghub_ids, cghub_access, cghub_path, output), "cghub files.")
+        except SubprocessError as e:
+            logger.error(e.message)
+            raise click.Abort
 
 def main():
     cli(auto_envvar_prefix='ICGCGET')

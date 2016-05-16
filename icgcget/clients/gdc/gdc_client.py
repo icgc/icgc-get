@@ -18,7 +18,7 @@
 import tempfile
 from ..run_command import run_command
 from ..icgc.icgc_api import call_api
-from requests import HTTPError
+from ..icgcget_errors import ApiError
 
 
 def gdc_call(uuid, token, tool_path, output, udt, processes):
@@ -54,8 +54,8 @@ def gdc_access_check(token, uuids):
     try:
         call_api(request, base_url, header, head=True)
         return True
-    except HTTPError as e:
-        if e.message == 403:
+    except ApiError as e:
+        if e.code == 403:
             return False
         else:
-            raise RuntimeError
+            raise e

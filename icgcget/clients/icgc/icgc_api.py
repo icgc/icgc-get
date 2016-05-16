@@ -18,6 +18,7 @@
 
 import requests
 import logging
+from ..icgcget_errors import ApiError
 
 
 def call_api(request, api_url, headers=None, head=False):
@@ -28,36 +29,34 @@ def call_api(request, api_url, headers=None, head=False):
         else:
             resp = requests.get(request, headers=headers)
     except requests.exceptions.ConnectionError as e:
-        logger.error("Unable to connect to the icgc api at {}.".format(api_url))
         logger.debug(e.message)
-        raise RuntimeError("Unable to connect to the icgc api at {}".format(api_url))
+        raise ApiError(request, "Unable to connect to the icgc api at {}".format(api_url))
     except requests.exceptions.Timeout as e:
-        logger.error("Error: Connection timed out")
         logger.debug(e.message)
-        raise RuntimeError(e.message)
+        raise ApiError(request, e.message)
     except requests.exceptions.RequestException as e:
         logger.error(e.message)
-        raise RuntimeError(e.message)
+        raise ApiError(request, e.message)
     if resp.status_code != 200:
-        logger.warning("API request failed due to {} error.\n  {} ".format(resp.reason, resp.text))
-        raise requests.HTTPError(resp.status_code)
+        raise ApiError(request, "API request failed due to {} error.".format(resp.reason, resp.text),
+                       code=resp.status_code)
     return resp.json()
 
 
 def get_manifest_id(manifest_id, api_url, repos=None):
-    fields = '&fields=id,size,content,repoFileId'
+    fields = 'fields=id,size,content,repoFileId'
     if repos:
         request = api_url + 'manifests/' + manifest_id + '?repos=' + ','.join(repos) + \
                   '&unique=true&' + fields
     else:
-        request = api_url + 'manifests/' + manifest_id + fields
+        request = api_url + 'manifests/' + manifest_id + '?' + fields
     try:
         entity_set = call_api(request, api_url)
-    except requests.HTTPError as e:
-        if e.message == 404:
+    except ApiError as e:
+        if e.code == 404:
             logger = logging.getLogger("__log__")
             logger.error("Manifest {} not found in database.  Please check your manifest id".format(manifest_id))
-        raise RuntimeError
+        raise ApiError(e.request_string, '', e.code)
     return entity_set
 
 
