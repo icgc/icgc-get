@@ -29,7 +29,7 @@ class GdcDownloadClient(DownloadClient):
         t = tempfile.NamedTemporaryFile()
         t.write(manifest)
         t.seek(0)
-        call_args = [tool_path, 'download', '-m', t.Name, '--dir', output, '-n', processes]
+        call_args = [tool_path, 'download', '-m', t.name, '--dir', output, '-n', processes]
         if access is not None:  # Enables download of unsecured gdc data
             call_args.extend(['-t', access])
         if udt:

@@ -166,7 +166,7 @@ def cli(ctx, config, logfile):
 @click.option('--cghub-access', type=click.STRING)
 @click.option('--cghub-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--cghub-transport-parallel', type=click.STRING)
-@click.option('--ega-access', type=click.STRING)
+@click.option('--ega-access', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
 @click.option('--ega-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--ega-transport-parallel', type=click.STRING)
 @click.option('--ega-udt', type=click.BOOL)

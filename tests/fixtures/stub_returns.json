@@ -1,25 +1,41 @@
 {"status":
-  {"FI250134": {"objectId": "a5a6d87b-e599-528b-aea0-73f5084205d5",
-                "fileCopies": [{"repoCode": "collaboratory", "fileSize": 202180}]},
-  "FI99990": {"dataBundle": {"dataBundleId": "78388918-f748-4bc0-8d07-28fb83840045"},
-               "fileCopies": [{"repoCode": "cghub", "fileSize": 435700000}]},
-  "FI99996": {"dataBundle": {"dataBundleId": "79182d51-d38f-4003-82a7-1cd8c6dba21e"},
-                                 "fileCopies": [{"repoCode": "cghub", "fileSize": 3520000000}]},
-  "FI99994": {"dataBundle": {"dataBundleId": "78388918-f748-4bc0-8d07-28fb83840045"},
-                                 "fileCopies": [{"repoCode": "cghub", "fileSize": 97270000}]},
-  "FIEGAID": {"dataBundle": {"dataBundleId": "EGAF00000112559"},
-                                 "fileCopies": [{"repoCode": "ega", "fileSize": 5556766}]},
-  "FIGDCID": {"dataBundle": {"dataBundleId": "f483ad78-b092-4d10-9afb-eccacec9d9dc"},
-                                 "fileCopies": [{"repoCode": "gdc", "fileSize": 1483}]},
-  "FIGDCID2": {"dataBundle": {"dataBundleId": "2c759eb8-7ee0-43f5-a008-de4317ab8c70"},
-                                 "fileCopies": [{"repoCode": "gdc", "fileSize": 6261580}]},
-  "FIGDCID3": {"dataBundle": {"dataBundleId": "a6b2f1ff-5c71-493c-b65d-e344ed29b7bb"},
-                                 "fileCopies": [{"repoCode": "gdc", "fileSize": 1399430}]}},
+  {"FI250134": {"id": "FI250134", "objectId": "a5a6d87b-e599-528b-aea0-73f5084205d5",
+                "donors": [{"donorId": "DO14152"}], "dataCategorization": {"dataType": "Aligned Reads"},
+                 "fileCopies": [{"fileFormat": "BAM", "repoCode": "collaboratory", "fileSize": 202180}]},
+
+  "FI99990": {"id": "FI99990", "dataBundle": {"dataBundleId": "78388918-f748-4bc0-8d07-28fb83840045"},
+              "donors": [{"donorId": "DO14153"}], "dataCategorization": {"dataType": "Aligned Reads"},
+              "fileCopies": [{"fileFormat": "BAM", "repoCode": "cghub", "fileSize": 435700000}]},
+
+  "FI99996": {"id": "FI99996", "dataBundle": {"dataBundleId": "79182d51-d38f-4003-82a7-1cd8c6dba21e"},
+               "donors": [{"donorId": "DO14153"}], "dataCategorization": {"dataType": "Aligned Reads"},
+              "fileCopies": [{"fileFormat": "BAM", "repoCode": "cghub", "fileSize": 3520000000}]},
+
+  "FI99994": {"id": "FI99994", "dataBundle": {"dataBundleId": "78388918-f748-4bc0-8d07-28fb83840045"},
+               "donors": [{"donorId": "DO14154"}], "dataCategorization": {"dataType": "Aligned Reads"},
+              "fileCopies": [{"fileFormat": "BAM", "repoCode": "cghub", "fileSize": 97270000}]},
+
+  "FIEGAID": {"id": "FIEGAID", "dataBundle": {"dataBundleId": "EGAF00000112559"},
+               "donors": [{"donorId": "DO14155"}], "dataCategorization": {"dataType": "Aligned Reads"},
+              "fileCopies": [{"fileFormat": "BAM", "repoCode": "ega", "fileSize": 5556766}]},
+
+  "FIGDCID": {"id": "FIGDCID", "dataBundle": {"dataBundleId": "f483ad78-b092-4d10-9afb-eccacec9d9dc"},
+               "donors": [{"donorId": "DO14156"}], "dataCategorization": {"dataType": "Aligned Reads"},
+              "fileCopies": [{"fileFormat": "BAM", "repoCode": "gdc", "fileSize": 1483}]},
+
+  "FIGDCID2": {"id": "FIGDCID2", "dataBundle": {"dataBundleId": "2c759eb8-7ee0-43f5-a008-de4317ab8c70"},
+               "donors": [{"donorId": "DO14157"}], "dataCategorization": {"dataType": "Aligned Reads"},
+               "fileCopies": [{"fileFormat": "BAM", "repoCode": "gdc", "fileSize": 6261580}]},
+
+  "FIGDCID3": {"id": "FIGDCID3", "dataBundle": {"dataBundleId": "a6b2f1ff-5c71-493c-b65d-e344ed29b7bb"},
+                "donors": [{"donorId": "DO14158"}],
+                  "fileCopies": [{"fileFormat": "BAM", "repoCode": "gdc", "fileSize": 1399430}]}},
   "download":
     {"ed78541a-0e3a-4d89-b348-f42886442aeb":
     {"unique": true,  "entries": [{ "repo": "gdc", "files": [{"id": "FIGDCID", "size": 1483},
                                                             {"id": "FIGDCID2", "size": 6261580},
-                                                             {"id": "FIGDCID3", "size": 1399430}]}]},
+                                                             {"id": "FIGDCID3", "size": 1399430}],
+    "content": "aWQJZmlsZW5hbWUJbWQ1CXNpemUJc3RhdGUNCjQ4MDE2ZGQ4LTYwMzMtNGQ3My04Yzg1LWY2ZWIxODk2ZTQ2NQkxNC0zLTNfYmV0YS1SLVZfR0JMMTEwNjYxNDAudHh0CWM2MzIwYzhkMzA1ZjNiMmMzNjA0ZTEwNGYwZDZiOGE4CTEzOTk0MzAJbGl2ZQ0KNzEwMTRmM2QtNmMyOS00OTc3LWE1ZmEtNTY4Y2JjYmY4Nzg3CTE0LTMtM19iZXRhLVItVl9HQkwxMTE0NTg0LnRpZgk5NzZjZWNiM2Y2ZDBlOTI1MmI4NmFiNzM2N2QyZTBjYwk2MTgyNjgwCWxpdmUNCmNmMWY2YjZiLWQ2ZDgtNGIwYi05YWNlLWEzNDRlMDg4ODc1ZQkxNC0zLTNfYmV0YS1SLVZfR0JMMTExNDU4NC50eHQJOTFmMWQxOTkzN2ZmYWRjYzVjNWQ1MWQ5ODUxZDQyZjYJMTQwMDU4MAlsaXZl"}]},
     "4294ed2b-4d41-4967-8c5d-231027fa40c7":
     {"unique": true, "entries": [{"repo": "ega",
                                   "files": [{"id": "FIEGAID", "repoFileId": "EGAF00000112559", "size": 5556766}]}]},

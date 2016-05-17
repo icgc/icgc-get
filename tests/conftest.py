@@ -67,18 +67,21 @@ def stop_server():
         thread.join()
 
 
-def download_test(file_id, repo, file_names, sizes, conf, data):
+def download_test(file_id, mode, repo, file_names, sizes, conf, data):
     runner = CliRunner()
     start_server()
-    args = ['--config', conf, 'download']
+    args = ['--config', conf, mode]
     args.extend(file_id)
-    args.extend(['-r', repo, '--output', data, '-y'])
+    args.extend(['-r', repo, '--output', data])
+    if mode == 'download':
+        args.append('-y')
     runner.env = dict(os.environ, ICGCGET_API_URL="http://127.0.0.1:8000/")
     rc = runner.invoke(cli.cli, args)
     if rc.exit_code != 0:
         assert rc.output == 0  # An error occurred during the download attempt
-    for i in range(len(file_names)):
-        file_info = get_info(data, file_names[i])
-        result = file_test(file_info, sizes[i])
-        if not result:
-            assert file_test(file_info, sizes[i])  # File was not of the expected file size
+    if mode == 'download':
+        for i in range(len(file_names)):
+            file_info = get_info(data, file_names[i])
+            result = file_test(file_info, sizes[i])
+            if not result:
+                assert file_test(file_info, sizes[i])  # File was not of the expected file size
