@@ -57,7 +57,6 @@ def run_test_command(args, env=None):
         logger.info(e.output)
         return e.returncode
     except OSError:
-        logger.warning("Path to download tool does not lead to expected application")
         return 2
     except subprocess32.TimeoutExpired as e:
         invalid_login = re.findall("403 Forbidden", e.output)

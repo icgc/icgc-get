@@ -44,7 +44,7 @@ First, pull the docker image using the command
 To save some typing, you can add a convenience bash alias to make working with the container easier:
 
 ```shell
-alias icgc-get="docker run -it --rm -v {MNT_DIR}:/icgc/mnt icgc/icgc-get --config /icgc/mnt/config.yaml download"
+alias icgc-get="docker run -it --rm -v {MNT_DIR}:/icgc/mnt icgc/icgc-get --config /icgc/mnt/config.yaml"
 ```
 
 replacing `{PATH}` with the path to your mounted directory. This directory will be populated by the script with
@@ -57,10 +57,12 @@ need to use the `--output` or `--config` arguments.
 Then execute the command as normal:
 
 ```shell
-icgc-get -r collaboratory
- FI378424
+icgc-get download FI378424 -r  collaboratory
 ```
-
+to do a status check on the same files
+```shell
+icgc-get status FI378424 -r collaboratory
+```
 
 ## Unit Tests
 

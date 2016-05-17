@@ -20,34 +20,26 @@ import os
 
 from ..run_command import run_command
 import tempfile
-from icgc_api import call_api
+from portal_client import call_api
+from ..download_client import DownloadClient
 
 
-def icgc_call(object_id, token, tool_path, file_from, parallel, output, repo):
-    env = dict(os.environ, ACCESSTOKEN=token, TRANSPORT_PARALLEL=parallel, TRANSPORT_FILEFROM=file_from)
-    call_args = [tool_path, '--profile',  repo,  'download', '--object-id']
-    call_args.extend(object_id)
-    call_args.extend(['--output-dir', output])
-    # object id is passed as a single element list to support multiple id's on other clients.
-    code = run_command(call_args, env)
-    return code
+class IcgcDownloadClient(DownloadClient):
 
+    def download(self, manifest, access, tool_path, output,  processes, udt=None, file_from=None, repo=None):
+        os.environ['ACCESSTOKEN'] = access
+        os.environ['TRANSPORT_PARALLEL'] = processes
+        if file_from is not None:
+            os.environ['TRANSPORT_FILEFROM'] = file_from
+        t = tempfile.NamedTemporaryFile()
+        t.write(manifest)
+        t.seek(0)
+        call_args = [tool_path, '--profile', repo, 'download', '--manifest', t.name, '--output-dir', output]
+        code = run_command(call_args)
+        return code
 
-def icgc_manifest_call(manifest, token, tool_path, file_from, parallel, output, repo):
-    os.environ['ACCESSTOKEN'] = token
-    os.environ['TRANSPORT_PARALLEL'] = parallel
-    if file_from is not None:
-        os.environ['TRANSPORT_FILEFROM'] = file_from
-    t = tempfile.NamedTemporaryFile()
-    t.write(manifest)
-    t.seek(0)
-    call_args = [tool_path, '--profile', repo, 'download', '--manifest', t.name, '--output-dir', output]
-    code = run_command(call_args)
-    return code
-
-
-def icgc_access_check(token, repo, api_url):
-    request = api_url + 'settings/tokens/' + token
-    resp = call_api(request, api_url)
-    match = repo + ".download"
-    return match in resp["scope"]
+    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None):
+        request = api_url + 'settings/tokens/' + access
+        resp = call_api(request, api_url)
+        match = repo + ".download"
+        return match in resp["scope"]

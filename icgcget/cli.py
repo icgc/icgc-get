@@ -25,11 +25,11 @@ import psutil
 from base64 import b64decode
 
 from clients.icgcget_errors import ApiError, SubprocessError
-from clients.ega import ega_client
-from clients.gdc import gdc_client
-from clients.gnos import gt_client
-from clients.icgc import icgc_api
-from clients.icgc import icgc_client
+from clients.ega.ega_client import EgaDownloadClient
+from clients.gdc.gdc_client import GdcDownloadClient
+from clients.gnos.gt_client import GenetorrentDownloadClient
+from clients.icgc.icgc_client import IcgcDownloadClient
+from clients.icgc import portal_client
 from utils import file_size, config_parse, get_api_url
 
 REPOS = ['collaboratory', 'aws-virginia', 'ega', 'gdc', 'cghub']  # Updated for codes used by api
@@ -131,6 +131,14 @@ def access_response(result, repo):
         logger.info("Invalid access to the " + repo)
 
 
+def api_error_catch(func, *args):
+    try:
+        return func(*args)
+    except ApiError as e:
+        logger.error(e.message)
+        raise click.Abort
+
+
 @click.group()
 @click.option('--config', default=DEFAULT_CONFIG_FILE)
 @click.option('--logfile', default=None)
@@ -184,17 +192,13 @@ def download(ctx, repos, fileids, manifest, output,
         if len(fileids) > 1:
             logger.warning("For download from manifest files, multiple manifest id arguments is not supported")
             raise click.BadArgumentUsage("Multiple manifest files specified.")
-        try:
-            manifest_json = icgc_api.get_manifest_id(fileids[0], api_url, repos)
-        except ApiError as e:
-            logger.error(e.message)
-            raise click.Abort
+        portal = portal_client.IcgcPortalClient()
+        manifest_json = api_error_catch(portal.get_manifest_id, fileids[0], api_url, repos)
     else:
-        try:
-            manifest_json = icgc_api.get_manifest(fileids, api_url, repos)
-        except ApiError as e:
-            logger.error(e.message)
-            raise click.Abort
+
+        portal = portal_client.IcgcPortalClient()
+        manifest_json = api_error_catch(portal.get_manifest, fileids, api_url, repos)
+
     if not manifest_json["unique"] or len(manifest_json["entries"]) != 1:
         filter_manifest_ids(manifest_json,)
     size, object_ids = calculate_size(manifest_json)
@@ -203,15 +207,17 @@ def download(ctx, repos, fileids, manifest, output,
 
     if 'cghub' in object_ids and object_ids['cghub']:
         check_access(cghub_access, 'cghub')
-        code = gt_client.genetorrent_manifest_call(object_ids['cghub'], cghub_access, cghub_path,
-                                                   cghub_transport_parallel, output)
-        check_code('Cghub', code)
+        gt_client = GenetorrentDownloadClient()
+        return_code = gt_client.download(object_ids['cghub'], cghub_access, cghub_path,
+                                         cghub_transport_parallel, output)
+        check_code('Cghub', return_code)
 
     if 'aws-virginia' in object_ids and object_ids['aws-virginia']:
         check_access(icgc_access, 'icgc')
-        code = icgc_client.icgc_manifest_call(object_ids['aws-virginia'], icgc_access, icgc_path,
-                                              icgc_transport_file_from, icgc_transport_parallel, output, 'aws')
-        check_code('Icgc', code)
+        icgc_client = IcgcDownloadClient()
+        return_code = icgc_client.download(object_ids['aws-virginia'], icgc_access, icgc_path,
+                                           icgc_transport_file_from, icgc_transport_parallel, output, 'aws')
+        check_code('Icgc', return_code)
 
     if 'ega' in object_ids and object_ids['ega']:
         if ega_username is None or ega_password is None:
@@ -219,21 +225,24 @@ def download(ctx, repos, fileids, manifest, output,
         if ega_transport_parallel != '1':
             logger.warning("Parallel streams on the ega client may cause reliability issues and failed " +
                            "downloads.  This option is not recommended.")
-        code = ega_client.ega_call(object_ids['ega'], ega_username, ega_password, ega_path,
-                                   ega_transport_parallel, ega_udt, output)
-        check_code('Ega', code)
+        ega_client = EgaDownloadClient()
+        return_code = ega_client.download(object_ids['ega'], ega_username, ega_password, ega_path,
+                                          ega_transport_parallel, ega_udt, output)
+        check_code('Ega', return_code)
 
     if 'collaboratory' in object_ids and object_ids['collaboratory']:
         check_access(icgc_access, 'icgc')
-        code = icgc_client.icgc_manifest_call(object_ids['collaboratory'], icgc_access, icgc_path,
-                                              icgc_transport_file_from, icgc_transport_parallel, output, 'collab')
-        check_code('Icgc', code)
+        icgc_client = IcgcDownloadClient()
+        return_code = icgc_client.download(object_ids['collaboratory'], icgc_access, icgc_path,
+                                           icgc_transport_file_from, icgc_transport_parallel, output, 'collab')
+        check_code('Icgc', return_code)
 
     if 'gdc' in object_ids and object_ids['gdc']:
         check_access(gdc_access, 'gdc')
-        code = gdc_client.gdc_manifest_call(object_ids['gdc'], gdc_access, gdc_path, output, gdc_udt,
-                                            gdc_transport_parallel)
-        check_code('Gdc', code)
+        gdc_client = GdcDownloadClient()
+        return_code = gdc_client.download(object_ids['gdc'], gdc_access, gdc_path, output, gdc_udt,
+                                          gdc_transport_parallel)
+        check_code('Gdc', return_code)
 
 
 @cli.command()
@@ -266,11 +275,10 @@ def status(ctx, repos, fileids, manifest, output,
         if len(fileids) > 1:
             logger.warning("For download from manifest files, multiple manifest id arguments is not supported")
             raise click.BadArgumentUsage("Multiple manifest files specified.")
-        try:
-            manifest_json = icgc_api.get_manifest_id(fileids[0], api_url, repos)
-        except ApiError as e:
-            logger.error(e.message)
-            raise click.Abort
+
+        portal = portal_client.IcgcPortalClient()
+        manifest_json = api_error_catch(portal.get_manifest_id, fileids[0], api_url, repos)
+
         fileids = filter_manifest_ids(manifest_json)
 
     repo_sizes = {}
@@ -281,7 +289,8 @@ def status(ctx, repos, fileids, manifest, output,
         repo_sizes[repository] = 0
         repo_counts[repository] = 0
         repo_donors[repository] = []
-    entities = icgc_api.get_metadata_bulk(fileids, api_url)
+    portal = portal_client.IcgcPortalClient()
+    entities = portal.get_metadata_bulk(fileids, api_url)
     count = len(entities)
     for entity in entities:
         size = entity["fileCopies"][0]["fileSize"]
@@ -316,28 +325,34 @@ def status(ctx, repos, fileids, manifest, output,
 
     if "collaboratory" in repo_list:
         check_access(icgc_access, "icgc")
-        access_response(icgc_client.icgc_access_check(icgc_access, "collab", api_url), "Collaboratory.")
+        icgc_client = IcgcDownloadClient()
+        access_response(icgc_client.access_check(icgc_access, "collab", api_url), "Collaboratory.")
     if "aws-virginia" in repo_list:
         check_access(icgc_access, "icgc")
-        access_response(icgc_client.icgc_access_check(icgc_access, "aws", api_url), "Amazon Web server.")
+        icgc_client = IcgcDownloadClient()
+        access_response(icgc_client.access_check(icgc_access, "aws", api_url), "Amazon Web server.")
     if 'ega' in repo_list:
         if ega_username is None or ega_password is None:
             check_access(None, 'ega')
-        access_response(ega_client.ega_access_check(ega_username, ega_password), "ega.")
+        ega_client = EgaDownloadClient
+        access_response(ega_client.access_check(ega_username, ega_password), "ega.")
     if 'gdc' in repo_list and gdc_ids:  # We don't get general access credentials to gdc, can't check without files.
         check_access(gdc_access, 'gdc')
+        gdc_client = GdcDownloadClient()
         try:
-            access_response(gdc_client.gdc_access_check(gdc_access, gdc_ids), "gdc files specified.")
+            access_response(gdc_client.access_check(gdc_access, gdc_ids), "gdc files specified.")
         except ApiError as e:
             logger.error(e.message)
             raise click.Abort
     if 'cghub' in repo_list and cghub_ids:
         check_access(cghub_access, 'cghub')
+        gt_client = GenetorrentDownloadClient()
         try:
-            access_response(gt_client.genetorrent_access_check(cghub_ids, cghub_access, cghub_path, output), "cghub files.")
+            access_response(gt_client.access_check(cghub_ids, cghub_access, cghub_path, output), "cghub files.")
         except SubprocessError as e:
             logger.error(e.message)
             raise click.Abort
+
 
 def main():
     cli(auto_envvar_prefix='ICGCGET')

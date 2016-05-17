@@ -43,45 +43,49 @@ def call_api(request, api_url, headers=None, head=False):
     return resp.json()
 
 
-def get_manifest_id(manifest_id, api_url, repos=None):
-    fields = 'fields=id,size,content,repoFileId'
-    if repos:
-        request = api_url + 'manifests/' + manifest_id + '?repos=' + ','.join(repos) + \
-                  '&unique=true&' + fields
-    else:
-        request = api_url + 'manifests/' + manifest_id + '?' + fields
-    try:
+class IcgcPortalClient():
+    def __init__(self):
+        self.logger = logging.getLogger('__log__')
+
+    def get_manifest_id(self, manifest_id, api_url, repos=None):
+        fields = 'fields=id,size,content,repoFileId'
+        if repos:
+            request = (api_url + 'manifests/' + manifest_id + '?repos=' + ','.join(repos) +
+                       '&unique=true&' + fields)
+        else:
+            request = api_url + 'manifests/' + manifest_id + '?' + fields
+        try:
+            entity_set = call_api(request, api_url)
+        except ApiError as e:
+            if e.code == 404:
+                self.logger.error("Manifest {} not found in database. ".format(manifest_id) +
+                                  " Please check your manifest id")
+            raise ApiError(e.request_string, '', e.code)
+        return entity_set
+
+    def get_manifest(self, file_ids, api_url, repos=None):
+        fields = '&fields=id,size,content,repoFileId'
+        if repos:
+            request = (api_url + 'manifests' + self.filters(file_ids) + '&repos=' + ','.join(repos) + '&unique=true&' +
+                       fields)
+        else:
+            request = api_url + 'manifests' + self.filters(file_ids) + fields
         entity_set = call_api(request, api_url)
-    except ApiError as e:
-        if e.code == 404:
-            logger = logging.getLogger("__log__")
-            logger.error("Manifest {} not found in database.  Please check your manifest id".format(manifest_id))
-        raise ApiError(e.request_string, '', e.code)
-    return entity_set
+        return entity_set
 
+    def get_metadata_bulk(self, file_ids, api_url):
+        entity_set = []
+        pages_available = True
+        while pages_available:
+            request = (api_url + 'repository/files' + self.filters(file_ids) +
+                       '"&&from=1&size=10&sort=id&order=desc')
+            resp = call_api(request, api_url)
+            entity_set.extend(resp["hits"])
+            pages = resp["pagination"]["pages"]
+            page = resp["pagination"]["page"]
+            pages_available = page < pages
+        return entity_set
 
-def get_manifest(file_ids, api_url, repos=None):
-    fields = '&fields=id,size,content,repoFileId'
-    if repos:
-        request = api_url + 'manifests' + filters(file_ids) + '&repos=' + ','.join(repos) + '&unique=true&' + fields
-    else:
-        request = api_url + 'manifests' + filters(file_ids) + fields
-    entity_set = call_api(request, api_url)
-    return entity_set
-
-
-def get_metadata_bulk(file_ids, api_url):
-    entity_set = []
-    pages_available = True
-    while pages_available:
-        request = api_url + 'repository/files' + filters(file_ids) + '"&&from=1&size=10&sort=id&order=desc'
-        resp = call_api(request, api_url)
-        entity_set.extend(resp["hits"])
-        pages = resp["pagination"]["pages"]
-        page = resp["pagination"]["page"]
-        pages_available = page < pages
-    return entity_set
-
-
-def filters(file_ids):
-    return '?filters={"file":{"id":{"is":["' + '","'.join(file_ids) + '"]}}}'
+    @staticmethod
+    def filters(file_ids):
+        return '?filters={"file":{"id":{"is":["' + '","'.join(file_ids) + '"]}}}'

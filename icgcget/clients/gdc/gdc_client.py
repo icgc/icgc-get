@@ -17,45 +17,34 @@
 #
 import tempfile
 from ..run_command import run_command
-from ..icgc.icgc_api import call_api
+from ..icgc.portal_client import call_api
 from ..icgcget_errors import ApiError
+from ..download_client import DownloadClient
 
 
-def gdc_call(uuid, token, tool_path, output, udt, processes):
-    call_args = [tool_path, 'download']
-    call_args.extend(uuid)
-    if token is not None:  # Enables download of unsecured gdc-data
-        call_args.extend(['-t', token])
-    call_args.extend(['--dir', output, '-n', processes])
-    if udt:
-        call_args.append('--udt')
-    code = run_command(call_args)
-    return code
+class GdcDownloadClient(DownloadClient):
 
+    def download(self, manifest, access, tool_path, output,  processes, udt=None, file_from=None, repo=None):
+        t = tempfile.NamedTemporaryFile()
+        t.write(manifest)
+        t.seek(0)
+        call_args = [tool_path, 'download', '-m', t.Name, '--dir', output, '-n', processes]
+        if access is not None:  # Enables download of unsecured gdc data
+            call_args.extend(['-t', access])
+        if udt:
+            call_args.append('--udt')
+        code = run_command(call_args)
+        return code
 
-def gdc_manifest_call(manifest, token, tool_path, output, udt, processes):
-    t = tempfile.NamedTemporaryFile()
-    t.write(manifest)
-    t.seek(0)
-    call_args = [tool_path, 'download', '-m', t.Name, '--dir', output, '-n', processes]
-    if token is not None:  # Enables download of unsecured gdc data
-        call_args.extend(['-t', token])
-    if udt:
-        call_args.append('--udt')
-    code = run_command(call_args)
-    return code
-
-
-def gdc_access_check(token, uuids):
-
-    base_url = 'https://gdc-api.nci.nih.gov/data/'
-    request = base_url + ','.join(uuids)
-    header = {'X-auth-Token': token}
-    try:
-        call_api(request, base_url, header, head=True)
-        return True
-    except ApiError as e:
-        if e.code == 403:
-            return False
-        else:
-            raise e
+    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None):
+        base_url = 'https://gdc-api.nci.nih.gov/data/'
+        request = base_url + ','.join(uuids)
+        header = {'X-auth-Token': access}
+        try:
+            call_api(request, base_url, header, head=True)
+            return True
+        except ApiError as e:
+            if e.code == 403:
+                return False
+            else:
+                raise e

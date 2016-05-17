@@ -18,33 +18,29 @@
 from ..run_command import run_command, run_test_command
 import tempfile
 from ..icgcget_errors import SubprocessError
+from ..download_client import DownloadClient
 
 
-def genetorrent_call(uuid, token, tool_path, children, output):
-    call_args = [tool_path, '-vv', '--max-children', children, '-c', token, '-d']
-    call_args.extend(uuid)
-    call_args.extend(['-p', output])
-    code = run_command(call_args)
-    return code
+class GenetorrentDownloadClient(DownloadClient):
 
+    def download(self, manifest, access, tool_path, output, processess, udt=None, file_from=None, repo=None):
+        t = tempfile.NamedTemporaryFile()
+        t.write(manifest)
+        t.seek(0)
+        call_args = [tool_path, '-vv', '--max-children', processess, '-c', access, '-d', t.name, '-p', output]
+        code = run_command(call_args)
+        return code
 
-def genetorrent_manifest_call(manifest, token, tool_path, children, output):
-    t = tempfile.NamedTemporaryFile()
-    t.write(manifest)
-    t.seek(0)
-    call_args = [tool_path, '-vv', '--max-children', children, '-c', token, '-d', t.name, '-p', output]
-    code = run_command(call_args)
-    return code
-
-
-def genetorrent_access_check(uuid, token, tool_path, output):
-    call_args = [tool_path, '-vv', '-c', token, '-d']
-    call_args.extend(uuid)
-    call_args.extend(['-p', output])
-    result = run_test_command(call_args)
-    if result == 0:
-        return True
-    elif result == 3:
-        return False
-    else:
-        raise SubprocessError(result, "Genetorrent failed with code {}".format(result))
+    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None):
+        call_args = [path, '-vv', '-c', access, '-d']
+        call_args.extend(uuids)
+        call_args.extend(['-p', output])
+        result = run_test_command(call_args)
+        if result == 0:
+            return True
+        elif result == 3:
+            return False
+        elif result == 2:
+            raise SubprocessError(result, "Path to gentorrent client did not lead to expected application")
+        else:
+            raise SubprocessError(result, "Genetorrent failed with code {}".format(result))
