@@ -44,8 +44,6 @@ gdc:
 
 # EGA
 ega:
-  username:
-  password:
   access:
   path: /icgc/ega-download-demo/EgaDemoClient.jar
 

@@ -18,7 +18,7 @@
 
 import requests
 import logging
-from ..icgcget_errors import ApiError
+from icgcget_errors import ApiError
 
 
 def call_api(request, api_url, headers=None, head=False):

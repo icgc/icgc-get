@@ -16,7 +16,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from conftest import download_test, download_manifest
+from conftest import download_test
 
 
 def test_ega_file(config, data_dir):

@@ -17,7 +17,7 @@
 #
 
 
-from conftest import download_test, download_manifest
+from conftest import download_test
 
 
 def test_gdc(config, data_dir):

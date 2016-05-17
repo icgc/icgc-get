@@ -18,18 +18,18 @@
 
 import logging
 import os
-from tabulate import tabulate
-import click
-
-import psutil
 from base64 import b64decode
 
-from clients.icgcget_errors import ApiError, SubprocessError
+import click
+import psutil
+from tabulate import tabulate
+
 from clients.ega.ega_client import EgaDownloadClient
 from clients.gdc.gdc_client import GdcDownloadClient
 from clients.gnos.gt_client import GenetorrentDownloadClient
 from clients.icgc.icgc_client import IcgcDownloadClient
-from clients.icgc import portal_client
+from clients.icgcget_errors import ApiError, SubprocessError
+from clients import portal_client
 from utils import file_size, config_parse, get_api_url
 
 REPOS = ['collaboratory', 'aws-virginia', 'ega', 'gdc', 'cghub']  # Updated for codes used by api
@@ -166,11 +166,10 @@ def cli(ctx, config, logfile):
 @click.option('--cghub-access', type=click.STRING)
 @click.option('--cghub-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--cghub-transport-parallel', type=click.STRING)
-@click.option('--ega-password', type=click.STRING)
+@click.option('--ega-access', type=click.STRING)
 @click.option('--ega-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--ega-transport-parallel', type=click.STRING)
 @click.option('--ega-udt', type=click.BOOL)
-@click.option('--ega-username', type=click.STRING)
 @click.option('--gdc-access', type=click.STRING)
 @click.option('--gdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--gdc-transport-parallel', type=click.STRING)
@@ -183,7 +182,7 @@ def cli(ctx, config, logfile):
 @click.pass_context
 def download(ctx, repos, fileids, manifest, output,
              cghub_access, cghub_path, cghub_transport_parallel,
-             ega_password, ega_path, ega_transport_parallel, ega_udt, ega_username,
+             ega_access, ega_path, ega_transport_parallel, ega_udt,
              gdc_access, gdc_path, gdc_transport_parallel, gdc_udt,
              icgc_access, icgc_path, icgc_transport_file_from, icgc_transport_parallel, yes_to_all):
     api_url = get_api_url(ctx.default_map)
@@ -208,40 +207,39 @@ def download(ctx, repos, fileids, manifest, output,
     if 'cghub' in object_ids and object_ids['cghub']:
         check_access(cghub_access, 'cghub')
         gt_client = GenetorrentDownloadClient()
-        return_code = gt_client.download(object_ids['cghub'], cghub_access, cghub_path,
-                                         cghub_transport_parallel, output)
+        return_code = gt_client.download(object_ids['cghub'], cghub_access, cghub_path, output,
+                                         cghub_transport_parallel)
         check_code('Cghub', return_code)
 
     if 'aws-virginia' in object_ids and object_ids['aws-virginia']:
         check_access(icgc_access, 'icgc')
         icgc_client = IcgcDownloadClient()
-        return_code = icgc_client.download(object_ids['aws-virginia'], icgc_access, icgc_path,
-                                           icgc_transport_file_from, icgc_transport_parallel, output, 'aws')
+        return_code = icgc_client.download(object_ids['aws-virginia'], icgc_access, icgc_path, output,
+                                           icgc_transport_parallel, file_from=icgc_transport_file_from, repo='aws')
         check_code('Icgc', return_code)
 
     if 'ega' in object_ids and object_ids['ega']:
-        if ega_username is None or ega_password is None:
-            check_access(None, 'ega')
+        check_access(ega_access, 'ega')
         if ega_transport_parallel != '1':
             logger.warning("Parallel streams on the ega client may cause reliability issues and failed " +
                            "downloads.  This option is not recommended.")
         ega_client = EgaDownloadClient()
-        return_code = ega_client.download(object_ids['ega'], ega_username, ega_password, ega_path,
-                                          ega_transport_parallel, ega_udt, output)
+        return_code = ega_client.download(object_ids['ega'], ega_access, ega_path, output, ega_transport_parallel,
+                                          ega_udt)
         check_code('Ega', return_code)
 
     if 'collaboratory' in object_ids and object_ids['collaboratory']:
         check_access(icgc_access, 'icgc')
         icgc_client = IcgcDownloadClient()
-        return_code = icgc_client.download(object_ids['collaboratory'], icgc_access, icgc_path,
-                                           icgc_transport_file_from, icgc_transport_parallel, output, 'collab')
+        return_code = icgc_client.download(object_ids['collaboratory'], icgc_access, icgc_path, output,
+                                           icgc_transport_parallel, file_from=icgc_transport_file_from, repo='collab')
         check_code('Icgc', return_code)
 
     if 'gdc' in object_ids and object_ids['gdc']:
         check_access(gdc_access, 'gdc')
         gdc_client = GdcDownloadClient()
-        return_code = gdc_client.download(object_ids['gdc'], gdc_access, gdc_path, output, gdc_udt,
-                                          gdc_transport_parallel)
+        return_code = gdc_client.download(object_ids['gdc'], gdc_access, gdc_path, output, gdc_transport_parallel,
+                                          gdc_udt)
         check_code('Gdc', return_code)
 
 
@@ -252,14 +250,13 @@ def download(ctx, repos, fileids, manifest, output,
 @click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True))
 @click.option('--cghub-access', type=click.STRING)
 @click.option('--cghub-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
-@click.option('--ega-username', type=click.STRING)
-@click.option('--ega-password', type=click.STRING)
+@click.option('--ega-access', type=click.STRING)
 @click.option('--gdc-access', type=click.STRING)
 @click.option('--icgc-access', type=click.STRING)
 @click.option('--no-files', '-nf', is_flag=True, default=False, help="Do not show individual file information")
 @click.pass_context
 def status(ctx, repos, fileids, manifest, output,
-           cghub_access, cghub_path, ega_username, ega_password, gdc_access, icgc_access,
+           cghub_access, cghub_path, ega_access, gdc_access, icgc_access,
            no_files):
     repo_list = []
     gdc_ids = []
@@ -326,16 +323,15 @@ def status(ctx, repos, fileids, manifest, output,
     if "collaboratory" in repo_list:
         check_access(icgc_access, "icgc")
         icgc_client = IcgcDownloadClient()
-        access_response(icgc_client.access_check(icgc_access, "collab", api_url), "Collaboratory.")
+        access_response(icgc_client.access_check(icgc_access, repo="collab", api_url=api_url), "Collaboratory.")
     if "aws-virginia" in repo_list:
         check_access(icgc_access, "icgc")
         icgc_client = IcgcDownloadClient()
-        access_response(icgc_client.access_check(icgc_access, "aws", api_url), "Amazon Web server.")
+        access_response(icgc_client.access_check(icgc_access, repo="aws", api_url=api_url), "Amazon Web server.")
     if 'ega' in repo_list:
-        if ega_username is None or ega_password is None:
-            check_access(None, 'ega')
-        ega_client = EgaDownloadClient
-        access_response(ega_client.access_check(ega_username, ega_password), "ega.")
+        check_access(ega_access, 'ega')
+        ega_client = EgaDownloadClient()
+        access_response(ega_client.access_check(ega_access), "ega.")
     if 'gdc' in repo_list and gdc_ids:  # We don't get general access credentials to gdc, can't check without files.
         check_access(gdc_access, 'gdc')
         gdc_client = GdcDownloadClient()
@@ -348,7 +344,7 @@ def status(ctx, repos, fileids, manifest, output,
         check_access(cghub_access, 'cghub')
         gt_client = GenetorrentDownloadClient()
         try:
-            access_response(gt_client.access_check(cghub_ids, cghub_access, cghub_path, output), "cghub files.")
+            access_response(gt_client.access_check(cghub_access, cghub_ids, cghub_path, output=output), "cghub files.")
         except SubprocessError as e:
             logger.error(e.message)
             raise click.Abort

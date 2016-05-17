@@ -22,18 +22,19 @@ import os
 from random import SystemRandom
 from string import ascii_uppercase, digits
 from urllib import quote
-from ..run_command import run_command
-from ..icgc.portal_client import call_api
 from requests import HTTPError
+
+from ..portal_client import call_api
 from ..download_client import DownloadClient
+from ..run_command import run_command
 
 
 class EgaDownloadClient(DownloadClient):
 
-    def ega_call(self, object_ids, access, tool_path, output, parallel, udt=None, file_from=None, repo=None):
+    def download(self, object_ids, access, tool_path, output, parallel, udt=None, file_from=None, repo=None):
         key = ''.join(SystemRandom().choice(ascii_uppercase + digits) for _ in range(4))
         label = object_ids[0] + '_download_request'
-        args = ['java', '-jar', tool_path, '-p', access, '-nt', parallel]
+        args = ['java', '-jar', tool_path, '-pf', access, '-nt', parallel]
         for object_id in object_ids:
 
             request_call_args = args
@@ -66,7 +67,10 @@ class EgaDownloadClient(DownloadClient):
 
     def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None):
         base_url = "https://ega.ebi.ac.uk/ega/rest/access/v2/"
-        login_request = base_url
+        access_file = open(access)
+        username = access_file.readline()
+        password = access_file.readline()
+        login_request = base_url + 'users/' + quote(username) + "?pass=" + quote(password)
         try:
             resp = call_api(login_request, base_url)
         except HTTPError:  # invalid return code

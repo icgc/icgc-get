@@ -16,10 +16,11 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 import tempfile
-from ..run_command import run_command
-from ..icgc.portal_client import call_api
-from ..icgcget_errors import ApiError
+
+from ..portal_client import call_api
 from ..download_client import DownloadClient
+from ..icgcget_errors import ApiError
+from ..run_command import run_command
 
 
 class GdcDownloadClient(DownloadClient):

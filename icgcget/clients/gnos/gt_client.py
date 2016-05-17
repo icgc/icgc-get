@@ -23,11 +23,11 @@ from ..download_client import DownloadClient
 
 class GenetorrentDownloadClient(DownloadClient):
 
-    def download(self, manifest, access, tool_path, output, processess, udt=None, file_from=None, repo=None):
+    def download(self, manifest, access, tool_path, output, processes, udt=None, file_from=None, repo=None):
         t = tempfile.NamedTemporaryFile()
         t.write(manifest)
         t.seek(0)
-        call_args = [tool_path, '-vv', '--max-children', processess, '-c', access, '-d', t.name, '-p', output]
+        call_args = [tool_path, '-vv', '--max-children', processes, '-c', access, '-d', t.name, '-p', output]
         code = run_command(call_args)
         return code
 

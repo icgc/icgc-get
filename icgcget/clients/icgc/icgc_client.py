@@ -17,11 +17,11 @@
 #
 
 import os
-
-from ..run_command import run_command
 import tempfile
-from portal_client import call_api
+
+from ..portal_client import call_api
 from ..download_client import DownloadClient
+from ..run_command import run_command
 
 
 class IcgcDownloadClient(DownloadClient):
