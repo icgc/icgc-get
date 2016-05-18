@@ -19,6 +19,7 @@
 import collections
 import yaml
 import os
+from base64 import b64decode
 
 
 def flatten_dict(d, parent_key='', sep='_'):
@@ -63,7 +64,6 @@ def config_parse(filename):
 
         print("Config file {} not found".format(filename))
         return config
-
     try:
         config_temp = yaml.safe_load(config_text)
         config_download = flatten_dict(normalize_keys(config_temp))
@@ -75,3 +75,37 @@ def config_parse(filename):
 
     return config
 
+
+def donor_addition(donor_list, donor):
+    if donor not in donor_list:
+        donor_list.append(donor)
+    return donor_list
+
+
+def increment_types(typename, repository, size_dict, count_dict, size):
+    if typename not in size_dict[repository]:
+        size_dict[repository][typename] = 0
+    if typename not in count_dict:
+        count_dict[repository][typename] = 0
+    size_dict[repository]["total"] += size
+    size_dict[repository][typename] += size
+    count_dict[repository]["total"] += 1
+    count_dict[repository][typename] += 1
+    return size_dict, count_dict
+
+
+def calculate_size(manifest_json):
+    size = 0
+    object_ids = {}
+    for repo_info in manifest_json["entries"]:
+        repo = repo_info["repo"]
+        if repo == 'ega':
+            object_ids['ega'] = []
+            for file_info in repo_info["files"]:
+                object_ids[repo].append(file_info["repoFileId"])
+                size += file_info["size"]
+        else:
+            object_ids[repo] = b64decode(repo_info["content"])
+            for file_info in repo_info["files"]:
+                size += file_info["size"]
+    return size, object_ids

@@ -9,7 +9,7 @@ class DownloadClient(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self):
-        logger = logging.getLogger('__log__')
+        self.logger = logging.getLogger('__log__')
 
     @abc.abstractmethod
     def download(self, manifest, access, tool_path, output,  processes, udt=None, file_from=None, repo=None):
@@ -22,7 +22,7 @@ class DownloadClient(object):
     def _run_command(self, args, env=None):
         self.logger.info(args)
         if None in args:
-            logger.warning("Missing argument in {}".format(args))
+            self.logger.warning("Missing argument in {}".format(args))
             return 1
         try:
             process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
@@ -30,7 +30,7 @@ class DownloadClient(object):
             self.logger.warning(e.output)
             return e.returncode
         except OSError:
-            logger.warning("Path to download tool does not lead to expected application")
+            self.logger.warning("Path to download tool does not lead to expected application")
             return 2
         while True:
             output = process.stdout.readline()

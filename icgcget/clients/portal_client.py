@@ -43,7 +43,7 @@ def call_api(request, api_url, headers=None, head=False):
     return resp.json()
 
 
-class IcgcPortalClient():
+class IcgcPortalClient:
     def __init__(self):
         self.logger = logging.getLogger('__log__')
 
@@ -89,3 +89,4 @@ class IcgcPortalClient():
     @staticmethod
     def filters(file_ids):
         return '?filters={"file":{"id":{"is":["' + '","'.join(file_ids) + '"]}}}'
+
