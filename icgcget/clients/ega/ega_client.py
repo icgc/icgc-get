@@ -26,7 +26,6 @@ from requests import HTTPError
 
 from ..portal_client import call_api
 from ..download_client import DownloadClient
-from ..run_command import run_command
 
 
 class EgaDownloadClient(DownloadClient):
@@ -43,14 +42,14 @@ class EgaDownloadClient(DownloadClient):
             else:
                 request_call_args.append('-rf')
             request_call_args.extend([object_id, '-re', key, '-label', label])
-            rc_request = run_command(request_call_args)
+            rc_request = self._run_command(request_call_args)
             if rc_request != 0:
                 return rc_request
         download_call_args = args
         download_call_args.extend(['-dr', label, '-path', output])
         if udt:
             download_call_args.append('-udt')
-        rc_download = run_command(download_call_args)
+        rc_download = self._run_command(download_call_args)
         if rc_download != 0:
             return rc_download
         decrypt_call_args = args
@@ -60,7 +59,7 @@ class EgaDownloadClient(DownloadClient):
                 decrypt_call_args.append(output + '/' + file)
 
         decrypt_call_args.extend(['-dck', key])
-        rc_decrypt = run_command(decrypt_call_args)
+        rc_decrypt = self._run_command(decrypt_call_args)
         if rc_decrypt != 0:
             return rc_decrypt
         return 0

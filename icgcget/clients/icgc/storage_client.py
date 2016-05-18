@@ -21,7 +21,6 @@ import tempfile
 
 from ..portal_client import call_api
 from ..download_client import DownloadClient
-from ..run_command import run_command
 
 
 class IcgcDownloadClient(DownloadClient):
@@ -35,7 +34,7 @@ class IcgcDownloadClient(DownloadClient):
         t.write(manifest)
         t.seek(0)
         call_args = [tool_path, '--profile', repo, 'download', '--manifest', t.name, '--output-dir', output]
-        code = run_command(call_args)
+        code = self._run_command(call_args)
         return code
 
     def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None):

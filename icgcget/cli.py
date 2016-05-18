@@ -26,9 +26,9 @@ from tabulate import tabulate
 
 from clients.ega.ega_client import EgaDownloadClient
 from clients.gdc.gdc_client import GdcDownloadClient
-from clients.gnos.gt_client import GenetorrentDownloadClient
-from clients.icgc.icgc_client import IcgcDownloadClient
-from clients.icgcget_errors import ApiError, SubprocessError
+from clients.gnos.gnos_client import GenetorrentDownloadClient
+from clients.icgc.storage_client import IcgcDownloadClient
+from clients.errors import ApiError, SubprocessError
 from clients import portal_client
 from utils import file_size, config_parse, get_api_url
 

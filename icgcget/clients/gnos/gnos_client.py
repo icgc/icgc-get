@@ -15,9 +15,8 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-from ..run_command import run_command, run_test_command
 import tempfile
-from ..icgcget_errors import SubprocessError
+from ..errors import SubprocessError
 from ..download_client import DownloadClient
 
 
@@ -28,14 +27,14 @@ class GenetorrentDownloadClient(DownloadClient):
         t.write(manifest)
         t.seek(0)
         call_args = [tool_path, '-vv', '--max-children', processes, '-c', access, '-d', t.name, '-p', output]
-        code = run_command(call_args)
+        code = self._run_command(call_args)
         return code
 
     def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None):
         call_args = [path, '-vv', '-c', access, '-d']
         call_args.extend(uuids)
         call_args.extend(['-p', output])
-        result = run_test_command(call_args)
+        result = self._run_test_command(call_args)
         if result == 0:
             return True
         elif result == 3:

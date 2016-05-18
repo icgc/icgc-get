@@ -19,8 +19,7 @@ import tempfile
 
 from ..portal_client import call_api
 from ..download_client import DownloadClient
-from ..icgcget_errors import ApiError
-from ..run_command import run_command
+from ..errors import ApiError
 
 
 class GdcDownloadClient(DownloadClient):
@@ -34,7 +33,7 @@ class GdcDownloadClient(DownloadClient):
             call_args.extend(['-t', access])
         if udt:
             call_args.append('--udt')
-        code = run_command(call_args)
+        code = self._run_command(call_args)
         return code
 
     def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None):
