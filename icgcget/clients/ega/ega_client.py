@@ -54,9 +54,9 @@ class EgaDownloadClient(DownloadClient):
             return rc_download
         decrypt_call_args = args
         decrypt_call_args.append('-dc')
-        for file in os.listdir(output):  # File names cannot be dynamically predicted from dataset names
-            if fnmatch.fnmatch(file, '*.cip'):  # Tool attempts to decrypt all encrypted files in download directory.
-                decrypt_call_args.append(output + '/' + file)
+        for cip_file in os.listdir(output):  # File names cannot be dynamically predicted from dataset names
+            if fnmatch.fnmatch(cip_file, '*.cip'):  # Tool attempts to decrypt all encrypted files in download directory
+                decrypt_call_args.append(output + '/' + cip_file)
 
         decrypt_call_args.extend(['-dck', key])
         rc_decrypt = self._run_command(decrypt_call_args)

@@ -89,4 +89,3 @@ class IcgcPortalClient:
     @staticmethod
     def filters(file_ids):
         return '?filters={"file":{"id":{"is":["' + '","'.join(file_ids) + '"]}}}'
-

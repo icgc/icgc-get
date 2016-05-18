@@ -30,6 +30,7 @@ def download_manifest(repos, fileids, manifest, output, yes_to_all, api_url):
     size, object_ids = calculate_size(manifest_json)
 
     cli.size_check(size, yes_to_all, output)
+    return object_ids
 
 
 def download(object_ids, output,

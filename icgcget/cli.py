@@ -164,7 +164,7 @@ def download(ctx, repos, fileids, manifest, output,
              gdc_access, gdc_path, gdc_transport_parallel, gdc_udt,
              icgc_access, icgc_path, icgc_transport_file_from, icgc_transport_parallel, yes_to_all):
     api_url = get_api_url(ctx.default_map)
-    object_ids = dispatcher.download_manifest(repos, fileids, manifest, yes_to_all, api_url)
+    object_ids = dispatcher.download_manifest(repos, fileids, manifest, output, yes_to_all, api_url)
     dispatcher.download(object_ids, output,
                         cghub_access, cghub_path, cghub_transport_parallel,
                         ega_access, ega_path, ega_transport_parallel, ega_udt,
