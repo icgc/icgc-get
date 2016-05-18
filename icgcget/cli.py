@@ -23,6 +23,7 @@ from base64 import b64decode
 import click
 import psutil
 from tabulate import tabulate
+from collections import OrderedDict
 
 from clients.ega.ega_client import EgaDownloadClient
 from clients.gdc.gdc_client import GdcDownloadClient
@@ -304,7 +305,7 @@ def status(ctx, repos, fileids, manifest, output,
     if not repos:
         raise click.BadOptionUsage("Must include prioritized repositories")
     for repository in repos:
-        repo_sizes[repository] = {"total": 0}
+        repo_sizes[repository] = OrderedDict({"total": 0})
         repo_counts[repository] = {"total": 0}
         repo_donors[repository] = {"total": []}
     portal = portal_client.IcgcPortalClient()
@@ -340,10 +341,11 @@ def status(ctx, repos, fileids, manifest, output,
         type_counts[data_type] += 1
 
     for repo in repo_sizes:
-        for type in repo_sizes[repo]:
-            filesize = file_size(repo_sizes[repo][type])
-            name = repo + ": " + type
-            summary_table.append([name, filesize[0], filesize[1], repo_counts[repo][type], len(repo_donors[repo][type])])
+        for data_type in repo_sizes[repo]:
+            filesize = file_size(repo_sizes[repo][data_type])
+            name = repo + ": " + data_type
+            summary_table.append([name, filesize[0], filesize[1], repo_counts[repo][data_type],
+                                  len(repo_donors[repo][data_type])])
             repo_list.append(repo)
 
     filesize = file_size(total_size)
