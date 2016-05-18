@@ -139,6 +139,24 @@ def api_error_catch(func, *args):
         raise click.Abort
 
 
+def donor_addition(donor_list, donor):
+    if donor not in donor_list:
+        donor_list.append(donor)
+    return donor_list
+
+
+def increment_types(typename, repository, size_dict, count_dict, size):
+    if typename not in size_dict[repository]:
+        size_dict[repository][typename] = 0
+    if typename not in count_dict:
+        count_dict[repository][typename] = 0
+    size_dict[repository]["total"] += size
+    size_dict[repository][typename] += size
+    count_dict[repository]["total"] += 1
+    count_dict[repository][typename] += 1
+    return size_dict, count_dict
+
+
 @click.group()
 @click.option('--config', default=DEFAULT_CONFIG_FILE)
 @click.option('--logfile', default=None)
@@ -261,8 +279,13 @@ def status(ctx, repos, fileids, manifest, output,
     repo_list = []
     gdc_ids = []
     cghub_ids = []
+    repo_sizes = {}
+    repo_counts = {}
     repo_donors = {}
     donors = []
+    type_donors = {}
+    type_sizes = {}
+    type_counts = {}
     api_url = get_api_url(ctx.default_map)
     total_size = 0
 
@@ -278,14 +301,12 @@ def status(ctx, repos, fileids, manifest, output,
 
         fileids = filter_manifest_ids(manifest_json)
 
-    repo_sizes = {}
-    repo_counts = {}
     if not repos:
         raise click.BadOptionUsage("Must include prioritized repositories")
     for repository in repos:
-        repo_sizes[repository] = 0
-        repo_counts[repository] = 0
-        repo_donors[repository] = []
+        repo_sizes[repository] = {"total": 0}
+        repo_counts[repository] = {"total": 0}
+        repo_donors[repository] = {"total": []}
     portal = portal_client.IcgcPortalClient()
     entities = portal.get_metadata_bulk(fileids, api_url)
     count = len(entities)
@@ -293,6 +314,13 @@ def status(ctx, repos, fileids, manifest, output,
         size = entity["fileCopies"][0]["fileSize"]
         total_size += size
         repository, copy = match_repositories(repos, entity)
+        data_type = entity["dataCategorization"]["dataType"]
+        if data_type not in type_donors:
+            type_donors[data_type] = []
+            type_counts[data_type] = 0
+            type_sizes[data_type] = 0
+        if data_type not in repo_donors[repository]:
+            repo_donors[repository][data_type] = []
         filesize = file_size(size)
         if not no_files:
             file_table.append([entity["id"], filesize[0], filesize[1], copy["fileFormat"],
@@ -302,20 +330,27 @@ def status(ctx, repos, fileids, manifest, output,
         if repository == "cghub":
             cghub_ids.append(entity["dataBundle"]["dataBundleId"])
         for donor_info in entity['donors']:
-            if not donor_info["donorId"] in repo_donors[repository]:
-                repo_donors[repository].append(donor_info["donorId"])
-            if not donor_info["donorId"] in donors:
-                donors.append(donor_info["donorId"])
-        repo_sizes[repository] += size
-        repo_counts[repository] += 1
+            repo_donors[repository]["total"] = donor_addition(repo_donors[repository]["total"], donor_info)
+            repo_donors[repository][data_type] = donor_addition(repo_donors[repository][data_type], donor_info)
+            donors = donor_addition(donors, donor_info)
+            type_donors[data_type] = donor_addition(type_donors[data_type], donor_info)
+
+        type_sizes[data_type] += size
+        repo_sizes, repo_counts = increment_types(data_type, repository, repo_sizes, repo_counts, size)
+        type_counts[data_type] += 1
 
     for repo in repo_sizes:
-        filesize = file_size(repo_sizes[repo])
-        summary_table.append([repo, filesize[0], filesize[1], repo_counts[repo], len(repo_donors[repo])])
-        repo_list.append(repo)
+        for type in repo_sizes[repo]:
+            filesize = file_size(repo_sizes[repo][type])
+            name = repo + ": " + type
+            summary_table.append([name, filesize[0], filesize[1], repo_counts[repo][type], len(repo_donors[repo][type])])
+            repo_list.append(repo)
 
     filesize = file_size(total_size)
-    summary_table.append(["Total Size", filesize[0], filesize[1], count, len(donors)])
+    summary_table.append(["Total", filesize[0], filesize[1], count, len(donors)])
+    for type in type_sizes:
+        filesize = file_size(type_sizes[type])
+        summary_table.append([type, filesize[0], filesize[1], type_counts[type], len(type_donors[type])])
     if not no_files:
         logger.info(tabulate(file_table, headers="firstrow", tablefmt="fancy_grid", numalign="right"))
     logger.info(tabulate(summary_table, headers="firstrow", tablefmt="fancy_grid", numalign="right"))
