@@ -74,9 +74,7 @@ def download(repos, fileids, manifest, output,
         cli.check_code('Gdc', return_code)
 
 
-def status(repos, fileids, manifest, output, api_url,
-           cghub_access, cghub_path, ega_access, gdc_access, icgc_access,
-           no_files):
+def status_tables(repos, fileids, manifest, api_url, no_files):
     logger = logging.getLogger('__log__')
     repo_list = []
     gdc_ids = []
@@ -156,7 +154,12 @@ def status(repos, fileids, manifest, output, api_url,
     if not no_files:
         logger.info(tabulate(file_table, headers="firstrow", tablefmt="fancy_grid", numalign="right"))
     logger.info(tabulate(summary_table, headers="firstrow", tablefmt="fancy_grid", numalign="right"))
+    return gdc_ids, cghub_ids, repo_list
 
+
+def access_checks(repo_list, cghub_access, cghub_path, ega_access, gdc_access, icgc_access, output, api_url,
+                  gdc_ids=None, cghub_ids=None):
+    logger = logging.getLogger('__log__')
     if "collaboratory" in repo_list:
         cli.check_access(icgc_access, "icgc")
         icgc_client = StorageClient()
@@ -179,7 +182,7 @@ def status(repos, fileids, manifest, output, api_url,
         gt_client = GnosDownloadClient()
         try:
             cli.access_response(gt_client.access_check(cghub_access, cghub_ids, cghub_path, output=output),
-                                   "cghub files.")
+                                "cghub files.")
         except SubprocessError as e:
             logger.error(e.message)
             raise click.Abort

@@ -187,10 +187,8 @@ def status(ctx, repos, fileids, manifest, output,
            cghub_access, cghub_path, ega_access, gdc_access, icgc_access,
            no_files):
     api_url = get_api_url(ctx.default_map)
-    dispatcher.status(repos, fileids, manifest, output, api_url,
-                      cghub_access, cghub_path, ega_access, gdc_access, icgc_access,
-                      no_files)
-
+    gdc_ids, gnos_ids, repo_list = dispatcher.status_tables(repos, fileids, manifest, api_url, no_files)
+    dispatcher.access_checks(repo_list, cghub_access, cghub_path, ega_access, gdc_access, icgc_access, output, api_url)
 
 def main():
     cli(auto_envvar_prefix='ICGCGET')
