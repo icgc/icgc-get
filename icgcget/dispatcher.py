@@ -12,11 +12,7 @@ from utils import file_size, calculate_size, donor_addition, increment_types
 import cli
 
 
-def download(repos, fileids, manifest, output,
-             cghub_access, cghub_path, cghub_transport_parallel,
-             ega_access, ega_path, ega_transport_parallel, ega_udt,
-             gdc_access, gdc_path, gdc_transport_parallel, gdc_udt,
-             icgc_access, icgc_path, icgc_transport_file_from, icgc_transport_parallel, yes_to_all, api_url):
+def download_manifest(repos, fileids, manifest, output, yes_to_all, api_url):
     logger = logging.getLogger('__log__')
     if manifest:
         if len(fileids) > 1:
@@ -35,6 +31,13 @@ def download(repos, fileids, manifest, output,
 
     cli.size_check(size, yes_to_all, output)
 
+
+def download(object_ids, output,
+             cghub_access, cghub_path, cghub_transport_parallel,
+             ega_access, ega_path, ega_transport_parallel, ega_udt,
+             gdc_access, gdc_path, gdc_transport_parallel, gdc_udt,
+             icgc_access, icgc_path, icgc_transport_file_from, icgc_transport_parallel):
+    logger = logging.getLogger('__name__')
     if 'cghub' in object_ids and object_ids['cghub']:
         cli.check_access(cghub_access, 'cghub')
         gt_client = GnosDownloadClient()
