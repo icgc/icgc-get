@@ -26,8 +26,8 @@ from tabulate import tabulate
 
 from clients.ega.ega_client import EgaDownloadClient
 from clients.gdc.gdc_client import GdcDownloadClient
-from clients.gnos.gnos_client import GenetorrentDownloadClient
-from clients.icgc.storage_client import IcgcDownloadClient
+from clients.gnos.gnos_client import GnosDownloadClient
+from clients.icgc.storage_client import StorageClient
 from clients.errors import ApiError, SubprocessError
 from clients import portal_client
 from utils import file_size, config_parse, get_api_url
@@ -206,14 +206,14 @@ def download(ctx, repos, fileids, manifest, output,
 
     if 'cghub' in object_ids and object_ids['cghub']:
         check_access(cghub_access, 'cghub')
-        gt_client = GenetorrentDownloadClient()
+        gt_client = GnosDownloadClient()
         return_code = gt_client.download(object_ids['cghub'], cghub_access, cghub_path, output,
                                          cghub_transport_parallel)
         check_code('Cghub', return_code)
 
     if 'aws-virginia' in object_ids and object_ids['aws-virginia']:
         check_access(icgc_access, 'icgc')
-        icgc_client = IcgcDownloadClient()
+        icgc_client = StorageClient()
         return_code = icgc_client.download(object_ids['aws-virginia'], icgc_access, icgc_path, output,
                                            icgc_transport_parallel, file_from=icgc_transport_file_from, repo='aws')
         check_code('Icgc', return_code)
@@ -230,7 +230,7 @@ def download(ctx, repos, fileids, manifest, output,
 
     if 'collaboratory' in object_ids and object_ids['collaboratory']:
         check_access(icgc_access, 'icgc')
-        icgc_client = IcgcDownloadClient()
+        icgc_client = StorageClient()
         return_code = icgc_client.download(object_ids['collaboratory'], icgc_access, icgc_path, output,
                                            icgc_transport_parallel, file_from=icgc_transport_file_from, repo='collab')
         check_code('Icgc', return_code)
@@ -322,11 +322,11 @@ def status(ctx, repos, fileids, manifest, output,
 
     if "collaboratory" in repo_list:
         check_access(icgc_access, "icgc")
-        icgc_client = IcgcDownloadClient()
+        icgc_client = StorageClient()
         access_response(icgc_client.access_check(icgc_access, repo="collab", api_url=api_url), "Collaboratory.")
     if "aws-virginia" in repo_list:
         check_access(icgc_access, "icgc")
-        icgc_client = IcgcDownloadClient()
+        icgc_client = StorageClient()
         access_response(icgc_client.access_check(icgc_access, repo="aws", api_url=api_url), "Amazon Web server.")
     if 'ega' in repo_list:
         check_access(ega_access, 'ega')
@@ -342,7 +342,7 @@ def status(ctx, repos, fileids, manifest, output,
             raise click.Abort
     if 'cghub' in repo_list and cghub_ids:
         check_access(cghub_access, 'cghub')
-        gt_client = GenetorrentDownloadClient()
+        gt_client = GnosDownloadClient()
         try:
             access_response(gt_client.access_check(cghub_access, cghub_ids, cghub_path, output=output), "cghub files.")
         except SubprocessError as e:

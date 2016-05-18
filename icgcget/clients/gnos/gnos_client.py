@@ -20,7 +20,7 @@ from ..errors import SubprocessError
 from ..download_client import DownloadClient
 
 
-class GenetorrentDownloadClient(DownloadClient):
+class GnosDownloadClient(DownloadClient):
 
     def download(self, manifest, access, tool_path, output, processes, udt=None, file_from=None, repo=None):
         t = tempfile.NamedTemporaryFile()

@@ -69,7 +69,7 @@ class EgaDownloadClient(DownloadClient):
         access_file = open(access)
         username = access_file.readline()
         password = access_file.readline()
-        login_request = base_url + 'users/' + quote(username) + "?pass=" + quote(password)
+        login_request = base_url + 'users/' + quote(username.rstrip()) + "?pass=" + quote(password.rstrip())
         try:
             resp = call_api(login_request, base_url)
         except HTTPError:  # invalid return code

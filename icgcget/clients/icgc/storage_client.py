@@ -23,7 +23,7 @@ from ..portal_client import call_api
 from ..download_client import DownloadClient
 
 
-class IcgcDownloadClient(DownloadClient):
+class StorageClient(DownloadClient):
 
     def download(self, manifest, access, tool_path, output,  processes, udt=None, file_from=None, repo=None):
         os.environ['ACCESSTOKEN'] = access
