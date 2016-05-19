@@ -127,7 +127,7 @@ def status_tables(repos, fileids, manifest, api_url, no_files):
         filesize = file_size(size)
         if not no_files:
             file_table.append([entity["id"], filesize[0], filesize[1], copy["fileFormat"],
-                               entity["dataCategorization"]["dataType"], repository])
+                               data_type, repository])
         if repository == "gdc":
             gdc_ids.append(entity["dataBundle"]["dataBundleId"])
         if repository == "cghub":

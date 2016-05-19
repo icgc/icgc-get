@@ -20,7 +20,6 @@ class ServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
 
 def run():
-
     server_address = ('localhost', 8000)
     httpd = BaseHTTPServer.HTTPServer(server_address, ServerHandler)
     httpd.serve_forever()

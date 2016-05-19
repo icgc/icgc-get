@@ -20,7 +20,7 @@ from conftest import download_test
 
 
 def test_ega_file(config, data_dir):
-    download_test(['FIEGAID'], 'status', 'ega', ['_methylationCEL_CLL-174.CEL'], [5556766], config, data_dir)
+    download_test(['FI98765'], 'status', 'ega', ['_methylationCEL_CLL-174.CEL'], [5556766], config, data_dir)
 
 
 def test_ega_manifest(config, data_dir):

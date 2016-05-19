@@ -15,30 +15,30 @@
                "donors": [{"donorId": "DO14154"}], "dataCategorization": {"dataType": "Aligned Reads"},
               "fileCopies": [{"fileFormat": "BAM", "repoCode": "cghub", "fileSize": 97270000}]},
 
-  "FIEGAID": {"id": "FIEGAID", "dataBundle": {"dataBundleId": "EGAF00000112559"},
+  "FI98765": {"id": "FI98765", "dataBundle": {"dataBundleId": "EGAF00000112559"},
                "donors": [{"donorId": "DO14155"}], "dataCategorization": {"dataType": "Aligned Reads"},
               "fileCopies": [{"fileFormat": "BAM", "repoCode": "ega", "fileSize": 5556766}]},
 
-  "FIGDCID": {"id": "FIGDCID", "dataBundle": {"dataBundleId": "f483ad78-b092-4d10-9afb-eccacec9d9dc"},
+  "FI87654": {"id": "FI87654", "dataBundle": {"dataBundleId": "f483ad78-b092-4d10-9afb-eccacec9d9dc"},
                "donors": [{"donorId": "DO14156"}], "dataCategorization": {"dataType": "Aligned Reads"},
               "fileCopies": [{"fileFormat": "BAM", "repoCode": "gdc", "fileSize": 1483}]},
 
-  "FIGDCID2": {"id": "FIGDCID2", "dataBundle": {"dataBundleId": "2c759eb8-7ee0-43f5-a008-de4317ab8c70"},
+  "FI76543": {"id": "FI76543", "dataBundle": {"dataBundleId": "2c759eb8-7ee0-43f5-a008-de4317ab8c70"},
                "donors": [{"donorId": "DO14157"}], "dataCategorization": {"dataType": "Aligned Reads"},
                "fileCopies": [{"fileFormat": "BAM", "repoCode": "gdc", "fileSize": 6261580}]},
 
-  "FIGDCID3": {"id": "FIGDCID3", "dataBundle": {"dataBundleId": "a6b2f1ff-5c71-493c-b65d-e344ed29b7bb"},
-                "donors": [{"donorId": "DO14158"}],
+  "FI65432": {"id": "FI65432", "dataBundle": {"dataBundleId": "a6b2f1ff-5c71-493c-b65d-e344ed29b7bb"},
+                "donors": [{"donorId": "DO14158"}], "dataCategorization": {"dataType": "Aligned Reads"},
                   "fileCopies": [{"fileFormat": "BAM", "repoCode": "gdc", "fileSize": 1399430}]}},
   "download":
     {"ed78541a-0e3a-4d89-b348-f42886442aeb":
-    {"unique": true,  "entries": [{ "repo": "gdc", "files": [{"id": "FIGDCID", "size": 1483},
-                                                            {"id": "FIGDCID2", "size": 6261580},
-                                                             {"id": "FIGDCID3", "size": 1399430}],
+    {"unique": true,  "entries": [{ "repo": "gdc", "files": [{"id": "FI87654", "size": 1483},
+                                                            {"id": "FI76543", "size": 6261580},
+                                                             {"id": "FI65432", "size": 1399430}],
     "content": "aWQJZmlsZW5hbWUJbWQ1CXNpemUJc3RhdGUNCjQ4MDE2ZGQ4LTYwMzMtNGQ3My04Yzg1LWY2ZWIxODk2ZTQ2NQkxNC0zLTNfYmV0YS1SLVZfR0JMMTEwNjYxNDAudHh0CWM2MzIwYzhkMzA1ZjNiMmMzNjA0ZTEwNGYwZDZiOGE4CTEzOTk0MzAJbGl2ZQ0KNzEwMTRmM2QtNmMyOS00OTc3LWE1ZmEtNTY4Y2JjYmY4Nzg3CTE0LTMtM19iZXRhLVItVl9HQkwxMTE0NTg0LnRpZgk5NzZjZWNiM2Y2ZDBlOTI1MmI4NmFiNzM2N2QyZTBjYwk2MTgyNjgwCWxpdmUNCmNmMWY2YjZiLWQ2ZDgtNGIwYi05YWNlLWEzNDRlMDg4ODc1ZQkxNC0zLTNfYmV0YS1SLVZfR0JMMTExNDU4NC50eHQJOTFmMWQxOTkzN2ZmYWRjYzVjNWQ1MWQ5ODUxZDQyZjYJMTQwMDU4MAlsaXZl"}]},
     "4294ed2b-4d41-4967-8c5d-231027fa40c7":
     {"unique": true, "entries": [{"repo": "ega",
-                                  "files": [{"id": "FIEGAID", "repoFileId": "EGAF00000112559", "size": 5556766}]}]},
+                                  "files": [{"id": "FI98765", "repoFileId": "EGAF00000112559", "size": 5556766}]}]},
 
       "76260cde-ad97-4c5d-b587-4a35bf72346f":
     {"unique": true, "entries": [{"repo": "collaboratory", "files": [{"id": "FI250134", "size": 202180}],
