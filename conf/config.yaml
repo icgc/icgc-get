@@ -22,8 +22,10 @@
 
 logfile: /icgc/mnt/logs/logfile.log
 output:
+repos:
 
-
+portal:
+  url: https://dev.dcc.icgc.org/
 # IGCC Storage
 icgc:
   access:
@@ -42,8 +44,6 @@ gdc:
 
 # EGA
 ega:
-  username:
-  password:
   access:
   path: /icgc/ega-download-demo/EgaDemoClient.jar
 

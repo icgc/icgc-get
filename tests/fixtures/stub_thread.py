@@ -16,24 +16,23 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import os
+import threading
 
-from ..run_command import run_command
+from tests.fixtures import stub_server
 
-
-def icgc_call(object_id, token, tool_path, file_from, parallel, output, repo):
-    env = dict(os.environ, ACCESSTOKEN=token, TRANSPORT_PARALLEL=parallel, TRANSPORT_FILEFROM=file_from)
-    call_args = [tool_path, '--profile', repo, 'download', '--object-id', ''.join(object_id), '--output-dir', output]
-    # object id is passed as a single element list to support multiple id's on other clients.
-    code = run_command(call_args, env)
-    return code
+exitFlag = 0
 
 
-def icgc_manifest_call(manifest, token, tool_path, file_from, parallel, output, repo):
-    os.environ['ACCESSTOKEN'] = token
-    os.environ['TRANSPORT_PARALLEL'] = parallel
-    if file_from is not None:
-        os.environ['TRANSPORT_FILEFROM'] = file_from
-    call_args = [tool_path, '--profile', repo, 'download', '--manifest', manifest, '--output-dir', output]
-    code = run_command(call_args)
-    return code
+class stubThread(threading.Thread):
+    def __init__(self, threadID, name):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.name = name
+        self.daemon = True
+
+    def run(self):
+        print "Starting " + self.name
+        stub_server.run()
+
+
+

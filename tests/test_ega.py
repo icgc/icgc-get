@@ -15,21 +15,14 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-from click.testing import CliRunner
-from conftest import file_test, get_info
-from icgcget import cli
+
+from conftest import download_test
 
 
-class TestEGAMethods():
-    def test_ega(self, config, data_dir):
-        runner = CliRunner()
-        rc = runner.invoke(cli, [config, 'ega', 'EGAD00001001847', '--output', data_dir])
-        file1_info = get_info(data_dir, '_EGAR00001385154_4Cseq_single-end_HD-MB03_TGFBR1_sequence.fastq.gz')
-        file2_info = get_info(data_dir, '_EGAR00001385153_4Cseq_single-end_HD-MB03_SMAD9_sequence.fastq.gz')
-        assert (file_test(file1_info, 323699429), file_test(file2_info, 447127561))
+def test_ega_file(config, data_dir):
+    download_test(['FI98765'], 'status', 'ega', ['_methylationCEL_CLL-174.CEL'], [5556766], config, data_dir)
 
-    def test_ega_file(self, config, data_dir):
-        runner = CliRunner()
-        rc = runner.invoke(cli, [config, 'ega', 'EGAF00000112559', '--output', data_dir])
-        file_info = get_info(data_dir, '_methylationCEL_CLL-174.CEL')
-        assert (file_test(file_info, 5556766))
+
+def test_ega_manifest(config, data_dir):
+    download_test(["4294ed2b-4d41-4967-8c5d-231027fa40c7"], 'download', 'ega', ['_methylationCEL_CLL-174.CEL'],
+                  [5556766], config, data_dir)

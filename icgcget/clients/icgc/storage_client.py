@@ -16,9 +16,29 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-[tox]
-envlist = py27
+import os
+import tempfile
 
-[testenv]
-deps=pytest
-commands=py.test
+from ..portal_client import call_api
+from ..download_client import DownloadClient
+
+
+class StorageClient(DownloadClient):
+
+    def download(self, manifest, access, tool_path, output,  processes, udt=None, file_from=None, repo=None):
+        os.environ['ACCESSTOKEN'] = access
+        os.environ['TRANSPORT_PARALLEL'] = processes
+        if file_from is not None:
+            os.environ['TRANSPORT_FILEFROM'] = file_from
+        t = tempfile.NamedTemporaryFile()
+        t.write(manifest)
+        t.seek(0)
+        call_args = [tool_path, '--profile', repo, 'download', '--manifest', t.name, '--output-dir', output]
+        code = self._run_command(call_args)
+        return code
+
+    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None):
+        request = api_url + 'settings/tokens/' + access
+        resp = call_api(request, api_url)
+        match = repo + ".download"
+        return match in resp["scope"]

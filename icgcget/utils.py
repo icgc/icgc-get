@@ -17,8 +17,9 @@
 #
 
 import collections
-import errno
+import yaml
 import os
+from base64 import b64decode
 
 
 def flatten_dict(d, parent_key='', sep='_'):
@@ -32,6 +33,22 @@ def flatten_dict(d, parent_key='', sep='_'):
     return dict(items)
 
 
+def file_size(num, suffix='B'):
+    for unit in ['', 'K', 'M', 'G', 'T']:
+        if abs(num) < 1024.0:
+            return ["%3.2f" % num,  "%s%s" % (unit, suffix)]
+        num /= 1024.0
+    return ["%.2f" % num, "%s%s" % ('Yi', suffix)]
+
+
+def get_api_url(context_map):
+    if os.getenv("ICGCGET_API_URL"):
+        api_url = os.getenv("ICGCGET_API_URL")
+    else:
+        api_url = context_map["portal_url"] + 'api/v1/'
+    return api_url
+
+
 def normalize_keys(obj):
     if type(obj) != dict:
         return obj
@@ -39,19 +56,56 @@ def normalize_keys(obj):
         return {k.replace('.', '_'): normalize_keys(v) for k, v in obj.items()}
 
 
-def make_directory(path):
+def config_parse(filename):
+    config = {}
     try:
-        os.makedirs(path)
-    except OSError as exc:
-        if exc.errno == errno.EEXIST and os.path.isdir(path):
-            pass
+        config_text = open(filename, 'r')
+    except IOError:
+
+        print("Config file {} not found".format(filename))
+        return config
+    try:
+        config_temp = yaml.safe_load(config_text)
+        config_download = flatten_dict(normalize_keys(config_temp))
+        config = {'download': config_download, 'status': config_download, 'logfile': config_temp['logfile']}
+    except yaml.YAMLError:
+
+        print("Could not read config file {}".format(filename))
+        return {}
+
+    return config
+
+
+def donor_addition(donor_list, donor):
+    if donor not in donor_list:
+        donor_list.append(donor)
+    return donor_list
+
+
+def increment_types(typename, repository, size_dict, count_dict, size):
+    if typename not in size_dict[repository]:
+        size_dict[repository][typename] = 0
+    if typename not in count_dict:
+        count_dict[repository][typename] = 0
+    size_dict[repository]["total"] += size
+    size_dict[repository][typename] += size
+    count_dict[repository]["total"] += 1
+    count_dict[repository][typename] += 1
+    return size_dict, count_dict
+
+
+def calculate_size(manifest_json):
+    size = 0
+    object_ids = {}
+    for repo_info in manifest_json["entries"]:
+        repo = repo_info["repo"]
+        if repo == 'ega':
+            object_ids['ega'] = []
+            for file_info in repo_info["files"]:
+                object_ids[repo].append(file_info["repoFileId"])
+                size += file_info["size"]
         else:
-            raise
-
-
-def match_repositories(repo, info):
-    for repository in repo:
-        for copy in info:
-            if repository == copy["repoCode"]:
-                return repository, copy
-    return None, None
+            object_ids[repo] = b64decode(repo_info["content"])
+            for file_info in repo_info["files"]:
+                size += file_info["size"]
+    return size, object_ids
