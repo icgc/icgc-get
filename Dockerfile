@@ -46,8 +46,9 @@ ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
 # Install python 2.7 and dependancies for Genetorrent and icgc-get.
 #
 
-RUN apt-get install -y python-pip && \
-    pip install -U pip setuptools
+RUN apt-get install -y python-pip python-dev libffi-dev libssl-dev
+RUN apt-get upgrade -y
+RUN pip install -U pip setuptools
 
 COPY . /icgc/icgcget/
 COPY /conf/ /icgc/conf
