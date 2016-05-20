@@ -16,35 +16,30 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 import tempfile
-
-from ..portal_client import call_api
+from ..errors import SubprocessError
 from ..download_client import DownloadClient
-from ..errors import ApiError
 
 
-class GdcDownloadClient(DownloadClient):
+class GnosDownloadClient(DownloadClient):
 
-    def download(self, manifest, access, tool_path, output,  processes, udt=None, file_from=None, repo=None):
+    def download(self, manifest, access, tool_path, output, processes, udt=None, file_from=None, repo=None):
         t = tempfile.NamedTemporaryFile()
         t.write(manifest)
         t.seek(0)
-        call_args = [tool_path, 'download', '-m', t.name, '--dir', output, '-n', processes]
-        if access is not None:  # Enables download of unsecured gdc data
-            call_args.extend(['-t', access])
-        if udt:
-            call_args.append('--udt')
+        call_args = [tool_path, '-vv', '--max-children', processes, '-c', access, '-d', t.name, '-p', output]
         code = self._run_command(call_args)
         return code
 
     def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None):
-        base_url = 'https://gdc-api.nci.nih.gov/data/'
-        request = base_url + ','.join(uuids)
-        header = {'X-auth-Token': access}
-        try:
-            call_api(request, base_url, header, head=True)
+        call_args = [path, '-vv', '-c', access, '-d']
+        call_args.extend(uuids)
+        call_args.extend(['-p', output])
+        result = self._run_test_command(call_args)
+        if result == 0:
             return True
-        except ApiError as e:
-            if e.code == 403:
-                return False
-            else:
-                raise e
+        elif result == 3:
+            return False
+        elif result == 2:
+            raise SubprocessError(result, "Path to gentorrent client did not lead to expected application")
+        else:
+            raise SubprocessError(result, "Genetorrent failed with code {}".format(result))

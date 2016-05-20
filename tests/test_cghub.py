@@ -16,30 +16,24 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from click.testing import CliRunner
-from conftest import file_test, get_info
-from icgcget import cli
+
+from conftest import download_test
 
 
-class TestCGHubMethods():
-    def test_cghub(self, config, data_dir):
-        runner = CliRunner()
-        rc = runner.invoke(cli, [config, 'cghub', 'a337c425-4314-40c6-a40a-a444781bd1b7','--output', data_dir])
-        file_info = get_info(data_dir, 'a337c425-4314-40c6-a40a-a444781bd1b7/G28034.MDA-MB-361.1.bam')
-        assert file_test(file_info, 5159984257)
+def test_cghub(config, data_dir):
+    download_test(['FI99990'], 'status', 'cghub', ['TCGA-DQ-5624-01A-01R-1872-13_mirna.bam'], [435700000], config,
+                  data_dir)
 
-    def test_cghub_double(self, config, data_dir):
-        runner = CliRunner()
-        rc = runner.invoke(cli, [config, 'cghub', 'a452b625-74f6-40b5-90f8-7fe6f32b89bd',
-                                 'a105a6ec-7cc3-4c3b-a99f-af29de8a7caa', '--output', data_dir])
-        file1_info = get_info(data_dir, 'a105a6ec-7cc3-4c3b-a99f-af29de8a7caa/C836.BICR_18.2.bam')
-        file2_info = get_info(data_dir, 'a452b625-74f6-40b5-90f8-7fe6f32b89bd/C836.PEER.1.bam')
-        assert (file_test(file1_info, 8163241177) and file_test(file2_info, 8145679575))
 
-    def test_cghub_manifest(self, config, data_dir, manifest_dir):
-        runner = CliRunner()
-        rc = runner.invoke(cli, [config, 'cghub', manifest_dir + 'manifest.xml', '-m', '--output', data_dir])
-        file1_info = get_info(data_dir, 'fcfc5e01-19a3-45de-ab4b-5440f49c6340/C836.MDA-MB-436.1.bam')
-        file2_info = get_info(data_dir, 'f135768c-ffdf-4743-bb62-226131776b83/C836.NCC-StC-K140.1.bam')
+def test_cghub_double(config, data_dir):
+    file_names = ['f3d43f0e-f734-47d5-954e-ed847b463c2c.sorted_genome_alignments.bam',
+                  'TCGA-CV-6938-01A-11R-1914-13_mirna.bam']
+    download_test(['FI99996', 'FI99994'], 'status', 'cghub', file_names, [3520000000, 97270000], config, data_dir)
 
-        assert file_test(file1_info, 5191968) and file_test(file2_info, 7864608923)
+
+def test_cghub_manifest(config, data_dir):
+    file_names = ['TCGA-DQ-5624-01A-01R-1872-13_mirna.bam',
+                  'f3d43f0e-f734-47d5-954e-ed847b463c2c.sorted_genome_alignments.bam',
+                  'TCGA-CV-6938-01A-11R-1914-13_mirna.bam']
+    download_test(["950f60eb-1908-4b79-9b5a-060c5a29c3ae"], 'download', 'cghub', file_names,
+                  [435700000, 3520000000, 97270000], config, data_dir)

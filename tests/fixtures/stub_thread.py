@@ -16,18 +16,23 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from ..run_command import run_command
+import threading
+
+from tests.fixtures import stub_server
+
+exitFlag = 0
 
 
-def genetorrent_call(uuid, token, tool_path, children, output):
-    call_args = [tool_path, '-vv', '--max-children', children, '-c', token, '-d']
-    call_args.extend(uuid)
-    call_args.extend(['-p', output])
-    code = run_command(call_args)
-    return code
+class stubThread(threading.Thread):
+    def __init__(self, threadID, name):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.name = name
+        self.daemon = True
+
+    def run(self):
+        print "Starting " + self.name
+        stub_server.run()
 
 
-def genetorrent_manifest_call(manifest, token, tool_path, children, output):
-    call_args = [tool_path, '-vv', '--max-children', children, '-c', token, '-d', manifest, '-p', output]
-    code = run_command(call_args)
-    return code
+

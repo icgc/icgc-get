@@ -1,15 +1,17 @@
 # Python
 *.egg-info/
+.eggs/
 build/
 dist/
 *.pyc
 .cache/
+.tox
+
 # IDE
 *.iml
 .idea/
 
 # Development
-mnt/
 config_dev.yaml
 passfile.txt
 
