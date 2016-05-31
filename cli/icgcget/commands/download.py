@@ -30,7 +30,7 @@ from icgcget.clients.icgc.storage_client import StorageClient
 from icgcget.clients.pdc.pdc_client import PdcDownloadClient
 from icgcget.clients.utils import calculate_size, convert_size
 
-from utils import api_error_catch, filter_manifest_ids, check_access
+from utils import api_error_catch, filter_manifest_ids, check_access, get_manifest_json
 
 REPOS = ['collaboratory', 'aws-virginia', 'ega', 'gdc', 'cghub', 'pdc']
 
@@ -45,14 +45,10 @@ class DownloadDispatcher:
         self.icgc_client = StorageClient(pickle_path)
 
     def download_manifest(self, repos, file_ids, manifest, output, yes_to_all, api_url):
+        portal = portal_client.IcgcPortalClient()
         if manifest:
-            if len(file_ids) > 1:
-                self.logger.warning("For download from manifest files, multiple manifest id arguments is not supported")
-                raise click.BadArgumentUsage("Multiple manifest files specified.")
-            portal = portal_client.IcgcPortalClient()
-            manifest_json = api_error_catch(self, portal.get_manifest_id, file_ids[0], api_url, repos)
+            manifest_json = get_manifest_json(self, file_ids, api_url, repos)
         else:
-            portal = portal_client.IcgcPortalClient()
             manifest_json = api_error_catch(self, portal.get_manifest, file_ids, api_url, repos)
 
         if not manifest_json["unique"] or len(manifest_json["entries"]) != 1:

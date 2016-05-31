@@ -138,11 +138,13 @@ def download(ctx, repos, file_ids, manifest, output,
 def status(ctx, repos, file_ids, manifest, output,
            cghub_access, cghub_path, ega_access, gdc_access, icgc_access, pdc_access, pdc_path, pdc_region,
            no_files):
+    if not repos:
+        raise click.BadOptionUsage("Must include prioritized repositories")
     api_url = get_api_url(ctx.default_map)
     dispatch = StatusScreenDispatcher()
-    gdc_ids, gnos_ids, pdc_ids, repo_list = dispatch.status_tables(repos, file_ids, manifest, api_url, no_files)
+    repo_list = dispatch.status_tables(repos, file_ids, manifest, api_url, no_files)
     dispatch.access_checks(repo_list, cghub_access, cghub_path, ega_access, gdc_access, icgc_access, pdc_access,
-                           pdc_path, pdc_region, output, api_url, gnos_ids, gdc_ids, pdc_ids)
+                           pdc_path, pdc_region, output, api_url)
 
 
 @cli.command()
