@@ -19,18 +19,26 @@
 
 import fnmatch
 import os
+import re
 from random import SystemRandom
 from string import ascii_uppercase, digits
 from urllib import quote
+
 from requests import HTTPError
 
-from ..portal_client import call_api
-from ..download_client import DownloadClient
+from icgcget.clients.download_client import DownloadClient
+from icgcget.clients.portal_client import call_api
 
 
 class EgaDownloadClient(DownloadClient):
 
-    def download(self, object_ids, access, tool_path, output, parallel, udt=None, file_from=None, repo=None):
+    def __init__(self, pickle_path=None):
+        super(EgaDownloadClient, self) .__init__(pickle_path)
+        self.repo = 'ega'
+
+    def download(self, object_ids, access, tool_path, output, parallel, udt=None, file_from=None, repo=None,
+                 region=None):
+
         key = ''.join(SystemRandom().choice(ascii_uppercase + digits) for _ in range(4))
         label = object_ids[0] + '_download_request'
         args = ['java', '-jar', tool_path, '-pf', access, '-nt', parallel]
@@ -42,14 +50,14 @@ class EgaDownloadClient(DownloadClient):
             else:
                 request_call_args.append('-rf')
             request_call_args.extend([object_id, '-re', key, '-label', label])
-            rc_request = self._run_command(request_call_args)
+            rc_request = self._run_command(request_call_args, self.download_parser)
             if rc_request != 0:
                 return rc_request
         download_call_args = args
         download_call_args.extend(['-dr', label, '-path', output])
         if udt:
             download_call_args.append('-udt')
-        rc_download = self._run_command(download_call_args)
+        rc_download = self._run_command(download_call_args, self.download_parser)
         if rc_download != 0:
             return rc_download
         decrypt_call_args = args
@@ -59,12 +67,12 @@ class EgaDownloadClient(DownloadClient):
                 decrypt_call_args.append(output + '/' + cip_file)
 
         decrypt_call_args.extend(['-dck', key])
-        rc_decrypt = self._run_command(decrypt_call_args)
+        rc_decrypt = self._run_command(decrypt_call_args, self.download_parser)
         if rc_decrypt != 0:
             return rc_decrypt
         return 0
 
-    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None):
+    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, region=None):
         base_url = "https://ega.ebi.ac.uk/ega/rest/access/v2/"
         access_file = open(access)
         username = access_file.readline()
@@ -86,3 +94,18 @@ class EgaDownloadClient(DownloadClient):
                 return True
 
         return False
+
+    def print_version(self, path, access=None):
+        self._run_command(['java', '-jar', path, '-pf', access], self.version_parser)
+
+    def version_parser(self, response):
+        version = re.findall(r"Version: [0-9.]+", response)
+        if version:
+            self.logger.info("EGA Client {}".format(version[0]))
+
+    def download_parser(self, response):
+        filename = re.findall(r'/[^/]+.cip  \(', response)
+        if filename:
+            filename = filename[0][1:-7]
+            self.session_update(filename, 'ega')
+        self.logger.info(response)

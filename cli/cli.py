@@ -18,14 +18,17 @@
 
 import logging
 import os
+import pickle
+
 import click
-import psutil
-from clients.errors import ApiError
-from utils import config_parse, get_api_url, file_size
-import dispatcher
+from icgcget.clients.utils import config_parse, get_api_url
+from icgcget.commands.versions import versions_command
+from icgcget.commands.status import StatusScreenDispatcher
+from icgcget.commands.download import DownloadDispatcher
 
 DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgc-get', force_posix=True), 'config.yaml')
-REPOS = ['collaboratory', 'aws-virginia', 'ega', 'gdc', 'cghub']
+REPOS = ['collaboratory', 'aws-virginia', 'ega', 'gdc', 'cghub', 'pdc']
+VERSION = '0.5'
 
 
 def logger_setup(logfile):
@@ -42,79 +45,6 @@ def logger_setup(logfile):
     sh = logging.StreamHandler()
     sh.setLevel(logging.INFO)
     logger.addHandler(sh)
-
-
-def match_repositories(repos, copies):
-    logger = logging.getLogger('__log__')
-    for repository in repos:
-        for copy in copies["fileCopies"]:
-            if repository == copy["repoCode"]:
-                return repository, copy
-    logger.error("File {} not found on repositories {}".format(copies["id"], repos))
-    raise click.Abort
-
-
-def filter_manifest_ids(manifest_json):
-    logger = logging.getLogger('__log__')
-    fi_ids = []  # Function to return a list of unique  file ids from a manifest.  Throws error if not unique
-    for repo_info in manifest_json["entries"]:
-        if repo_info["repo"] in REPOS:
-            for file_info in repo_info["files"]:
-                if file_info["id"] in fi_ids:
-                    logger.error("Supplied manifest has repeated file identifiers.  Please specify a " +
-                                 "list of repositories to prioritize")
-                    raise click.Abort
-                else:
-                    fi_ids.append(file_info["id"])
-    if not fi_ids:
-        logger.warning("Files on manifest are not found on specified repositories")
-        raise click.Abort
-    return fi_ids
-
-
-def check_code(client, code):
-    logger = logging.getLogger('__log__')
-    if code != 0:
-        logger.error("{} client exited with a nonzero error code {}.".format(client, code))
-        raise click.ClickException("Please check client output for error messages")
-
-
-def check_access(access, name):
-    logger = logging.getLogger('__log__')
-    if access is None:
-        logger.error("No credentials provided for the {} repository".format(name))
-        raise click.BadParameter("Please provide credentials for {}".format(name))
-
-
-def size_check(size, override, output):
-    logger = logging.getLogger('__log__')
-    free = psutil.disk_usage(output)[2]
-    if free > size and not override:
-        if not click.confirm("Ok to download {0}s of files?  ".format(''.join(file_size(size))) +
-                             "There is {}s of free space in {}".format(''.join(file_size(free)), output)):
-            logger.info("User aborted download")
-            raise click.Abort
-    elif free <= size:
-        logger.error("Not enough space detected for download of {0}.".format(''.join(file_size(size))) +
-                     "{} of space in {}".format(''.join(file_size(free)), output))
-        raise click.Abort
-
-
-def access_response(result, repo):
-    logger = logging.getLogger('__log__')
-    if result:
-        logger.info("Valid access to the " + repo)
-    else:
-        logger.info("Invalid access to the " + repo)
-
-
-def api_error_catch(func, *args):
-    logger = logging.getLogger('__log__')
-    try:
-        return func(*args)
-    except ApiError as e:
-        logger.error(e.message)
-        raise click.Abort
 
 
 @click.group()
@@ -137,7 +67,7 @@ def cli(ctx, config, logfile):
 
 
 @cli.command()
-@click.argument('fileids', nargs=-1, required=True)
+@click.argument('file-ids', nargs=-1, required=True)
 @click.option('--repos', '-r', type=click.Choice(REPOS), multiple=True)
 @click.option('--manifest', '-m', is_flag=True, default=False)
 @click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True))
@@ -156,24 +86,42 @@ def cli(ctx, config, logfile):
 @click.option('--icgc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--icgc-transport-file-from', type=click.STRING)
 @click.option('--icgc-transport-parallel', type=click.STRING)
+@click.option('--pdc-access')
+@click.option('--pdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
+@click.option('--pdc-region', type=click.STRING)
+@click.option('--pdc-transport-parallel', type=click.STRING)
 @click.option('--yes-to-all', '-y', is_flag=True, default=False, help="Bypass all confirmation prompts")
 @click.pass_context
-def download(ctx, repos, fileids, manifest, output,
+def download(ctx, repos, file_ids, manifest, output,
              cghub_access, cghub_path, cghub_transport_parallel,
              ega_access, ega_path, ega_transport_parallel, ega_udt,
              gdc_access, gdc_path, gdc_transport_parallel, gdc_udt,
-             icgc_access, icgc_path, icgc_transport_file_from, icgc_transport_parallel, yes_to_all):
+             icgc_access, icgc_path, icgc_transport_file_from, icgc_transport_parallel,
+             pdc_access, pdc_path, pdc_region, pdc_transport_parallel, yes_to_all):
     api_url = get_api_url(ctx.default_map)
-    object_ids = dispatcher.download_manifest(repos, fileids, manifest, output, yes_to_all, api_url)
-    dispatcher.download(object_ids, output,
-                        cghub_access, cghub_path, cghub_transport_parallel,
-                        ega_access, ega_path, ega_transport_parallel, ega_udt,
-                        gdc_access, gdc_path, gdc_transport_parallel, gdc_udt,
-                        icgc_access, icgc_path, icgc_transport_file_from, icgc_transport_parallel)
+    staging = output + '/.staging'
+    if not os.path.exists(staging):
+        os.umask(0000)
+        os.mkdir(staging, 0777)
+    pickle_path = output + '/.staging/state.pk'
+    dispatch = DownloadDispatcher(pickle_path)
+    object_ids = dispatch.download_manifest(repos, file_ids, manifest, staging, yes_to_all, api_url)
+
+    if os.path.isfile(pickle_path):
+        session_info = pickle.load(open(pickle_path, 'r+'))
+        object_ids = dispatch.compare(object_ids, session_info, yes_to_all)
+    pickle.dump(object_ids, open(pickle_path, 'w'), pickle.HIGHEST_PROTOCOL)
+    dispatch.download(object_ids, staging, output,
+                      cghub_access, cghub_path, cghub_transport_parallel,
+                      ega_access, ega_path, ega_transport_parallel, ega_udt,
+                      gdc_access, gdc_path, gdc_transport_parallel, gdc_udt,
+                      icgc_access, icgc_path, icgc_transport_file_from, icgc_transport_parallel,
+                      pdc_access, pdc_path, pdc_region, pdc_transport_parallel)
+    os.remove(pickle_path)
 
 
 @cli.command()
-@click.argument('fileids', nargs=-1, required=True)
+@click.argument('file-ids', nargs=-1, required=True)
 @click.option('--repos', '-r', type=click.Choice(REPOS),  multiple=True)
 @click.option('--manifest', '-m', is_flag=True, default=False)
 @click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True))
@@ -182,14 +130,31 @@ def download(ctx, repos, fileids, manifest, output,
 @click.option('--ega-access', type=click.STRING)
 @click.option('--gdc-access', type=click.STRING)
 @click.option('--icgc-access', type=click.STRING)
+@click.option('--pdc-access', type=click.STRING)
+@click.option('--pdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
+@click.option('--pdc-region', type=click.STRING)
 @click.option('--no-files', '-nf', is_flag=True, default=False, help="Do not show individual file information")
 @click.pass_context
-def status(ctx, repos, fileids, manifest, output,
-           cghub_access, cghub_path, ega_access, gdc_access, icgc_access,
+def status(ctx, repos, file_ids, manifest, output,
+           cghub_access, cghub_path, ega_access, gdc_access, icgc_access, pdc_access, pdc_path, pdc_region,
            no_files):
     api_url = get_api_url(ctx.default_map)
-    gdc_ids, gnos_ids, repo_list = dispatcher.status_tables(repos, fileids, manifest, api_url, no_files)
-    dispatcher.access_checks(repo_list, cghub_access, cghub_path, ega_access, gdc_access, icgc_access, output, api_url)
+    dispatch = StatusScreenDispatcher()
+    gdc_ids, gnos_ids, pdc_ids, repo_list = dispatch.status_tables(repos, file_ids, manifest, api_url, no_files)
+    dispatch.access_checks(repo_list, cghub_access, cghub_path, ega_access, gdc_access, icgc_access, pdc_access,
+                           pdc_path, pdc_region, output, api_url, gnos_ids, gdc_ids, pdc_ids)
+
+
+@cli.command()
+@click.option('--cghub-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
+@click.option('--ega-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
+@click.option('--ega-access', type=click.STRING)
+@click.option('--gdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
+@click.option('--icgc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
+@click.option('--pdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
+def version(cghub_path, ega_access, ega_path, gdc_path, icgc_path, pdc_path):
+    versions_command(cghub_path, ega_access, ega_path, gdc_path, icgc_path, pdc_path, VERSION)
+
 
 def main():
     cli(auto_envvar_prefix='ICGCGET')

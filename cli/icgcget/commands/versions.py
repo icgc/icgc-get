@@ -16,20 +16,20 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from setuptools import setup, find_packages
+import logging
+
+import icgcget.clients.ega.ega_client as ega_client
+import icgcget.clients.gdc.gdc_client as gdc_client
+import icgcget.clients.icgc.storage_client as storage_client
+import icgcget.clients.pdc.pdc_client as pdc_client
+import icgcget.clients.gnos.gnos_client as gnos_client
 
 
-setup(name='cli',
-      version='0.0.2',
-      description='Universal download client for ICGC data residing in various environments',
-      url="https://github.com/icgc/icgc-get",
-      packages=find_packages(exclude=['tests']),
-      install_requires=['PyYaml', 'logging', 'click', 'requests[security]', 'psutil', 'tabulate', 'subprocess32'],
-      setup_requires=['pytest-runner'],
-      tests_require=['pytest'],
-      entry_points={
-          'console_scripts': [
-              'icgc-get=cli.cli:main'
-          ]
-      }
-      )
+def versions_command(cghub_path, ega_access, ega_path, gdc_path, icgc_path, pdc_path, version_num):
+    logger = logging.getLogger("__log__")
+    pdc_client.PdcDownloadClient().print_version(pdc_path)
+    gdc_client.GdcDownloadClient().print_version(gdc_path)
+    ega_client.EgaDownloadClient().print_version(ega_path, ega_access)
+    gnos_client.GnosDownloadClient().print_version(cghub_path)
+    storage_client.StorageClient().print_version(icgc_path)
+    logger.warning("ICGC-Get Version: {}".format(version_num))

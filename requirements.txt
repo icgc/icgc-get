@@ -17,11 +17,12 @@
 #
 
 # Main dependencies
+requests[security] >= 2.9.1
 click >= 6.6
 PyYaml >= 3.11
 logging >= 0.4.9.6
-requests >= 2.9.1
 psutil >= 4.1.0
 tabulate >= 0.7.5
+subprocess32 >= 3.2.7
 # Test dependencies
 pytest >= 2.9.1

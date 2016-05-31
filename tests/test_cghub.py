@@ -20,20 +20,20 @@
 from conftest import download_test
 
 
-def test_cghub(config, data_dir):
-    download_test(['FI99990'], 'status', 'cghub', ['TCGA-DQ-5624-01A-01R-1872-13_mirna.bam'], [435700000], config,
+def test_cghub( data_dir):
+    download_test(['FI99990'], 'status', 'cghub', ['TCGA-DQ-5624-01A-01R-1872-13_mirna.bam'], [435700000],
                   data_dir)
 
 
-def test_cghub_double(config, data_dir):
+def test_cghub_double(data_dir):
     file_names = ['f3d43f0e-f734-47d5-954e-ed847b463c2c.sorted_genome_alignments.bam',
                   'TCGA-CV-6938-01A-11R-1914-13_mirna.bam']
-    download_test(['FI99996', 'FI99994'], 'status', 'cghub', file_names, [3520000000, 97270000], config, data_dir)
+    download_test(['FI99996', 'FI99994'], 'status', 'cghub', file_names, [3520000000, 97270000],  data_dir)
 
 
-def test_cghub_manifest(config, data_dir):
+def test_cghub_manifest(data_dir):
     file_names = ['TCGA-DQ-5624-01A-01R-1872-13_mirna.bam',
                   'f3d43f0e-f734-47d5-954e-ed847b463c2c.sorted_genome_alignments.bam',
                   'TCGA-CV-6938-01A-11R-1914-13_mirna.bam']
     download_test(["950f60eb-1908-4b79-9b5a-060c5a29c3ae"], 'download', 'cghub', file_names,
-                  [435700000, 3520000000, 97270000], config, data_dir)
+                  [435700000, 3520000000, 97270000], data_dir)

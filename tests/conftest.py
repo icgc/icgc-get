@@ -23,15 +23,8 @@ import threading
 import pytest
 from click.testing import CliRunner
 
-from icgcget import cli
+from cli import cli
 from tests.fixtures import stub_thread
-
-
-@pytest.fixture(scope="session")
-def config():
-    path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-    conf = path + "/config_dev.yaml"
-    return conf
 
 
 @pytest.fixture(scope="session")
@@ -67,10 +60,10 @@ def stop_server():
         thread.join()
 
 
-def download_test(file_id, mode, repo, file_names, sizes, conf, data):
+def download_test(file_id, mode, repo, file_names, sizes, data):
     runner = CliRunner()
     start_server()
-    args = ['--config', conf, mode]
+    args = [mode]
     args.extend(file_id)
     args.extend(['-r', repo, '--output', data])
     if mode == 'download':

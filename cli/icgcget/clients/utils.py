@@ -19,7 +19,6 @@
 import collections
 import yaml
 import os
-from base64 import b64decode
 
 
 def flatten_dict(d, parent_key='', sep='_'):
@@ -33,7 +32,7 @@ def flatten_dict(d, parent_key='', sep='_'):
     return dict(items)
 
 
-def file_size(num, suffix='B'):
+def convert_size(num, suffix='B'):
     for unit in ['', 'K', 'M', 'G', 'T']:
         if abs(num) < 1024.0:
             return ["%3.2f" % num,  "%s%s" % (unit, suffix)]
@@ -67,7 +66,8 @@ def config_parse(filename):
     try:
         config_temp = yaml.safe_load(config_text)
         config_download = flatten_dict(normalize_keys(config_temp))
-        config = {'download': config_download, 'status': config_download, 'logfile': config_temp['logfile']}
+        config = {'download': config_download, 'status': config_download, 'version': config_download,
+                  'logfile': config_temp['logfile']}
     except yaml.YAMLError:
 
         print("Could not read config file {}".format(filename))
@@ -99,13 +99,9 @@ def calculate_size(manifest_json):
     object_ids = {}
     for repo_info in manifest_json["entries"]:
         repo = repo_info["repo"]
-        if repo == 'ega':
-            object_ids['ega'] = []
-            for file_info in repo_info["files"]:
-                object_ids[repo].append(file_info["repoFileId"])
-                size += file_info["size"]
-        else:
-            object_ids[repo] = b64decode(repo_info["content"])
-            for file_info in repo_info["files"]:
-                size += file_info["size"]
+        object_ids[repo] = {}
+        for file_info in repo_info["files"]:
+            object_ids[repo][file_info['id']] = {'uuid': file_info["repoFileId"], 'state': "Not started",
+                                                 'filename': 'None', 'index_filename': 'None', 'fileUrl': 'None'}
+            size += file_info["size"]
     return size, object_ids

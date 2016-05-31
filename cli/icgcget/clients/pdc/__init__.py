@@ -15,21 +15,3 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
-from setuptools import setup, find_packages
-
-
-setup(name='cli',
-      version='0.0.2',
-      description='Universal download client for ICGC data residing in various environments',
-      url="https://github.com/icgc/icgc-get",
-      packages=find_packages(exclude=['tests']),
-      install_requires=['PyYaml', 'logging', 'click', 'requests[security]', 'psutil', 'tabulate', 'subprocess32'],
-      setup_requires=['pytest-runner'],
-      tests_require=['pytest'],
-      entry_points={
-          'console_scripts': [
-              'icgc-get=cli.cli:main'
-          ]
-      }
-      )

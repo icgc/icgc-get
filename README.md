@@ -19,13 +19,14 @@ icgc-get --config [CONFIG] download [REPO] [FILEIDS] [OPTIONS]
 The first required for the python script are the repository or repositories that are being targeted for download.
 Valid repositories are:
 
-| Code             | Repository                  |
-| --------         | --------------------------- |
-| `aws-virginia`   | Amazon Web Services         |
-| `collaboratory`  | Collaboratory               |
-| `ega`            | European Genome Association |
-| `gdc`            | Genomic data commons        |
-| `cghub`          | Cancer genomic hub          |
+| Code             | Repository                     |
+| --------         | -------------------------------|
+| `aws-virginia`   | Amazon Web Services            |
+| `collaboratory`  | Collaboratory                  |
+| `ega`            | European Genome Association    |
+| `gdc`            | Genomic data commons           |
+| `cghub`          | Cancer genomic hub             |
+| `pdc`            | Bionimbus protected data cloud |
 
 Prepend each repository with the `-r`, for example `-r aws-virginia -r ega`.  The repositories will be processed with priority corresponding to theorder they are specified
 Second you must specify an ICGC File id or manifest file id corresponding to the file you wish to download. If this is for a manifest file append the tags `-m` or `--manifest`.  This will specify the file or files to be downloaded.  **The EGA repository does not currently support
@@ -59,11 +60,50 @@ Then execute the command as normal:
 ```shell
 icgc-get download FI378424 -r  collaboratory
 ```
+
+
 to do a status check on the same files
 ```shell
 icgc-get status FI378424 -r collaboratory
 ```
 
+Sample output
+
+```
+╒══════════════════════╤════════╤════════╤══════════════╤═══════════════╕
+│                      │   Size │ Unit   │   File Count │   Donor_Count │
+╞══════════════════════╪════════╪════════╪══════════════╪═══════════════╡
+│ collaboratory: total │ 197.44 │ KB     │            1 │              1│
+├──────────────────────┼────────┼────────┼──────────────┼───────────────┤
+│ collaboratory: StGV  │ 197.44 │ KB     │            1 │              1│
+├──────────────────────┼────────┼────────┼──────────────┼───────────────┤
+│ cghub: total         │   3.94 │ GB     │            2 │              2│
+├──────────────────────┼────────┼────────┼──────────────┼───────────────┤
+│ cghub: Aligned Reads │   3.94 │ GB     │            1 │              2│
+├──────────────────────┼────────┼────────┼──────────────┼───────────────┤
+│ Total                │   3.94 │ GB     │            3 │              3│
+├──────────────────────┼────────┼────────┼──────────────┼───────────────┤
+│ StGV                 │ 197.44 │ KB     │            1 │             1 │
+├──────────────────────┼────────┼────────┼──────────────┼───────────────┤
+│ Aligned Reads        │  3.94  │ GB     │            2 │             2 │
+╘══════════════════════╧════════╧════════╧══════════════╧═══════════════╛
+Valid access to the Collaboratory.
+Valid access to the cghub files.
+```
+
+To check the version of all clients used by ICGC Get
+```
+icgc-get version
+```
+Sample output
+```
+AWS CLI Version: 1.10.34
+GDC Client Version v0.7
+EGA Client Version: 2.2.2
+Gtdownload Release 3.8.7
+ICGC Storage Client Version: 1.0.13
+ICGC-Get Version: 0.5
+```
 ## Unit Tests
 
 Unit tests have been provided in the tests directory of the repository.  They require a configuration file with valid

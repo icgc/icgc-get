@@ -1,23 +1,24 @@
 {"status":
   {"FI250134": {"id": "FI250134", "objectId": "a5a6d87b-e599-528b-aea0-73f5084205d5",
                 "donors": [{"donorId": "DO14152"}], "dataCategorization": {"dataType": "Aligned Reads"},
-                 "fileCopies": [{"fileFormat": "BAM", "repoCode": "collaboratory", "fileSize": 202180}]},
+                 "fileCopies": [{"fileFormat": "BAM", "repoCode": "collaboratory", "fileSize": 202180,
+                   "fileName": "fc447d55-95d8-0b34-e040-11ac0d483afa.embl-delly_1-0-0-preFilter.20150618.germline.sv.vcf.gz"}]},
 
   "FI99990": {"id": "FI99990", "dataBundle": {"dataBundleId": "78388918-f748-4bc0-8d07-28fb83840045"},
               "donors": [{"donorId": "DO14153"}], "dataCategorization": {"dataType": "Aligned Reads"},
-              "fileCopies": [{"fileFormat": "BAM", "repoCode": "cghub", "fileSize": 435700000}]},
+              "fileCopies": [{"fileFormat": "BAM", "repoCode": "cghub", "fileSize": 435700000, "fileName": "TCGA-CV-6938-01A-11R-1914-13_mirna.bam"}]},
 
   "FI99996": {"id": "FI99996", "dataBundle": {"dataBundleId": "79182d51-d38f-4003-82a7-1cd8c6dba21e"},
                "donors": [{"donorId": "DO14153"}], "dataCategorization": {"dataType": "Aligned Reads"},
-              "fileCopies": [{"fileFormat": "BAM", "repoCode": "cghub", "fileSize": 3520000000}]},
+              "fileCopies": [{"fileFormat": "BAM", "repoCode": "cghub", "fileSize": 3520000000, "fileName": "f3d43f0e-f734-47d5-954e-ed847b463c2c.sorted_genome_alignments.bam"}]},
 
   "FI99994": {"id": "FI99994", "dataBundle": {"dataBundleId": "78388918-f748-4bc0-8d07-28fb83840045"},
                "donors": [{"donorId": "DO14154"}], "dataCategorization": {"dataType": "Aligned Reads"},
-              "fileCopies": [{"fileFormat": "BAM", "repoCode": "cghub", "fileSize": 97270000}]},
+              "fileCopies": [{"fileFormat": "BAM", "repoCode": "cghub", "fileSize": 97270000, "fileName": "TCGA-DQ-5624-01A-01R-1872-13_mirna.bam"}]},
 
   "FI98765": {"id": "FI98765", "dataBundle": {"dataBundleId": "EGAF00000112559"},
                "donors": [{"donorId": "DO14155"}], "dataCategorization": {"dataType": "Aligned Reads"},
-              "fileCopies": [{"fileFormat": "BAM", "repoCode": "ega", "fileSize": 5556766}]},
+              "fileCopies": [{"fileFormat": "BAM", "repoCode": "ega", "fileSize": 5556766, "fileName": "_methylationCEL_CLL-174.CEL"}]},
 
   "FI87654": {"id": "FI87654", "dataBundle": {"dataBundleId": "f483ad78-b092-4d10-9afb-eccacec9d9dc"},
                "donors": [{"donorId": "DO14156"}], "dataCategorization": {"dataType": "Aligned Reads"},
@@ -32,23 +33,23 @@
                   "fileCopies": [{"fileFormat": "BAM", "repoCode": "gdc", "fileSize": 1399430}]}},
   "download":
     {"ed78541a-0e3a-4d89-b348-f42886442aeb":
-    {"unique": true,  "entries": [{ "repo": "gdc", "files": [{"id": "FI87654", "size": 1483},
-                                                            {"id": "FI76543", "size": 6261580},
-                                                             {"id": "FI65432", "size": 1399430}],
+    {"unique": true,  "entries": [{ "repo": "gdc", "files": [{"id": "FI87654", "size": 1483, "repoFileId": ""},
+                                                            {"id": "FI76543", "size": 6261580, "repoFileId": ""},
+                                                             {"id": "FI65432", "size": 1399430, "repoFileId": ""}],
     "content": "aWQJZmlsZW5hbWUJbWQ1CXNpemUJc3RhdGUNCjQ4MDE2ZGQ4LTYwMzMtNGQ3My04Yzg1LWY2ZWIxODk2ZTQ2NQkxNC0zLTNfYmV0YS1SLVZfR0JMMTEwNjYxNDAudHh0CWM2MzIwYzhkMzA1ZjNiMmMzNjA0ZTEwNGYwZDZiOGE4CTEzOTk0MzAJbGl2ZQ0KNzEwMTRmM2QtNmMyOS00OTc3LWE1ZmEtNTY4Y2JjYmY4Nzg3CTE0LTMtM19iZXRhLVItVl9HQkwxMTE0NTg0LnRpZgk5NzZjZWNiM2Y2ZDBlOTI1MmI4NmFiNzM2N2QyZTBjYwk2MTgyNjgwCWxpdmUNCmNmMWY2YjZiLWQ2ZDgtNGIwYi05YWNlLWEzNDRlMDg4ODc1ZQkxNC0zLTNfYmV0YS1SLVZfR0JMMTExNDU4NC50eHQJOTFmMWQxOTkzN2ZmYWRjYzVjNWQ1MWQ5ODUxZDQyZjYJMTQwMDU4MAlsaXZl"}]},
     "4294ed2b-4d41-4967-8c5d-231027fa40c7":
     {"unique": true, "entries": [{"repo": "ega",
                                   "files": [{"id": "FI98765", "repoFileId": "EGAF00000112559", "size": 5556766}]}]},
 
       "76260cde-ad97-4c5d-b587-4a35bf72346f":
-    {"unique": true, "entries": [{"repo": "collaboratory", "files": [{"id": "FI250134", "size": 202180}],
+    {"unique": true, "entries": [{"repo": "collaboratory", "files": [{"id": "FI250134", "size": 202180, "repoFileId": "a5a6d87b-e599-528b-aea0-73f5084205d5"}],
     "content": "cmVwb19jb2RlCWZpbGVfaWQJb2JqZWN0X2lkCWZpbGVfZm9ybWF0CWZpbGVfbmFtZQlmaWxlX3NpemUJbWQ1X3N1bQlpbmRleF9vYmplY3RfaWQJZG9ub3JfaWQvZG9ub3JfY291bnQJcHJvamVjdF9pZC9wcm9qZWN0X2NvdW50CXN0dWR5CmNvbGxhYm9yYXRvcnkJRkkyNTAxMzQJYTVhNmQ4N2ItZTU5OS01MjhiLWFlYTAtNzNmNTA4NDIwNWQ1CVZDRglmYzQ0N2Q1NS05NWQ4LTBiMzQtZTA0MC0xMWFjMGQ0ODNhZmEuZW1ibC1kZWxseV8xLTAtMC1wcmVGaWx0ZXIuMjAxNTA2MTguZ2VybWxpbmUuc3YudmNmLmd6CTIwMjE4MAliNDYxZDY5OWViZmI1MDMzMmJmNjU2YjY5MDBiNzE2ZQkJRE81MjU1OAlCUkNBLVVLCVBDQVdHCg=="}]},
 
 
     "950f60eb-1908-4b79-9b5a-060c5a29c3ae":
-    {"unique": true, "entries": [{"repo": "cghub", "files": [{"id": "FI99996", "size": 3520000000},
-                                                             {"id": "FI99994", "size": 435700000},
-                                                             {"id": "FI99990", "size": 97270000}],
+    {"unique": true, "entries": [{"repo": "cghub", "files": [{"id": "FI99996", "size": 3520000000, "repoFileId": "79182d51-d38f-4003-82a7-1cd8c6dba21e"},
+                                                             {"id": "FI99994", "size": 435700000, "repoFileId": "7925d5b9-6abe-4a44-aa09-ee11b19a30dc"},
+                                                             {"id": "FI99990", "size": 97270000, "repoFileId": "78388918-f748-4bc0-8d07-28fb83840045"}],
       "content":
     "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPFJlc3VsdFNldCBkYXRlPSIyMDE2LTA1LTE3VDE4OjEyOjIxKzAwOjAwIj4KICA8UmVzdWx0IGlkPSIxIj4KICAgIDxhbmFseXNpc19pZD43OTI1ZDViOS02YWJlLTRhNDQtYWEwOS1lZTExYjE5YTMwZGM8L2FuYWx5c2lzX2lkPgogICAgPGFuYWx5c2lzX2RhdGFfdXJpPmh0dHBzOi8vY2dodWIudWNzYy5lZHUvY2dodWIvZGF0YS9hbmFseXNpcy9kb3dubG9hZC83OTI1ZDViOS02YWJlLTRhNDQtYWEwOS1lZTExYjE5YTMwZGM8L2FuYWx5c2lzX2RhdGFfdXJpPgogICAgPGZpbGVzPgogICAgICA8ZmlsZT4KICAgICAgICA8ZmlsZW5hbWU+VU5DSURfMTQ5NDQ4NS5mM2Q0M2YwZS1mNzM0LTQ3ZDUtOTU0ZS1lZDg0N2I0NjNjMmMuc29ydGVkX2dlbm9tZV9hbGlnbm1lbnRzLmJhbTwvZmlsZW5hbWU+CiAgICAgICAgPGZpbGVzaXplPjM3NzgxNDUyOTY8L2ZpbGVzaXplPgogICAgICAgIDxjaGVja3N1bSB0eXBlPSJtZDUiPjU0ZmJmZGYyMzI0YmJkYmM5NjRkY2EwN2RjZDVhM2MzPC9jaGVja3N1bT4KICAgICAgPC9maWxlPgogICAgPC9maWxlcz4KICA8L1Jlc3VsdD4KICA8UmVzdWx0IGlkPSIyIj4KICAgIDxhbmFseXNpc19pZD43OTE4MmQ1MS1kMzhmLTQwMDMtODJhNy0xY2Q4YzZkYmEyMWU8L2FuYWx5c2lzX2lkPgogICAgPGFuYWx5c2lzX2RhdGFfdXJpPmh0dHBzOi8vY2dodWIudWNzYy5lZHUvY2dodWIvZGF0YS9hbmFseXNpcy9kb3dubG9hZC83OTE4MmQ1MS1kMzhmLTQwMDMtODJhNy0xY2Q4YzZkYmEyMWU8L2FuYWx5c2lzX2RhdGFfdXJpPgogICAgPGZpbGVzPgogICAgICA8ZmlsZT4KICAgICAgICA8ZmlsZW5hbWU+VENHQS1DVi02OTM4LTAxQS0xMVItMTkxNC0xM19taXJuYS5iYW08L2ZpbGVuYW1lPgogICAgICAgIDxmaWxlc2l6ZT4xMDE5OTM3MDU8L2ZpbGVzaXplPgogICAgICAgIDxjaGVja3N1bSB0eXBlPSJtZDUiPjRkYzNjNTA5NTIyMTQ1ZjIyMzg3YWJkMGI4MWM1MDRkPC9jaGVja3N1bT4KICAgICAgPC9maWxlPgogICAgPC9maWxlcz4KICA8L1Jlc3VsdD4KICA8UmVzdWx0IGlkPSIzIj4KICAgIDxhbmFseXNpc19pZD43ODM4ODkxOC1mNzQ4LTRiYzAtOGQwNy0yOGZiODM4NDAwNDU8L2FuYWx5c2lzX2lkPgogICAgPGFuYWx5c2lzX2RhdGFfdXJpPmh0dHBzOi8vY2dodWIudWNzYy5lZHUvY2dodWIvZGF0YS9hbmFseXNpcy9kb3dubG9hZC83ODM4ODkxOC1mNzQ4LTRiYzAtOGQwNy0yOGZiODM4NDAwNDU8L2FuYWx5c2lzX2RhdGFfdXJpPgogICAgPGZpbGVzPgogICAgICA8ZmlsZT4KICAgICAgICA8ZmlsZW5hbWU+VENHQS1EUS01NjI0LTAxQS0wMVItMTg3Mi0xM19taXJuYS5iYW08L2ZpbGVuYW1lPgogICAgICAgIDxmaWxlc2l6ZT40NTY4NjM1MjQ8L2ZpbGVzaXplPgogICAgICAgIDxjaGVja3N1bSB0eXBlPSJtZDUiPjY0Mjg5YzJiZmM1YzVmMGVjNTQ0YmU4Yzk1ZWFlMTgwPC9jaGVja3N1bT4KICAgICAgPC9maWxlPgogICAgPC9maWxlcz4KICA8L1Jlc3VsdD4KPC9SZXN1bHRTZXQ+"}]}}
   }

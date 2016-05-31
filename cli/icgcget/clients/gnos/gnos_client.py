@@ -15,22 +15,27 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-import tempfile
-from ..errors import SubprocessError
-from ..download_client import DownloadClient
+
+import re
+
+from icgcget.clients.download_client import DownloadClient
+from icgcget.clients.errors import SubprocessError
 
 
 class GnosDownloadClient(DownloadClient):
 
-    def download(self, manifest, access, tool_path, output, processes, udt=None, file_from=None, repo=None):
-        t = tempfile.NamedTemporaryFile()
-        t.write(manifest)
-        t.seek(0)
-        call_args = [tool_path, '-vv', '--max-children', processes, '-c', access, '-d', t.name, '-p', output]
-        code = self._run_command(call_args)
+    def __init__(self, pickle_path=None):
+        super(GnosDownloadClient, self) .__init__(pickle_path)
+        self.repo = 'cghub'
+
+    def download(self, uuids, access, tool_path, output, processes, udt=None, file_from=None, repo=None, region=None):
+        call_args = [tool_path, '-vv', '-c', access, '-d']
+        call_args.extend(uuids)
+        call_args.extend(['-p', output])
+        code = self._run_command(call_args, self.download_parser)
         return code
 
-    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None):
+    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, region=None):
         call_args = [path, '-vv', '-c', access, '-d']
         call_args.extend(uuids)
         call_args.extend(['-p', output])
@@ -43,3 +48,19 @@ class GnosDownloadClient(DownloadClient):
             raise SubprocessError(result, "Path to gentorrent client did not lead to expected application")
         else:
             raise SubprocessError(result, "Genetorrent failed with code {}".format(result))
+
+    def print_version(self, path, access=None):
+        self._run_command([path, '--version'], self.version_parser)
+
+    def version_parser(self, response):
+        version = re.findall(r"elease [0-9.]+", response)
+        if version:
+            self.logger.info("Gtdownload R{}".format(version[0]))
+
+    def download_parser(self, response):
+        self.logger.info(response)
+        filename = re.findall(r'filename=*', response)
+        if filename:
+            filename = filename[9:]
+            self.session_update(filename, 'cghub')
+

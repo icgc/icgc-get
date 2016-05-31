@@ -98,6 +98,14 @@ RUN mkdir -p /icgc/gdc-data-transfer-tool && \
     cd /icgc
 
 #
+# Install aws command line tools
+#
+
+RUN mkdir -p /icgc/aws-command-line-client && \
+    cd /icgc/aws-command-line-client && \
+    pip install awscli
+
+#
 # Set working directory for convenience with interactive usage
 #
 
