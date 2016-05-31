@@ -19,7 +19,7 @@
 
 import os
 import re
-
+from icgcget.clients.errors import SubprocessError
 from icgcget.clients.download_client import DownloadClient
 
 
@@ -34,8 +34,8 @@ class PdcDownloadClient(DownloadClient):
         access_file = open(access)
         key = access_file.readline()
         secret_key = access_file.readline()
-        os.environ['AWS_ACCESS_KEY_ID'] = key
-        os.environ['AWS_SECRET_ACCESS_KEY'] = secret_key
+        os.environ['AWS_ACCESS_KEY_ID'] = key.rstrip()
+        os.environ['AWS_SECRET_ACCESS_KEY'] = secret_key.rstrip()
         os.environ['AWS_DEFAULT_REGION'] = region
         for data_path in data_paths:
             call_args = [tool_path, 's3', 'cp', data_path, output + '/']
@@ -45,12 +45,18 @@ class PdcDownloadClient(DownloadClient):
         access_file = open(access)
         key = access_file.readline()
         secret_key = access_file.readline()
-        os.environ['AWS_ACCESS_KEY_ID'] = key
-        os.environ['AWS_SECRET_ACCESS_KEY'] = secret_key
+        os.environ['AWS_ACCESS_KEY_ID'] = key.rstrip()
+        os.environ['AWS_SECRET_ACCESS_KEY'] = secret_key.rstrip()
         os.environ['AWS_DEFAULT_REGION'] = region
         for data_path in data_paths:
             call_args = [path, 's3', 'cp', data_path, output + '/', '--dryrun']
-            self._run_command(call_args, self.download_parser)
+            result = self._run_test_command(call_args, "(403)", "(404)")
+            if result == 3:
+                return False
+            elif result == 2:
+                raise SubprocessError(result, "Path to gentorrent client did not lead to expected application")
+            else:
+                raise SubprocessError(result, "Genetorrent failed with code {}".format(result))
 
     def print_version(self, path, access=None):
         call_args = [path, '--version']

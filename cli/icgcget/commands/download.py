@@ -183,7 +183,7 @@ class DownloadDispatcher:
 
     def size_check(self, size, override, output):
         free = psutil.disk_usage(output)[2]
-        if free > size and not override:
+        if free*0.8 <= size and not override:
             if not click.confirm("Ok to download {0}s of files?  ".format(''.join(convert_size(size))) +
                                  "There is {}s of free space in {}".format(''.join(convert_size(free)), output)):
                 self.logger.info("User aborted download")

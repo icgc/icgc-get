@@ -60,7 +60,7 @@ class StatusScreenDispatcher:
         repo_list = []
 
         file_table = [["", "Size", "Unit", "File Format", "Data Type", "Repo"]]
-        summary_table = [["", "Size", "Unit", "File Count", "Donor_Count"]]
+        summary_table = [["", "Size", "Unit", "File Count", "Donor Count"]]
         if manifest:
             manifest_json = get_manifest_json(self, file_ids, api_url, repos)
             file_ids = filter_manifest_ids(self, manifest_json)
