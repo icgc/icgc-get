@@ -19,7 +19,6 @@
 
 import logging
 from collections import OrderedDict
-
 import click
 from icgcget.clients import portal_client
 from icgcget.clients.ega.ega_client import EgaDownloadClient
@@ -30,7 +29,6 @@ from icgcget.clients.pdc.pdc_client import PdcDownloadClient
 from icgcget.clients.gnos.gnos_client import GnosDownloadClient
 from icgcget.clients.utils import convert_size, donor_addition, increment_types, build_table
 from tabulate import tabulate
-
 
 from utils import check_access, api_error_catch, filter_manifest_ids, get_manifest_json
 

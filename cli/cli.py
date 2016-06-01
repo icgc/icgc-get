@@ -25,6 +25,7 @@ from icgcget.clients.utils import config_parse, get_api_url
 from icgcget.commands.versions import versions_command
 from icgcget.commands.status import StatusScreenDispatcher
 from icgcget.commands.download import DownloadDispatcher
+from icgcget.commands.check import check_download
 
 DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgc-get', force_posix=True), 'config.yaml')
 REPOS = ['collaboratory', 'aws-virginia', 'ega', 'gdc', 'cghub', 'pdc']
@@ -156,6 +157,16 @@ def status(ctx, repos, file_ids, manifest, output,
 @click.option('--pdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 def version(cghub_path, ega_access, ega_path, gdc_path, icgc_path, pdc_path):
     versions_command(cghub_path, ega_access, ega_path, gdc_path, icgc_path, pdc_path, VERSION)
+
+
+@cli.command()
+@click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True))
+def check(output):
+    pickle_path = output + '/.staging/state.pk'
+    if os.path.isfile(pickle_path):
+        check_download(output)
+    else:
+        raise click.BadOptionUsage("No download is occurring in output directory")
 
 
 def main():
