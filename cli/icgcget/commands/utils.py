@@ -48,10 +48,13 @@ def get_manifest_json(self, file_ids, api_url, repos):
     return manifest_json
 
 
-def check_access(self, access, name):
+def check_access(self, access, name, path="Default"):
     if access is None:
         self.logger.error("No credentials provided for the {} repository".format(name))
         raise click.BadParameter("Please provide credentials for {}".format(name))
+    if path is None:
+        self.logger.error("Path to {} download client not provided.".format(name))
+        raise click.BadParameter("Please provide a path to the {} download client".format(name))
 
 
 def api_error_catch(self, func, *args):

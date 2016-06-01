@@ -1,5 +1,7 @@
-# ICGC Get
-Universal download client for ICGC data residing in various environments. 
+# Overview
+ICGC get is a command line tool that provides a unified interface for downloading ICGC data from
+different repositories.  It accomplishes this by acting as a wrapper around the download 
+tools used by each individual repository.
 
 # Installation
 
@@ -25,7 +27,7 @@ To save some typing, you can add a bash alias to make working with the container
 alias icgc-get="docker run -it --rm -v {MNT_DIR}:/icgc/mnt icgc/icgc-get --config /icgc/mnt/config.yaml"
 ```
 
-replacing `{PATH}` with the path to your mounted directory. This directory will be populated by the script with
+replacing `{MNT_DIR}` with the path to your mounted directory. This directory will be populated by the script with
 process logs and downloaded files. This will enable the invocation of the python script with the command `icgc-get`. 
 
 
@@ -35,8 +37,8 @@ configurable options and the defaults for using these options in a docker contai
 In addition to editing the config file most configuration options can either be overwritten 
 through the command line or environmental variables. Environmental variables are in all caps, 
 have underscores as separators, and are prefixed by ICGCGET_. Command line options have dashes 
-as separators and are prefixed by two dashes.  Config file options have periods as separators.  
-The only exception to this rule is the icgc api path.  It can only be modified through the config file.
+as separators and are prefixed by two dashes.  Config file options have periods as separators.  The 
+only exception to this rule is the icgc api path.  It can only be modified through the config file.
 
 To specify which config file to use either pass an absolute path to the config file to the 
 command line with `--config`, or declare an environmental variable `ICGCGET_CONFIG` that contains 
@@ -48,7 +50,7 @@ ICGC-get locally.  Please make sure that this directory offers read-write-execut
 
 All clients require an absolute path to your local client installation under repo.path in the config file or 
 `ICGCGET_REPO_PATH` as an environmental variable.  All clients support the ability to configure the number of 
-data streams to use when downloading under repo.transport.parallel or `REPO_TRANSPORT_PARALLEL`
+data streams to use when downloading under `repo.transport.parallel` or `REPO_TRANSPORT_PARALLEL`
 Most clients can be made to download using the UDT protocol by using the `repo.udt` config option.
 
 # Access
@@ -74,23 +76,23 @@ about access can be found a https://gdc-docs.nci.nih.gov/Data_Transfer_Tool/User
 ### CGHub
 CGHub access should be provided as an absolute path to a cghub.key file.
 Information about how to acquire a cghub key file can be found 
-https://cghub.ucsc.edu/access/get_access.html
+https://cghub.ucsc.edu/access/get_access.html.
 
 ### PDC
 PDC access should be provided as an absolute path to a text file containing your aws key on the first line and your aws secret key on the second line.
-Support for the PDC can be reached at https://bionimbus-pdc.opensciencedatacloud.org
+Support for the PDC can be reached at https://bionimbus-pdc.opensciencedatacloud.org. 
 It is also necessary to specify your aws region under aws.region See http://docs.aws.amazon.com/general/latest/gr/rande.html to determine your region.
 
 #Commands
 
 ### Download
 
-The syntax for calling the python client is
+The syntax for performing a download using ICGC get is
 ```shell
 icgc-get --config [CONFIG] download [REPO] [FILEIDS] [OPTIONS]
 ```
 
-The first required for the python script are the repository or repositories that are being targeted for download.
+The first required argument is the repository or repositories that are being targeted for download.
 Valid repositories are:
 
 | Code             | Repository                     |
@@ -98,16 +100,16 @@ Valid repositories are:
 | `aws-virginia`   | Amazon Web Services            |
 | `collaboratory`  | Collaboratory                  |
 | `ega`            | European Genome Association    |
-| `gdc`            | Genomic data commons           |
-| `cghub`          | Cancer genomic hub             |
-| `pdc`            | Bionimbus protected data cloud |
+| `gdc`            | Genomic Data Commons           |
+| `cghub`          | Cancer Genomic Hub             |
+| `pdc`            | Bionimbus Protected Data Cloud |
 
 Prepend each repository with the `-r`, for example `-r aws-virginia -r ega`.  The order that the repositories
 are listed is important: files will be downloaded from the first specified repository if possible, and subsequent repositories
 only if the file was not found on any previous repository.
 
-Second you must specify an ICGC File ids or manifest id corresponding to the file or files you wish to download. 
-If this is for a manifest id append the tags `-m` or `--manifest`. These Ids may be retrieved from the 
+The second required argument is the ICGC File ids or manifest id corresponding to the file or files you wish to download. 
+There is no special syntax for this argument. If this is for a manifest id append the tags `-m` or `--manifest`. These Ids may be retrieved from the 
 ICGC data portal https://dcc.icgc.org. 
 
 The download command comes with an automatic prompt that warns the user if the projected download size approaches the 
@@ -132,7 +134,9 @@ Due to the security protocols of each client, there are two ways in which this a
 For the AWS, collaboratory, and ega repositories, the access check will determine if you have access
 to the entire repository or not.  These checks will occur even if file prioritization leads to no files
 being downloaded from any of these repositories.  For PDC, GDC, and CGHub, ICGC get is only capable of 
-determining if you have access to the specific files targeted for download or not.  
+determining if you have access to the specific files targeted for download, not the state of your
+permissions for the repository as a whole.  Inquests about permissions on those repositories should be 
+directed to their respective support department.  
 
 To do a status check on the same files
 ```shell
