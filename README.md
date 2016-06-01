@@ -137,10 +137,12 @@ icgc-get download FI378424 -r  collaboratory
 ### Status
 Another useful subcommand is `status`.  This takes the same primary inputs as `download`,
 but instead of downloading the specified files, it will provide a list of all files that are
-about to be downloaded, including their size, data type, and the repository they are hosted on.
+about to be downloaded, including their size, data type, name and the repository they are hosted on.
 It will also provide a summary of the download by repository and data type, showing how many files
 and the total size of the files for each category.  In case of very large downloads, the individual
 file summary may be too large to be practical, and it can be suppressed with the flag `-nf`. 
+The status command will check if any of the specified files are already downloaded in the specified output
+directory. 
 
 In addition, the status command will test the provided credentials for each repository specified.
 Due to the security protocols of each client, there are two ways in which this access check can occur.

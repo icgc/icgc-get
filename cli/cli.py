@@ -143,7 +143,7 @@ def status(ctx, repos, file_ids, manifest, output,
         raise click.BadOptionUsage("Must include prioritized repositories")
     api_url = get_api_url(ctx.default_map)
     dispatch = StatusScreenDispatcher()
-    repo_list = dispatch.status_tables(repos, file_ids, manifest, api_url, no_files)
+    repo_list = dispatch.status_tables(repos, file_ids, manifest, api_url, output, no_files)
     dispatch.access_checks(repo_list, cghub_access, cghub_path, ega_access, gdc_access, icgc_access, pdc_access,
                            pdc_path, pdc_region, output, api_url)
 
