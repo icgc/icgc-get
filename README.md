@@ -1,7 +1,8 @@
 # ICGC Get
-Universal download client for ICGC data residing in various environments. 
 
-# Installation
+This is the `icgc-get` utility, a universal download client for accessing ICGC data residing in various data repositories. 
+
+## Installation
 
 To install ICGC get on your local machine , first download the ICGC get package.
 Then navigate to the `icgc-get` directory and run the command:
@@ -17,19 +18,21 @@ automatically install all supported data clients.
 
 First, install docker from https://docs.docker.com/mac/. Then pull the docker image using the command
 
-`docker pull icgc/icgc-get`
+```shell
+docker pull icgc/icgc-get
+```
 
 To save some typing, you can add a bash alias to make working with the container easier:
 
 ```shell
-alias icgc-get="docker run -it --rm -v {MNT_DIR}:/icgc/mnt icgc/icgc-get --config /icgc/mnt/config.yaml"
+alias icgc-get="docker run -it --rm -v $MOUNT_DIR:/icgc/mnt icgc/icgc-get --config /icgc/mnt/config.yaml"
 ```
 
-replacing `{PATH}` with the path to your mounted directory. This directory will be populated by the script with
+replacing `$MOUNT_DIR` with the path to your mounted directory. This directory will be populated by the script with
 process logs and downloaded files. This will enable the invocation of the python script with the command `icgc-get`. 
 
 
-# Configuration
+## Configuration
 ICGC get is packaged with a default congfiguration file `config.yaml`, that contains a list of all
 configurable options and the defaults for using these options in a docker container.
 In addition to editing the config file most configuration options can either be overwritten 
@@ -51,7 +54,7 @@ All clients require an absolute path to your local client installation under rep
 data streams to use when downloading under repo.transport.parallel or `REPO_TRANSPORT_PARALLEL`
 Most clients can be made to download using the UDT protocol by using the `repo.udt` config option.
 
-# Access
+## Access
 
 ### Collaboratory and AWS:
 
@@ -81,7 +84,7 @@ PDC access should be provided as an absolute path to a text file containing your
 Support for the PDC can be reached at https://bionimbus-pdc.opensciencedatacloud.org
 It is also necessary to specify your aws region under aws.region See http://docs.aws.amazon.com/general/latest/gr/rande.html to determine your region.
 
-#Commands
+## Commands
 
 ### Download
 
@@ -134,12 +137,13 @@ to the entire repository or not.  These checks will occur even if file prioritiz
 being downloaded from any of these repositories.  For PDC, GDC, and CGHub, ICGC get is only capable of 
 determining if you have access to the specific files targeted for download or not.  
 
-To do a status check on the same files
+To do a status check on the same files:
+
 ```shell
 icgc-get status FI378424 -r collaboratory
 ```
 
-Sample output
+Sample output:
 
 ```
 ╒══════════╤════════╤════════╤═══════════════╤═══════════════╤═══════════════╕
@@ -175,10 +179,13 @@ Valid access to the cghub files.
 ### Version
 The only other subcommand is to check the version of all clients used by ICGC Get.  This command 
 will only work if tool paths are specified in the config file provided.
-```
+
+```shell
 icgc-get version
 ```
-Sample output
+
+Sample output:
+
 ```
 AWS CLI Version: 1.10.34
 GDC Client Version v0.7
@@ -188,7 +195,7 @@ ICGC Storage Client Version: 1.0.13
 ICGC-Get Version: 0.5
 ```
 
-# Unit Tests
+## Unit Tests
 
 Unit tests have been provided in the tests directory of the repository.  They require a configuration file with valid
 EGA and cghub credentials to be saved in the root of the repository.
