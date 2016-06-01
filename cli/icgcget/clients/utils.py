@@ -76,22 +76,34 @@ def config_parse(filename):
     return config
 
 
-def donor_addition(donor_list, donor):
-    if donor not in donor_list:
-        donor_list.append(donor)
+def donor_addition(donor_list, donor, data_type):
+    if data_type not in donor_list:
+        donor_list[data_type] = []
+    if donor not in donor_list['total']:
+        donor_list['total'].append(donor)
+    if donor not in donor_list[data_type]:
+        donor_list[data_type].append(donor)
     return donor_list
 
 
-def increment_types(typename, repository, size_dict, count_dict, size):
-    if typename not in size_dict[repository]:
-        size_dict[repository][typename] = 0
-    if typename not in count_dict:
-        count_dict[repository][typename] = 0
-    size_dict[repository]["total"] += size
-    size_dict[repository][typename] += size
-    count_dict[repository]["total"] += 1
-    count_dict[repository][typename] += 1
-    return size_dict, count_dict
+def increment_types(typename, dict,  size):
+    if typename not in dict:
+        dict[typename] = 0
+    dict["total"] += size
+    dict[typename] += size
+
+    return dict
+
+
+def build_table(table, repo, sizes, counts, donors):
+    for data_type in sizes:
+        file_size = convert_size(sizes[data_type])
+        if data_type == 'total':
+            name = repo
+        else:
+            name = repo + ": " + data_type
+        table.append([name, file_size[0], file_size[1], counts[data_type], len(donors[data_type])])
+    return table
 
 
 def calculate_size(manifest_json):

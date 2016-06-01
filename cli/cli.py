@@ -86,7 +86,7 @@ def cli(ctx, config, logfile):
 @click.option('--icgc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--icgc-transport-file-from', type=click.STRING)
 @click.option('--icgc-transport-parallel', type=click.STRING)
-@click.option('--pdc-access')
+@click.option('--pdc-access', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
 @click.option('--pdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--pdc-region', type=click.STRING)
 @click.option('--pdc-transport-parallel', type=click.STRING)
@@ -130,7 +130,7 @@ def download(ctx, repos, file_ids, manifest, output,
 @click.option('--ega-access', type=click.STRING)
 @click.option('--gdc-access', type=click.STRING)
 @click.option('--icgc-access', type=click.STRING)
-@click.option('--pdc-access', type=click.STRING)
+@click.option('--pdc-access', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
 @click.option('--pdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--pdc-region', type=click.STRING)
 @click.option('--no-files', '-nf', is_flag=True, default=False, help="Do not show individual file information")
@@ -138,11 +138,13 @@ def download(ctx, repos, file_ids, manifest, output,
 def status(ctx, repos, file_ids, manifest, output,
            cghub_access, cghub_path, ega_access, gdc_access, icgc_access, pdc_access, pdc_path, pdc_region,
            no_files):
+    if not repos:
+        raise click.BadOptionUsage("Must include prioritized repositories")
     api_url = get_api_url(ctx.default_map)
     dispatch = StatusScreenDispatcher()
-    gdc_ids, gnos_ids, pdc_ids, repo_list = dispatch.status_tables(repos, file_ids, manifest, api_url, no_files)
+    repo_list = dispatch.status_tables(repos, file_ids, manifest, api_url, no_files)
     dispatch.access_checks(repo_list, cghub_access, cghub_path, ega_access, gdc_access, icgc_access, pdc_access,
-                           pdc_path, pdc_region, output, api_url, gnos_ids, gdc_ids, pdc_ids)
+                           pdc_path, pdc_region, output, api_url)
 
 
 @cli.command()

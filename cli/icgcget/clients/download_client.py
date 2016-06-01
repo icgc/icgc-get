@@ -70,7 +70,7 @@ class DownloadClient(object):
                 file_object['state'] = 'Finished'
         pickle.dump(self.session, open(self.path, 'w'))
 
-    def _run_test_command(self, args, env=None):
+    def _run_test_command(self, args, forbidden, not_found, env=None):
         if None in args:
             self.logger.warning("Missing argument in {}".format(args))
             return 1
@@ -87,6 +87,6 @@ class DownloadClient(object):
             if invalid_login:
                 return 3
             elif not_found:
-                return 403
+                return 404
             else:
                 return 0

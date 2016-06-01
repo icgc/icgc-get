@@ -17,7 +17,6 @@
 #
 
 import re
-
 from icgcget.clients.download_client import DownloadClient
 from icgcget.clients.errors import SubprocessError
 
@@ -39,7 +38,7 @@ class GnosDownloadClient(DownloadClient):
         call_args = [path, '-vv', '-c', access, '-d']
         call_args.extend(uuids)
         call_args.extend(['-p', output])
-        result = self._run_test_command(call_args)
+        result = self._run_test_command(call_args, "403 Forbidden", "404 Not Found")
         if result == 0:
             return True
         elif result == 3:
@@ -63,4 +62,3 @@ class GnosDownloadClient(DownloadClient):
         if filename:
             filename = filename[9:]
             self.session_update(filename, 'cghub')
-

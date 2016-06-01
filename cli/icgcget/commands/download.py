@@ -30,9 +30,7 @@ from icgcget.clients.icgc.storage_client import StorageClient
 from icgcget.clients.pdc.pdc_client import PdcDownloadClient
 from icgcget.clients.utils import calculate_size, convert_size
 
-from utils import api_error_catch, filter_manifest_ids, check_access
-
-REPOS = ['collaboratory', 'aws-virginia', 'ega', 'gdc', 'cghub', 'pdc']
+from utils import api_error_catch, filter_manifest_ids, check_access, get_manifest_json
 
 
 class DownloadDispatcher:
@@ -45,18 +43,14 @@ class DownloadDispatcher:
         self.icgc_client = StorageClient(pickle_path)
 
     def download_manifest(self, repos, file_ids, manifest, output, yes_to_all, api_url):
+        portal = portal_client.IcgcPortalClient()
         if manifest:
-            if len(file_ids) > 1:
-                self.logger.warning("For download from manifest files, multiple manifest id arguments is not supported")
-                raise click.BadArgumentUsage("Multiple manifest files specified.")
-            portal = portal_client.IcgcPortalClient()
-            manifest_json = api_error_catch(self, portal.get_manifest_id, file_ids[0], api_url, repos)
+            manifest_json = get_manifest_json(self, file_ids, api_url, repos)
         else:
-            portal = portal_client.IcgcPortalClient()
             manifest_json = api_error_catch(self, portal.get_manifest, file_ids, api_url, repos)
 
         if not manifest_json["unique"] or len(manifest_json["entries"]) != 1:
-            filter_manifest_ids(self, manifest_json)
+            filter_manifest_ids(self, manifest_json, repos)
         size, object_ids = calculate_size(manifest_json)
         if manifest:
             file_ids = []
@@ -73,7 +67,7 @@ class DownloadDispatcher:
 
             filecopies = entity['fileCopies']
             for copy in filecopies:
-                if copy['repoCode'] == repo and repo != 'pdc':  # remove when pdc gets filenames
+                if copy['repoCode'] == repo:
                     if copy["fileName"] in os.listdir(output):
                         object_ids[repo].pop(entity['id'])
                         self.logger.warning("File {} found in download directory, skipping".format(entity['id']))
@@ -81,9 +75,9 @@ class DownloadDispatcher:
                     object_ids[repo][entity["id"]]['filename'] = copy["fileName"]
                     if "fileName" in copy["indexFile"]:
                         object_ids[repo][entity["id"]]['index_filename'] = copy["indexFile"]["fileName"]
-                        break
-                elif copy['repoCode'] == repo and repo == 'pdc':
-                    object_ids[repo][entity['id']]['fileUrl'] = 's3' + copy['repoBaseUrl'][5:] + copy['repoDataPath']
+                    if repo == 'pdc':
+                        object_ids[repo][entity['id']]['fileUrl'] = 's3' + copy['repoBaseUrl'][5:] + \
+                                                                    copy['repoDataPath']
         self.size_check(size, yes_to_all, output)
         return object_ids
 
@@ -120,7 +114,8 @@ class DownloadDispatcher:
                                     "downloads.  This option is not recommended.")
             self.ega_client.session = object_ids
             uuids = self.get_uuids(object_ids['ega'])
-            return_code = self.ega_client.download(uuids, ega_access, ega_path, staging, ega_transport_parallel, ega_udt)
+            return_code = self.ega_client.download(uuids, ega_access, ega_path, staging, ega_transport_parallel,
+                                                   ega_udt)
             object_ids = self.icgc_client.session
             self.check_code('Ega', return_code)
             self.move_files(staging, output)
@@ -187,7 +182,7 @@ class DownloadDispatcher:
 
     def size_check(self, size, override, output):
         free = psutil.disk_usage(output)[2]
-        if free > size and not override:
+        if free*0.8 <= size and not override:
             if not click.confirm("Ok to download {0}s of files?  ".format(''.join(convert_size(size))) +
                                  "There is {}s of free space in {}".format(''.join(convert_size(free)), output)):
                 self.logger.info("User aborted download")

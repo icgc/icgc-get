@@ -19,14 +19,13 @@
 import click
 
 from icgcget.clients import errors
+from icgcget.clients import portal_client
 
-REPOS = ['collaboratory', 'aws-virginia', 'ega', 'gdc', 'cghub']
 
-
-def filter_manifest_ids(self, manifest_json):
+def filter_manifest_ids(self, manifest_json, repos):
     fi_ids = []  # Function to return a list of unique  file ids from a manifest.  Throws error if not unique
     for repo_info in manifest_json["entries"]:
-        if repo_info["repo"] in REPOS:
+        if repo_info["repo"] in repos:
             for file_info in repo_info["files"]:
                 if file_info["id"] in fi_ids:
                     self.logger.error("Supplied manifest has repeated file identifiers.  Please specify a " +
@@ -38,6 +37,15 @@ def filter_manifest_ids(self, manifest_json):
         self.logger.warning("Files on manifest are not found on specified repositories")
         raise click.Abort
     return fi_ids
+
+
+def get_manifest_json(self, file_ids, api_url, repos):
+    if len(file_ids) > 1:
+        self.logger.warning("For download from manifest files, multiple manifest id arguments is not supported")
+        raise click.BadArgumentUsage("Multiple manifest files specified.")
+    portal = portal_client.IcgcPortalClient()
+    manifest_json = api_error_catch(self, portal.get_manifest_id, file_ids[0], api_url, repos)
+    return manifest_json
 
 
 def check_access(self, access, name):
