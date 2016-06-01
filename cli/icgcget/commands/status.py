@@ -19,7 +19,6 @@
 
 import logging
 from collections import OrderedDict
-
 import click
 from icgcget.clients import portal_client
 from icgcget.clients.ega.ega_client import EgaDownloadClient
@@ -30,7 +29,6 @@ from icgcget.clients.pdc.pdc_client import PdcDownloadClient
 from icgcget.clients.gnos.gnos_client import GnosDownloadClient
 from icgcget.clients.utils import convert_size, donor_addition, increment_types, build_table
 from tabulate import tabulate
-
 
 from utils import check_access, api_error_catch, filter_manifest_ids, get_manifest_json
 
@@ -46,7 +44,9 @@ class StatusScreenDispatcher:
 
         self.cghub_ids = []
         self.gdc_ids = []
-        self.pdc_paths = []
+
+        self.pdc_urls = []
+
 
     def status_tables(self, repos, file_ids, manifest, api_url, no_files):
         repo_counts = {}
@@ -97,7 +97,8 @@ class StatusScreenDispatcher:
             if repository == "cghub":
                 self.cghub_ids.append(entity["dataBundle"]["dataBundleId"])
             if repository == "pdc":
-                self.pdc_paths.append('s3' + copy['repoBaseUrl'][5:] + copy["repoDataPath"])
+
+                self.pdc_urls.append('s3' + copy['repoBaseUrl'][5:] + copy["repoDataPath"])
 
         for repo in repo_sizes:
             summary_table = build_table(summary_table, repo, repo_sizes[repo], repo_counts[repo], repo_donors[repo])
@@ -130,7 +131,9 @@ class StatusScreenDispatcher:
             self.access_response(gdc_result, "gdc files specified.")
 
         if 'cghub' in repo_list and self.cghub_ids:  # as before, can't check cghub permissions without files
-            check_access(self, cghub_access, 'cghub')
+
+            check_access(self, cghub_access, 'cghub', cghub_path)
+
             try:
                 self.access_response(self.gt_client.access_check(cghub_access, self.cghub_ids, cghub_path,
                                                                  output=output), "cghub files.")
@@ -138,10 +141,10 @@ class StatusScreenDispatcher:
                 self.logger.error(e.message)
                 raise click.Abort
 
-        if 'pdc' in repo_list and self.pdc_paths:
-            check_access(self, pdc_access, 'pdc')
+        if 'pdc' in repo_list and self.pdc_urls:
+            check_access(self, pdc_access, 'pdc', pdc_path)
             try:
-                self.access_response(self.pdc_client.access_check(pdc_access, self.pdc_paths, pdc_path, output=output,
+                self.access_response(self.pdc_client.access_check(pdc_access, self.pdc_urls, pdc_path, output=output,
                                                                   region=pdc_region), "pdc files.")
             except SubprocessError as e:
                 self.logger.error(e.message)

@@ -89,7 +89,7 @@ class DownloadDispatcher:
                  pdc_access, pdc_path, pdc_region, pdc_transport_parallel):
 
         if 'cghub' in object_ids and object_ids['cghub']:
-            check_access(self, cghub_access, 'cghub')
+            check_access(self, cghub_access, 'cghub', cghub_path)
             self.gt_client.session = object_ids
             uuids = self.get_uuids(object_ids['cghub'])
             return_code = self.gt_client.download(uuids, cghub_access, cghub_path, staging, cghub_transport_parallel)
@@ -98,7 +98,7 @@ class DownloadDispatcher:
             self.move_files(staging, output)
 
         if 'aws-virginia' in object_ids and object_ids['aws-virginia']:
-            check_access(self, icgc_access, 'icgc')
+            check_access(self, icgc_access, 'icgc', icgc_path)
             self.icgc_client.session = object_ids
             uuids = self.get_uuids(object_ids['aws-virginia'])
             return_code = self.icgc_client.download(uuids, icgc_access, icgc_path, staging, icgc_transport_parallel,
@@ -108,7 +108,7 @@ class DownloadDispatcher:
             self.move_files(staging, output)
 
         if 'ega' in object_ids and object_ids['ega']:
-            check_access(self, ega_access, 'ega')
+            check_access(self, ega_access, 'ega', ega_path)
             if ega_transport_parallel != '1':
                 self.logger.warning("Parallel streams on the ega client may cause reliability issues and failed " +
                                     "downloads.  This option is not recommended.")
@@ -121,7 +121,7 @@ class DownloadDispatcher:
             self.move_files(staging, output)
 
         if 'collaboratory' in object_ids and object_ids['collaboratory']:
-            check_access(self, icgc_access, 'icgc')
+            check_access(self, icgc_access, 'icgc', icgc_path)
             self.icgc_client.session = object_ids
             uuids = self.get_uuids(object_ids['collaboratory'])
             return_code = self.icgc_client.download(uuids, icgc_access, icgc_path, staging, icgc_transport_parallel,
@@ -131,7 +131,7 @@ class DownloadDispatcher:
             self.move_files(staging, output)
 
         if 'pdc' in object_ids and object_ids['pdc']:
-            check_access(self, pdc_access, 'pdc')
+            check_access(self, pdc_access, 'pdc', pdc_path)
             urls = []
             for object_id in object_ids['pdc']:
                 urls.append(object_ids['pdc'][object_id]['fileUrl'])
@@ -142,7 +142,7 @@ class DownloadDispatcher:
             self.move_files(staging, output)
 
         if 'gdc' in object_ids and object_ids['gdc']:
-            check_access(self, gdc_access, 'gdc')
+            check_access(self, gdc_access, 'gdc', gdc_path)
             uuids = self.get_uuids(object_ids['gdc'])
             self.gdc_client.session = object_ids
             return_code = self.gdc_client.download(uuids, gdc_access, gdc_path, staging, gdc_transport_parallel,
