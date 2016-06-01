@@ -63,7 +63,7 @@ class StatusScreenDispatcher:
         summary_table = [["", "Size", "Unit", "File Count", "Donor Count"]]
         if manifest:
             manifest_json = get_manifest_json(self, file_ids, api_url, repos)
-            file_ids = filter_manifest_ids(self, manifest_json)
+            file_ids = filter_manifest_ids(self, manifest_json, repos)
 
         for repository in repos:
             repo_sizes[repository] = OrderedDict({"total": 0})
