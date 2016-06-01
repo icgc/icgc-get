@@ -2,6 +2,10 @@
 
 This is the `icgc-get` utility, a universal download client for accessing ICGC data residing in various data repositories. 
 
+## Movitation
+
+The data for ICGC resides in many data repositories around the world. These repositories each have their own environment (public cloud, private cloud, on-premise file systems, etc.), access controls (DACO, OAuth, asymmetric keys, IP filtering), download clients and configuration mechanisms. Thus, there is much for a user to learn and perform before actually acquiring the data. This is compounded by the fact that the number of environments are increasing over time and their characteristics are frequently changing.  A coordinated mechanism to bootstrap and streamline this process is highly desirable. This is the problem the `icgc-get` helps to solve.
+
 ## Installation
 
 To install ICGC get on your local machine , first download the ICGC get package.
@@ -56,9 +60,9 @@ Most clients can be made to download using the UDT protocol by using the `repo.u
 
 ## Access
 
-### Collaboratory and AWS:
+### Collaboratory and AWS
 
-These repositories are both accessed through the icgc storage client, and share their 
+These repositories are both accessed through the [`icgc-storage-client`](https://hub.docker.com/r/icgc/icgc-storage-client/), and share their 
 configuration parameters under the icgc namespace.  For both of these repositories 
 provide an UUID for your icgc access token as the `icgc.access` parameter. 
 You may also specify the transport file from protocol, under `icgc.file.from`. 
@@ -66,23 +70,23 @@ Further documentation can be found at http://docs.icgc.org/cloud/guide/.
 To apply for access to Collaboratory and AWS see https://icgc.org/daco.
 
 ### EGA
-Ega access should be provided as an absolute path to a text file containing your ega username on the first line and your ega password on the second line.
+[EGA](https://ega-archive.org/) access should be provided as an absolute path to a text file containing your ega username on the first line and your ega password on the second line.
 It should be noted that there have been reliability issues experienced should the transport parallel of the ega client increase beyond 1.
 Further information can be found at https://www.ebi.ac.uk/ega/about/access
 
 ### GDC
-GDC access should be provided as the UUID of your gdc access token.  Further information
+[GDC](https://gdc.nci.nih.gov) access should be provided as the UUID of your gdc access token.  Further information
 about access can be found a https://gdc-docs.nci.nih.gov/Data_Transfer_Tool/Users_Guide/Preparing_for_Data_Download_and_Upload/
 
 ### CGHub
-CGHub access should be provided as an absolute path to a cghub.key file.
+[CGHub](https://cghub.ucsc.edu/) access should be provided as an absolute path to a cghub.key file.
 Information about how to acquire a cghub key file can be found 
 https://cghub.ucsc.edu/access/get_access.html
 
 ### PDC
-PDC access should be provided as an absolute path to a text file containing your aws key on the first line and your aws secret key on the second line.
+[PDC](https://bionimbus-pdc.opensciencedatacloud.org) access should be provided as an absolute path to a text file containing your aws key on the first line and your aws secret key on the second line.
 Support for the PDC can be reached at https://bionimbus-pdc.opensciencedatacloud.org
-It is also necessary to specify your aws region under aws.region See http://docs.aws.amazon.com/general/latest/gr/rande.html to determine your region.
+It is also necessary to specify your aws region under `aws.region` See http://docs.aws.amazon.com/general/latest/gr/rande.html to determine your region.
 
 ## Commands
 
@@ -177,7 +181,8 @@ Valid access to the cghub files.
 ```
 
 ### Version
-The only other subcommand is to check the version of all clients used by ICGC Get.  This command 
+
+The only other subcommand is to display the version of all clients used by ICGC Get. This command 
 will only work if tool paths are specified in the config file provided.
 
 ```shell
