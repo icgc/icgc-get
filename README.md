@@ -38,78 +38,6 @@ alias icgc-get="docker run -it --rm -v {MNT_DIR}:/icgc/mnt icgc/icgc-get --confi
 replacing `{PATH}` with the path to your mounted directory. This directory will be populated by the script with
 process logs and downloaded files. This will enable the invocation of the python script with the command `icgc-get`. 
 
-
-# Configuration
-ICGC get is packaged with a default congfiguration file `config.yaml`, that contains a list of all
-configurable options and the defaults for using these options in a docker container.
-In addition to editing the config file most configuration options can either be overwritten 
-through the command line or environmental variables. Environmental variables are in all caps, 
-have underscores as separators, and are prefixed by ICGCGET_. Command line options have dashes 
-as separators and are prefixed by two dashes.  Config file options have periods as separators.  
-The only exception to this rule is the icgc api path.  It can only be modified through the config file.
-
-To specify which config file to use either pass an absolute path to the config file to the 
-command line with `--config`, or declare an environmental variable `ICGCGET_CONFIG` that contains 
-the absolute path.  If neither of these options are chosen, the tool will look for  `.icget/config.yaml`
-in your home directory.
-
-It is necessary to specify the directory for downloaded files to be saved to if you are running 
-ICGC-get locally.  Please make sure that this directory offers read-write-execute permissions to all users.
-
-All clients require an absolute path to your local client installation under repo.path in the config file or 
-`ICGCGET_REPO_PATH` as an environmental variable.  All clients support the ability to configure the number of 
-data streams to use when downloading under repo.transport.parallel or `REPO_TRANSPORT_PARALLEL`
-Most clients can be made to download using the UDT protocol by using the `repo.udt` config option.
-
-# Access
-
-### Collaboratory and AWS:
-
-These repositories are both accessed through the icgc storage client, and share their 
-configuration parameters under the icgc namespace.  For both of these repositories 
-provide an UUID for your icgc access token as the `icgc.access` parameter. 
-You may also specify the transport file from protocol, under `icgc.file.from`. 
-Further documentation can be found at http://docs.icgc.org/cloud/guide/.
-To apply for access to Collaboratory and AWS see https://icgc.org/daco.
-
-### EGA
-Ega access should be provided as an absolute path to a text file containing your ega username on the first line and your ega password on the second line.
-It should be noted that there have been reliability issues experienced should the transport parallel of the ega client increase beyond 1.
-Further information can be found at https://www.ebi.ac.uk/ega/about/access
-
-### GDC
-GDC access should be provided as the UUID of your gdc access token.  Further information
-about access can be found a https://gdc-docs.nci.nih.gov/Data_Transfer_Tool/Users_Guide/Preparing_for_Data_Download_and_Upload/
-
-### CGHub
-CGHub access should be provided as an absolute path to a cghub.key file.
-Information about how to acquire a cghub key file can be found 
-https://cghub.ucsc.edu/access/get_access.html
-
-### PDC
-PDC access should be provided as an absolute path to a text file containing your aws key on the first line and your aws secret key on the second line.
-Support for the PDC can be reached at https://bionimbus-pdc.opensciencedatacloud.org
-It is also necessary to specify your aws region under aws.region See http://docs.aws.amazon.com/general/latest/gr/rande.html to determine your region.
-
-#Commands
-
-### Download
-
-```shell
-docker pull icgc/icgc-get
-```
-
-To save some typing, you can add a bash alias to make working with the container easier:
-
-```shell
-alias icgc-get="docker run -it --rm -v $MOUNT_DIR:/icgc/mnt icgc/icgc-get --config /icgc/mnt/config.yaml"
-```
-
-
-replacing `$MOUNT_DIR` with the path to your mounted directory. This directory will be populated by the script with
-process logs and downloaded files. This will enable the invocation of the python script with the command `icgc-get`. 
-
-
 ## Configuration
 ICGC get is packaged with a default congfiguration file `config.yaml`, that contains a list of all
 configurable options and the defaults for using these options in a docker container.
@@ -264,7 +192,6 @@ The only other subcommand is to display the version of all clients used by ICGC 
 will only work if tool paths are specified in the config file provided.
 
 ```shell
->>>>>>> feature/pdc
 icgc-get version
 ```
 
