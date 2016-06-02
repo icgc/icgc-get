@@ -49,7 +49,7 @@ class StatusScreenDispatcher:
 
         self.pdc_urls = []
 
-    def summary_table(self, repos, file_ids, manifest, api_url, output):
+    def summary_table(self, repos, file_ids, manifest, api_url, output, tsv):
         repo_counts = {}
         repo_sizes = {}
         repo_donors = {}
@@ -104,9 +104,14 @@ class StatusScreenDispatcher:
                                         repo_download_count[repo])
             repo_list.append(repo)
         summary_table = build_table(summary_table, 'Total', type_sizes, type_counts, type_donors, download_count)
-        self.logger.info(tabulate(summary_table, headers="firstrow", numalign="right"))
+        if tsv:
+            for line in summary_table:
+                line = map(str, line)
+                self.logger.info('  '.join(line))
+        else:
+            self.logger.info(tabulate(summary_table, headers="firstrow", numalign="right"))
 
-    def file_table(self, repos, file_ids, manifest, api_url, output):
+    def file_table(self, repos, file_ids, manifest, api_url, output, tsv):
         file_table = [["", "Size", "Unit", "File Format", "Data Type", "Repo", "File Name", "Downloaded"]]
         if manifest:
             manifest_json = get_manifest_json(self, file_ids, api_url, repos)
@@ -119,12 +124,19 @@ class StatusScreenDispatcher:
             size = entity["fileCopies"][0]["fileSize"]
             repository, copy = self.match_repositories(repos, entity)
             data_type = entity["dataCategorization"]["dataType"]
-            state = copy["fileName"] in os.listdir(output)
-
+            if copy["fileName"] in os.listdir(output):
+                state = "Yes"
+            else:
+                state = "No"
             file_size = convert_size(size)
             file_table.append([entity["id"], file_size[0], file_size[1], copy["fileFormat"],
                                data_type, repository, copy["fileName"], state])
-        self.logger.info(tabulate(file_table, headers="firstrow", tablefmt="fancy_grid", numalign="right"))
+        if tsv:
+            for line in file_table:
+                line = map(str, line)
+                self.logger.info('  '.join(line))
+        else:
+            self.logger.info(tabulate(file_table, headers="firstrow", tablefmt="fancy_grid", numalign="right"))
 
     def access_checks(self, repo_list, cghub_access, cghub_path, ega_access, gdc_access, icgc_access, pdc_access,
                       pdc_path, pdc_region, output, api_url):

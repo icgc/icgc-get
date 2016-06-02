@@ -136,19 +136,20 @@ def download(ctx, repos, file_ids, manifest, output,
 @click.option('--pdc-region', type=click.STRING)
 @click.option('--no-files', '-nf', is_flag=True, default=False, help="Do not show individual file information")
 @click.option('--no-summary', '-ns', is_flag=True, default=False, help="Do not show summary")
+@click.option('--tsv', '-t', is_flag=True, default=False, help="Do not show summary")
 @click.pass_context
 def status(ctx, repos, file_ids, manifest, output,
            cghub_access, cghub_path, ega_access, gdc_access, icgc_access, pdc_access, pdc_path, pdc_region,
-           no_files, no_summary):
+           no_files, no_summary, tsv):
     if not repos:
         raise click.BadOptionUsage("Must include prioritized repositories")
     api_url = get_api_url(ctx.default_map)
     dispatch = StatusScreenDispatcher()
     if not no_files:
-        repo_list = dispatch.file_table(repos, file_ids, manifest, api_url, output)
+        dispatch.file_table(repos, file_ids, manifest, api_url, output, tsv)
     if not no_summary:
-        repo_list = dispatch.summary_table(repos, file_ids, manifest, api_url, output)
-    dispatch.access_checks(repo_list, cghub_access, cghub_path, ega_access, gdc_access, icgc_access, pdc_access,
+        dispatch.summary_table(repos, file_ids, manifest, api_url, output, tsv)
+    dispatch.access_checks(repos, cghub_access, cghub_path, ega_access, gdc_access, icgc_access, pdc_access,
                            pdc_path, pdc_region, output, api_url)
 
 
