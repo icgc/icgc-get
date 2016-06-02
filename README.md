@@ -156,7 +156,7 @@ directed to their respective support department.
 To do a status check on the same files:
 
 ```shell
-icgc-get status FI378424 -r collaboratory
+icgc-get status FI99996 FI99990 FI250134 -r collaboratory -r cghub
 ```
 
 Sample output:
