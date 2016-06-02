@@ -69,6 +69,7 @@ class DownloadDispatcher:
             for copy in filecopies:
                 if copy['repoCode'] == repo:
                     if copy["fileName"] in os.listdir(output):
+
                         object_ids[repo].pop(entity['id'])
                         self.logger.warning("File {} found in download directory, skipping".format(entity['id']))
                         break
@@ -148,7 +149,7 @@ class DownloadDispatcher:
             return_code = self.gdc_client.download(uuids, gdc_access, gdc_path, staging, gdc_transport_parallel,
                                                    gdc_udt)
             self.check_code('Gdc', return_code)
-            self.move_files(staging, output)
+        self.move_files(staging, output)
 
     def compare(self, current_session, old_session, override):
         updated_session = {}

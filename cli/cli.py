@@ -106,7 +106,7 @@ def download(ctx, repos, file_ids, manifest, output,
         os.mkdir(staging, 0777)
     pickle_path = output + '/.staging/state.pk'
     dispatch = DownloadDispatcher(pickle_path)
-    object_ids = dispatch.download_manifest(repos, file_ids, manifest, staging, yes_to_all, api_url)
+    object_ids = dispatch.download_manifest(repos, file_ids, manifest, output, yes_to_all, api_url)
 
     if os.path.isfile(pickle_path):
         session_info = pickle.load(open(pickle_path, 'r+'))
