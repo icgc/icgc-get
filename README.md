@@ -2,7 +2,7 @@
 
 This is the `icgc-get` utility, a universal download client for accessing ICGC data residing in various data repositories. 
 
-## Motivation
+## Movitation
 
 The data for ICGC resides in many data repositories around the world. These repositories 
 each have their own environment (public cloud, private cloud, on-premise file systems, etc.), 
@@ -26,17 +26,22 @@ docker container will prevent issues from arising related to conflicting
 software requirements for the data download clients. The docker container will also
 automatically install all supported data clients.
 
+First, install docker from https://docs.docker.com/mac/. Then pull the docker image using the command
 
-`docker pull icgc/icgc-get`
+```shell
+docker pull icgc/icgc-get
+```
 
 To save some typing, you can add a bash alias to make working with the container easier:
 
 ```shell
-alias icgc-get="docker run -it --rm -v {MNT_DIR}:/icgc/mnt icgc/icgc-get --config /icgc/mnt/config.yaml"
+alias icgc-get="docker run -it --rm -v $MOUNT_DIR:/icgc/mnt icgc/icgc-get --config /icgc/mnt/config.yaml"
 ```
 
-replacing `{PATH}` with the path to your mounted directory. This directory will be populated by the script with
+
+replacing `$MOUNT_DIR` with the path to your mounted directory. This directory will be populated by the script with
 process logs and downloaded files. This will enable the invocation of the python script with the command `icgc-get`. 
+
 
 ## Configuration
 ICGC get is packaged with a default congfiguration file `config.yaml`, that contains a list of all
@@ -59,7 +64,6 @@ All clients require an absolute path to your local client installation under rep
 `ICGCGET_REPO_PATH` as an environmental variable.  All clients support the ability to configure the number of 
 data streams to use when downloading under `repo.transport.parallel` or `REPO_TRANSPORT_PARALLEL`
 Most clients can be made to download using the UDT protocol by using the `repo.udt` config option.
-
 
 ## Access
 
@@ -133,10 +137,12 @@ icgc-get download FI378424 -r  collaboratory
 ### Status
 Another useful subcommand is `status`.  This takes the same primary inputs as `download`,
 but instead of downloading the specified files, it will provide a list of all files that are
-about to be downloaded, including their size, data type, and the repository they are hosted on.
+about to be downloaded, including their size, data type, name and the repository they are hosted on.
 It will also provide a summary of the download by repository and data type, showing how many files
 and the total size of the files for each category.  In case of very large downloads, the individual
 file summary may be too large to be practical, and it can be suppressed with the flag `-nf`. 
+The status command will check if any of the specified files are already downloaded in the specified output
+directory. 
 
 In addition, the status command will test the provided credentials for each repository specified.
 Due to the security protocols of each client, there are two ways in which this access check can occur.
@@ -205,7 +211,6 @@ Gtdownload Release 3.8.7
 ICGC Storage Client Version: 1.0.13
 ICGC-Get Version: 0.5
 ```
-
 
 ## Unit Tests
 
