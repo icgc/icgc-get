@@ -27,14 +27,15 @@ import cli.icgcget.clients.gnos.gnos_client as gnos_client
 
 def versions_command(cghub_path, ega_access, ega_path, gdc_path, icgc_path, pdc_path, version_num):
     logger = logging.getLogger("__log__")
+    logger.warning("ICGC-Get Version: {}".format(version_num))
     if pdc_path:
         pdc_client.PdcDownloadClient().print_version(pdc_path)
-    if gdc_path:
-        gdc_client.GdcDownloadClient().print_version(gdc_path)
     if ega_path and ega_access:
         ega_client.EgaDownloadClient().print_version(ega_path, ega_access)
+    if gdc_path:
+        gdc_client.GdcDownloadClient().print_version(gdc_path)
     if cghub_path:
         gnos_client.GnosDownloadClient().print_version(cghub_path)
     if icgc_path:
         storage_client.StorageClient().print_version(icgc_path)
-    logger.warning("ICGC-Get Version: {}".format(version_num))
+

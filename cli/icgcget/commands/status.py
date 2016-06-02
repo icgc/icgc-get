@@ -49,7 +49,7 @@ class StatusScreenDispatcher:
 
         self.pdc_urls = []
 
-    def status_tables(self, repos, file_ids, manifest, api_url, output, no_files):
+    def summary_table(self, repos, file_ids, manifest, api_url, output):
         repo_counts = {}
         repo_sizes = {}
         repo_donors = {}
@@ -61,18 +61,17 @@ class StatusScreenDispatcher:
         type_sizes = OrderedDict({"total": 0})
 
         repo_list = []
-
-        file_table = [["", "Size", "Unit", "File Format", "Data Type", "Repo", "File Name", "Downloaded"]]
         summary_table = [["", "Size", "Unit", "File Count", "Donor Count", "Downloaded Files"]]
-        if manifest:
-            manifest_json = get_manifest_json(self, file_ids, api_url, repos)
-            file_ids = filter_manifest_ids(self, manifest_json, repos)
-
         for repository in repos:
             repo_sizes[repository] = OrderedDict({"total": 0})
             repo_counts[repository] = {"total": 0}
             repo_donors[repository] = {"total": []}
             repo_download_count[repository] = {"total": 0}
+
+        if manifest:
+            manifest_json = get_manifest_json(self, file_ids, api_url, repos)
+            file_ids = filter_manifest_ids(self, manifest_json, repos)
+
         portal = portal_client.IcgcPortalClient()
         entities = api_error_catch(self, portal.get_metadata_bulk, file_ids, api_url)
 
@@ -81,11 +80,6 @@ class StatusScreenDispatcher:
             repository, copy = self.match_repositories(repos, entity)
             data_type = entity["dataCategorization"]["dataType"]
             state = copy["fileName"] in os.listdir(output)
-            if not no_files:
-                file_size = convert_size(size)
-                file_table.append([entity["id"], file_size[0], file_size[1], copy["fileFormat"],
-                                   data_type, repository, copy["fileName"], state])
-
             type_sizes = increment_types(data_type, type_sizes, size)
             type_counts = increment_types(data_type, type_counts, 1)
             repo_sizes[repository] = increment_types(data_type, repo_sizes[repository], size)
@@ -103,7 +97,6 @@ class StatusScreenDispatcher:
             if repository == "cghub":
                 self.cghub_ids.append(entity["dataBundle"]["dataBundleId"])
             if repository == "pdc":
-
                 self.pdc_urls.append('s3' + copy['repoBaseUrl'][5:] + copy["repoDataPath"])
 
         for repo in repo_sizes:
@@ -111,12 +104,27 @@ class StatusScreenDispatcher:
                                         repo_download_count[repo])
             repo_list.append(repo)
         summary_table = build_table(summary_table, 'Total', type_sizes, type_counts, type_donors, download_count)
+        self.logger.info(tabulate(summary_table, headers="firstrow", numalign="right"))
 
-        if not no_files:
-            self.logger.info(tabulate(file_table, headers="firstrow", tablefmt="fancy_grid", numalign="right"))
-        self.logger.info(tabulate(summary_table, headers="firstrow", tablefmt="fancy_grid", numalign="right"))
+    def file_table(self, repos, file_ids, manifest, api_url, output):
+        file_table = [["", "Size", "Unit", "File Format", "Data Type", "Repo", "File Name", "Downloaded"]]
+        if manifest:
+            manifest_json = get_manifest_json(self, file_ids, api_url, repos)
+            file_ids = filter_manifest_ids(self, manifest_json, repos)
 
-        return repo_list
+        portal = portal_client.IcgcPortalClient()
+        entities = api_error_catch(self, portal.get_metadata_bulk, file_ids, api_url)
+
+        for entity in entities:
+            size = entity["fileCopies"][0]["fileSize"]
+            repository, copy = self.match_repositories(repos, entity)
+            data_type = entity["dataCategorization"]["dataType"]
+            state = copy["fileName"] in os.listdir(output)
+
+            file_size = convert_size(size)
+            file_table.append([entity["id"], file_size[0], file_size[1], copy["fileFormat"],
+                               data_type, repository, copy["fileName"], state])
+        self.logger.info(tabulate(file_table, headers="firstrow", tablefmt="fancy_grid", numalign="right"))
 
     def access_checks(self, repo_list, cghub_access, cghub_path, ega_access, gdc_access, icgc_access, pdc_access,
                       pdc_path, pdc_region, output, api_url):
