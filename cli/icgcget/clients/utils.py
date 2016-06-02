@@ -67,7 +67,7 @@ def config_parse(filename):
         config_temp = yaml.safe_load(config_text)
         config_download = flatten_dict(normalize_keys(config_temp))
         config = {'download': config_download, 'status': config_download, 'version': config_download,
-                  'logfile': config_temp['logfile']}
+                  'check': config_download, 'logfile': config_temp['logfile']}
     except yaml.YAMLError:
 
         print("Could not read config file {}".format(filename))
@@ -95,14 +95,17 @@ def increment_types(typename, dict,  size):
     return dict
 
 
-def build_table(table, repo, sizes, counts, donors):
+def build_table(table, repo, sizes, counts, donors, downloads):
     for data_type in sizes:
         file_size = convert_size(sizes[data_type])
         if data_type == 'total':
             name = repo
         else:
             name = repo + ": " + data_type
-        table.append([name, file_size[0], file_size[1], counts[data_type], len(donors[data_type])])
+        if data_type not in downloads:
+            downloads[data_type] = 0
+        table.append([name, file_size[0], file_size[1], counts[data_type], len(donors[data_type]),
+                      downloads[data_type]])
     return table
 
 

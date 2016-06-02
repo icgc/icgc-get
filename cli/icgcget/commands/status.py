@@ -18,8 +18,9 @@
 #
 
 import logging
-from collections import OrderedDict
 import click
+import os
+from collections import OrderedDict
 from cli.icgcget.clients import portal_client
 from cli.icgcget.clients.ega.ega_client import EgaDownloadClient
 from cli.icgcget.clients.errors import SubprocessError
@@ -28,6 +29,7 @@ from cli.icgcget.clients.icgc.storage_client import StorageClient
 from cli.icgcget.clients.pdc.pdc_client import PdcDownloadClient
 from cli.icgcget.clients.gnos.gnos_client import GnosDownloadClient
 from cli.icgcget.clients.utils import convert_size, donor_addition, increment_types, build_table
+
 from tabulate import tabulate
 
 from utils import check_access, api_error_catch, filter_manifest_ids, get_manifest_json
@@ -47,20 +49,21 @@ class StatusScreenDispatcher:
 
         self.pdc_urls = []
 
-
-    def status_tables(self, repos, file_ids, manifest, api_url, no_files):
+    def status_tables(self, repos, file_ids, manifest, api_url, output, no_files):
         repo_counts = {}
         repo_sizes = {}
         repo_donors = {}
+        repo_download_count = {}
 
         type_counts = {"total": 0}
+        download_count = {'total': 0}
         type_donors = {"total": []}
         type_sizes = OrderedDict({"total": 0})
 
         repo_list = []
 
-        file_table = [["", "Size", "Unit", "File Format", "Data Type", "Repo"]]
-        summary_table = [["", "Size", "Unit", "File Count", "Donor Count"]]
+        file_table = [["", "Size", "Unit", "File Format", "Data Type", "Repo", "File Name", "Downloaded"]]
+        summary_table = [["", "Size", "Unit", "File Count", "Donor Count", "Downloaded Files"]]
         if manifest:
             manifest_json = get_manifest_json(self, file_ids, api_url, repos)
             file_ids = filter_manifest_ids(self, manifest_json, repos)
@@ -69,7 +72,7 @@ class StatusScreenDispatcher:
             repo_sizes[repository] = OrderedDict({"total": 0})
             repo_counts[repository] = {"total": 0}
             repo_donors[repository] = {"total": []}
-
+            repo_download_count[repository] = {"total": 0}
         portal = portal_client.IcgcPortalClient()
         entities = api_error_catch(self, portal.get_metadata_bulk, file_ids, api_url)
 
@@ -77,17 +80,20 @@ class StatusScreenDispatcher:
             size = entity["fileCopies"][0]["fileSize"]
             repository, copy = self.match_repositories(repos, entity)
             data_type = entity["dataCategorization"]["dataType"]
-
+            state = copy["fileName"] in os.listdir(output)
             if not no_files:
                 file_size = convert_size(size)
                 file_table.append([entity["id"], file_size[0], file_size[1], copy["fileFormat"],
-                                   data_type, repository])
+                                   data_type, repository, copy["fileName"], state])
 
             type_sizes = increment_types(data_type, type_sizes, size)
             type_counts = increment_types(data_type, type_counts, 1)
             repo_sizes[repository] = increment_types(data_type, repo_sizes[repository], size)
             repo_counts[repository] = increment_types(data_type, repo_counts[repository], 1)
 
+            if state:
+                download_count = increment_types(data_type, download_count, 1)
+                repo_download_count[repository] = increment_types(data_type, repo_download_count[repository], 1)
             for donor_info in entity['donors']:
                 repo_donors[repository] = donor_addition(repo_donors[repository], donor_info, data_type)
                 type_donors = donor_addition(type_donors, donor_info, data_type)
@@ -101,9 +107,10 @@ class StatusScreenDispatcher:
                 self.pdc_urls.append('s3' + copy['repoBaseUrl'][5:] + copy["repoDataPath"])
 
         for repo in repo_sizes:
-            summary_table = build_table(summary_table, repo, repo_sizes[repo], repo_counts[repo], repo_donors[repo])
+            summary_table = build_table(summary_table, repo, repo_sizes[repo], repo_counts[repo], repo_donors[repo],
+                                        repo_download_count[repo])
             repo_list.append(repo)
-        summary_table = build_table(summary_table, 'Total', type_sizes, type_counts, type_donors)
+        summary_table = build_table(summary_table, 'Total', type_sizes, type_counts, type_donors, download_count)
 
         if not no_files:
             self.logger.info(tabulate(file_table, headers="firstrow", tablefmt="fancy_grid", numalign="right"))

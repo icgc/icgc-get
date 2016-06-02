@@ -106,7 +106,7 @@ def download(ctx, repos, file_ids, manifest, output,
         os.mkdir(staging, 0777)
     pickle_path = output + '/.staging/state.pk'
     dispatch = DownloadDispatcher(pickle_path)
-    object_ids = dispatch.download_manifest(repos, file_ids, manifest, staging, yes_to_all, api_url)
+    object_ids = dispatch.download_manifest(repos, file_ids, manifest, output, yes_to_all, api_url)
 
     if os.path.isfile(pickle_path):
         session_info = pickle.load(open(pickle_path, 'r+'))
@@ -143,7 +143,7 @@ def status(ctx, repos, file_ids, manifest, output,
         raise click.BadOptionUsage("Must include prioritized repositories")
     api_url = get_api_url(ctx.default_map)
     dispatch = StatusScreenDispatcher()
-    repo_list = dispatch.status_tables(repos, file_ids, manifest, api_url, no_files)
+    repo_list = dispatch.status_tables(repos, file_ids, manifest, api_url, output, no_files)
     dispatch.access_checks(repo_list, cghub_access, cghub_path, ega_access, gdc_access, icgc_access, pdc_access,
                            pdc_path, pdc_region, output, api_url)
 

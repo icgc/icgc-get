@@ -82,8 +82,8 @@ class DownloadClient(object):
         except OSError:
             return 2
         except subprocess32.TimeoutExpired as e:
-            invalid_login = re.findall("403 Forbidden", e.output)
-            not_found = re.findall("404 Not Found", e.output)
+            invalid_login = re.findall(forbidden, e.output)
+            not_found = re.findall(not_found, e.output)
             if invalid_login:
                 return 3
             elif not_found:
