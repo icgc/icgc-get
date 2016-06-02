@@ -98,7 +98,7 @@ It is also necessary to specify your aws region under `aws.region` See http://do
 
 ## Commands
 
-### Download
+### `download` Command
 
 The syntax for performing a download using ICGC get is
 ```shell
@@ -134,7 +134,7 @@ Then execute the command as normal:
 icgc-get download FI378424 -r  collaboratory
 ```
 
-### Status
+### `status` Command
 Another useful subcommand is `status`.  This takes the same primary inputs as `download`,
 but instead of downloading the specified files, it will provide a list of all files that are
 about to be downloaded, including their size, data type, name and the repository they are hosted on.
@@ -192,7 +192,7 @@ Valid access to the Collaboratory.
 Valid access to the cghub files.
 ```
 
-### Version
+### `version` Command
 
 The only other subcommand is to display the version of all clients used by ICGC Get. This command 
 will only work if tool paths are specified in the config file provided.
