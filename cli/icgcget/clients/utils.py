@@ -67,7 +67,7 @@ def config_parse(filename):
         config_temp = yaml.safe_load(config_text)
         config_download = flatten_dict(normalize_keys(config_temp))
         config = {'download': config_download, 'status': config_download, 'version': config_download,
-                  'logfile': config_temp['logfile']}
+                  'check': config_download, 'logfile': config_temp['logfile']}
     except yaml.YAMLError:
 
         print("Could not read config file {}".format(filename))
