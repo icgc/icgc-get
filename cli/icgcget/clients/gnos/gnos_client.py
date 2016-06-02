@@ -17,8 +17,8 @@
 #
 
 import re
-from icgcget.clients.download_client import DownloadClient
-from icgcget.clients.errors import SubprocessError
+from cli.icgcget.clients.download_client import DownloadClient
+from cli.icgcget.clients.errors import SubprocessError
 
 
 class GnosDownloadClient(DownloadClient):

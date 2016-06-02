@@ -20,14 +20,14 @@
 import logging
 from collections import OrderedDict
 import click
-from icgcget.clients import portal_client
-from icgcget.clients.ega.ega_client import EgaDownloadClient
-from icgcget.clients.errors import SubprocessError
-from icgcget.clients.gdc.gdc_client import GdcDownloadClient
-from icgcget.clients.icgc.storage_client import StorageClient
-from icgcget.clients.pdc.pdc_client import PdcDownloadClient
-from icgcget.clients.gnos.gnos_client import GnosDownloadClient
-from icgcget.clients.utils import convert_size, donor_addition, increment_types, build_table
+from cli.icgcget.clients import portal_client
+from cli.icgcget.clients.ega.ega_client import EgaDownloadClient
+from cli.icgcget.clients.errors import SubprocessError
+from cli.icgcget.clients.gdc.gdc_client import GdcDownloadClient
+from cli.icgcget.clients.icgc.storage_client import StorageClient
+from cli.icgcget.clients.pdc.pdc_client import PdcDownloadClient
+from cli.icgcget.clients.gnos.gnos_client import GnosDownloadClient
+from cli.icgcget.clients.utils import convert_size, donor_addition, increment_types, build_table
 from tabulate import tabulate
 
 from utils import check_access, api_error_catch, filter_manifest_ids, get_manifest_json

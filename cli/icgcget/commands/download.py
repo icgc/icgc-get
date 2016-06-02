@@ -22,13 +22,13 @@ import shutil
 
 import click
 import psutil
-from icgcget.clients import portal_client
-from icgcget.clients.gnos.gnos_client import GnosDownloadClient
-from icgcget.clients.ega.ega_client import EgaDownloadClient
-from icgcget.clients.gdc.gdc_client import GdcDownloadClient
-from icgcget.clients.icgc.storage_client import StorageClient
-from icgcget.clients.pdc.pdc_client import PdcDownloadClient
-from icgcget.clients.utils import calculate_size, convert_size
+from cli.icgcget.clients import portal_client
+from cli.icgcget.clients.gnos.gnos_client import GnosDownloadClient
+from cli.icgcget.clients.ega.ega_client import EgaDownloadClient
+from cli.icgcget.clients.gdc.gdc_client import GdcDownloadClient
+from cli.icgcget.clients.icgc.storage_client import StorageClient
+from cli.icgcget.clients.pdc.pdc_client import PdcDownloadClient
+from cli.icgcget.clients.utils import calculate_size, convert_size
 
 from utils import api_error_catch, filter_manifest_ids, check_access, get_manifest_json
 

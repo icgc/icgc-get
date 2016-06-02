@@ -18,11 +18,11 @@
 
 import logging
 
-import icgcget.clients.ega.ega_client as ega_client
-import icgcget.clients.gdc.gdc_client as gdc_client
-import icgcget.clients.icgc.storage_client as storage_client
-import icgcget.clients.pdc.pdc_client as pdc_client
-import icgcget.clients.gnos.gnos_client as gnos_client
+import cli.icgcget.clients.ega.ega_client as ega_client
+import cli.icgcget.clients.gdc.gdc_client as gdc_client
+import cli.icgcget.clients.icgc.storage_client as storage_client
+import cli.icgcget.clients.pdc.pdc_client as pdc_client
+import cli.icgcget.clients.gnos.gnos_client as gnos_client
 
 
 def versions_command(cghub_path, ega_access, ega_path, gdc_path, icgc_path, pdc_path, version_num):
