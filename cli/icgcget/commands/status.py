@@ -1,4 +1,3 @@
-#!/usr/bin/python
 #
 # Copyright (c) 2016 The Ontario Institute for Cancer Research. All rights reserved.
 #
@@ -18,175 +17,24 @@
 #
 
 import logging
-import click
-import os
-from collections import OrderedDict
-from cli.icgcget.clients import portal_client
-from cli.icgcget.clients.ega.ega_client import EgaDownloadClient
-from cli.icgcget.clients.errors import SubprocessError
-from cli.icgcget.clients.gdc.gdc_client import GdcDownloadClient
-from cli.icgcget.clients.icgc.storage_client import StorageClient
-from cli.icgcget.clients.pdc.pdc_client import PdcDownloadClient
-from cli.icgcget.clients.gnos.gnos_client import GnosDownloadClient
-from cli.icgcget.clients.utils import convert_size, donor_addition, increment_types, build_table
-
-from tabulate import tabulate
-
-from utils import check_access, api_error_catch, filter_manifest_ids, get_manifest_json
+import pickle
+from cli.icgcget.clients.utils import convert_size
 
 
-class StatusScreenDispatcher:
-    def __init__(self):
-        self.logger = logging.getLogger("__log__")
-        self.gdc_client = GdcDownloadClient()
-        self.ega_client = EgaDownloadClient()
-        self.gt_client = GnosDownloadClient()
-        self.icgc_client = StorageClient()
-        self.pdc_client = PdcDownloadClient()
-
-        self.cghub_ids = []
-        self.gdc_ids = []
-
-        self.pdc_urls = []
-
-    def summary_table(self, repos, file_ids, manifest, api_url, output, tsv):
-        repo_counts = {}
-        repo_sizes = {}
-        repo_donors = {}
-        repo_download_count = {}
-
-        type_counts = {"total": 0}
-        download_count = {'total': 0}
-        type_donors = {"total": []}
-        type_sizes = OrderedDict({"total": 0})
-
-        repo_list = []
-        summary_table = [["", "Size", "Unit", "File Count", "Donor Count", "Downloaded Files"]]
-        for repository in repos:
-            repo_sizes[repository] = OrderedDict({"total": 0})
-            repo_counts[repository] = {"total": 0}
-            repo_donors[repository] = {"total": []}
-            repo_download_count[repository] = {"total": 0}
-
-        if manifest:
-            manifest_json = get_manifest_json(self, file_ids, api_url, repos)
-            file_ids = filter_manifest_ids(self, manifest_json, repos)
-
-        portal = portal_client.IcgcPortalClient()
-        entities = api_error_catch(self, portal.get_metadata_bulk, file_ids, api_url)
-
-        for entity in entities:
-            size = entity["fileCopies"][0]["fileSize"]
-            repository, copy = self.match_repositories(repos, entity)
-            data_type = entity["dataCategorization"]["dataType"]
-            state = copy["fileName"] in os.listdir(output)
-            type_sizes = increment_types(data_type, type_sizes, size)
-            type_counts = increment_types(data_type, type_counts, 1)
-            repo_sizes[repository] = increment_types(data_type, repo_sizes[repository], size)
-            repo_counts[repository] = increment_types(data_type, repo_counts[repository], 1)
-
-            if state:
-                download_count = increment_types(data_type, download_count, 1)
-                repo_download_count[repository] = increment_types(data_type, repo_download_count[repository], 1)
-            for donor_info in entity['donors']:
-                repo_donors[repository] = donor_addition(repo_donors[repository], donor_info, data_type)
-                type_donors = donor_addition(type_donors, donor_info, data_type)
-
-            if repository == "gdc":
-                self.gdc_ids.append(entity["dataBundle"]["dataBundleId"])
-            if repository == "cghub":
-                self.cghub_ids.append(entity["dataBundle"]["dataBundleId"])
-            if repository == "pdc":
-                self.pdc_urls.append('s3' + copy['repoBaseUrl'][5:] + copy["repoDataPath"])
-
-        for repo in repo_sizes:
-            summary_table = build_table(summary_table, repo, repo_sizes[repo], repo_counts[repo], repo_donors[repo],
-                                        repo_download_count[repo])
-            repo_list.append(repo)
-        summary_table = build_table(summary_table, 'Total', type_sizes, type_counts, type_donors, download_count)
-        if tsv:
-            for line in summary_table:
-                line = map(str, line)
-                self.logger.info('  '.join(line))
-        else:
-            self.logger.info(tabulate(summary_table, headers="firstrow", numalign="right"))
-
-    def file_table(self, repos, file_ids, manifest, api_url, output, tsv):
-        file_table = [["", "Size", "Unit", "File Format", "Data Type", "Repo", "File Name", "Downloaded"]]
-        if manifest:
-            manifest_json = get_manifest_json(self, file_ids, api_url, repos)
-            file_ids = filter_manifest_ids(self, manifest_json, repos)
-
-        portal = portal_client.IcgcPortalClient()
-        entities = api_error_catch(self, portal.get_metadata_bulk, file_ids, api_url)
-
-        for entity in entities:
-            size = entity["fileCopies"][0]["fileSize"]
-            repository, copy = self.match_repositories(repos, entity)
-            data_type = entity["dataCategorization"]["dataType"]
-            if copy["fileName"] in os.listdir(output):
-                state = "Yes"
-            else:
-                state = "No"
-            file_size = convert_size(size)
-            file_table.append([entity["id"], file_size[0], file_size[1], copy["fileFormat"],
-                               data_type, repository, copy["fileName"], state])
-        if tsv:
-            for line in file_table:
-                line = map(str, line)
-                self.logger.info('  '.join(line))
-        else:
-            self.logger.info(tabulate(file_table, headers="firstrow", tablefmt="fancy_grid", numalign="right"))
-
-    def access_checks(self, repo_list, cghub_access, cghub_path, ega_access, gdc_access, icgc_access, pdc_access,
-                      pdc_path, pdc_region, output, api_url):
-        if "collaboratory" in repo_list:
-            check_access(self, icgc_access, "icgc")
-            self.access_response(self.icgc_client.access_check(icgc_access, repo="collab", api_url=api_url),
-                                 "Collaboratory.")
-        if "aws-virginia" in repo_list:
-            check_access(self, icgc_access, "icgc")
-            self.access_response(self.icgc_client.access_check(icgc_access, repo="aws", api_url=api_url),
-                                 "Amazon Web server.")
-        if 'ega' in repo_list:
-            check_access(self, ega_access, 'ega')
-            self.access_response(self.ega_client.access_check(ega_access), "ega.")
-
-        if 'gdc' in repo_list and self.gdc_ids:
-            check_access(self, gdc_access, 'gdc')
-            gdc_result = api_error_catch(self, self.gdc_client.access_check, gdc_access, self.gdc_ids)
-            self.access_response(gdc_result, "gdc files specified.")
-
-        if 'cghub' in repo_list and self.cghub_ids:  # as before, can't check cghub permissions without files
-
-            check_access(self, cghub_access, 'cghub', cghub_path)
-
-            try:
-                self.access_response(self.gt_client.access_check(cghub_access, self.cghub_ids, cghub_path,
-                                                                 output=output), "cghub files.")
-            except SubprocessError as e:
-                self.logger.error(e.message)
-                raise click.Abort
-
-        if 'pdc' in repo_list and self.pdc_urls:
-            check_access(self, pdc_access, 'pdc', pdc_path)
-            try:
-                self.access_response(self.pdc_client.access_check(pdc_access, self.pdc_urls, pdc_path, output=output,
-                                                                  region=pdc_region), "pdc files.")
-            except SubprocessError as e:
-                self.logger.error(e.message)
-                raise click.Abort
-
-    def match_repositories(self, repos, copies):
-        for repository in repos:
-            for copy in copies["fileCopies"]:
-                if repository == copy["repoCode"]:
-                    return repository, copy
-        self.logger.error("File {} not found on repositories {}".format(copies["id"], repos))
-        raise click.Abort
-
-    def access_response(self, result, repo):
-        if result:
-            self.logger.info("Valid access to the " + repo)
-        else:
-            self.logger.info("Invalid access to the " + repo)
+def check_download(pickle_path):
+    logger = logging.getLogger('__log__')
+    status = pickle.load(open(pickle_path, 'r+'))
+    for repo in status:
+        finished = 0
+        not_started = 0
+        for fi_id in status[repo]:
+            if status[repo][fi_id]['state'] == 'finished':
+                finished += status[repo][fi_id]['size']
+            elif status[repo][fi_id]['state'] == 'not_started':
+                not_started += status[repo][fi_id]['size']
+        finished_size = convert_size(finished)
+        finished_size = finished_size[0] + finished_size[1]
+        not_started_size = convert_size(not_started)
+        not_started_size = not_started_size[0] + not_started_size[1]
+        logger.warning('{0} files to download, {1} files downloaded from {2}'.format(finished, not_started, repo))
+        logger.warning('{0} to download, {1} downloaded from {2}'.format(finished_size, not_started_size, repo))

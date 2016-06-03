@@ -39,6 +39,15 @@ def filter_manifest_ids(self, manifest_json, repos):
     return fi_ids
 
 
+def get_entities(self, manifest, file_ids, api_url, repos):
+    if manifest:
+        manifest_json = get_manifest_json(self, file_ids, api_url, repos)
+        file_ids = filter_manifest_ids(self, manifest_json, repos)
+    portal = portal_client.IcgcPortalClient()
+    entities = api_error_catch(self, portal.get_metadata_bulk, file_ids, api_url)
+    return entities
+
+
 def get_manifest_json(self, file_ids, api_url, repos):
     if len(file_ids) > 1:
         self.logger.warning("For download from manifest files, multiple manifest id arguments is not supported")
