@@ -152,7 +152,7 @@ def summary(ctx, repos, file_ids, manifest, output, tsv):
 
 
 @cli.command()
-@click.argument('file-ids', nargs=-1, required=True)
+@click.argument('file-ids', nargs=-1, required=False)
 @click.option('--repos', '-r', type=click.Choice(REPOS), multiple=True)
 @click.option('--manifest', '-m', is_flag=True, default=False)
 @click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True))
