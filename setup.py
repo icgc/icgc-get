@@ -19,17 +19,17 @@
 from setuptools import setup, find_packages
 
 
-setup(name='cli',
+setup(name='icgcget',
       version='0.0.2',
       description='Universal download client for ICGC data residing in various environments',
-      url="https://github.com/icgc/icgc-get",
+      url="https://github.com/icgc/icgcget",
       packages=find_packages(exclude=['tests']),
       install_requires=['PyYaml', 'logging', 'click', 'requests[security]', 'psutil', 'tabulate', 'subprocess32'],
       setup_requires=['pytest-runner'],
       tests_require=['pytest'],
       entry_points={
           'console_scripts': [
-              'icgc-get=cli.cli:main'
+              'icgc-get=icgcget.cli:main'
           ]
       }
       )

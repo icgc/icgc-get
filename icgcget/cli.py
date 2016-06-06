@@ -21,13 +21,13 @@ import os
 import pickle
 
 import click
-from icgcget.clients.utils import config_parse, get_api_url
-from icgcget.commands.versions import versions_command
-from icgcget.commands.status import StatusScreenDispatcher
-from icgcget.commands.download import DownloadDispatcher
-from icgcget.commands.check import check_download
+from clients.utils import config_parse, get_api_url
+from commands.versions import versions_command
+from commands.reports import StatusScreenDispatcher
+from commands.download import DownloadDispatcher
+from commands.status import check_download
 
-DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgc-get', force_posix=True), 'config.yaml')
+DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgcget', force_posix=True), 'config.yaml')
 REPOS = ['collaboratory', 'aws-virginia', 'ega', 'gdc', 'cghub', 'pdc']
 VERSION = '0.5'
 
@@ -126,6 +126,36 @@ def download(ctx, repos, file_ids, manifest, output,
 @click.option('--repos', '-r', type=click.Choice(REPOS),  multiple=True)
 @click.option('--manifest', '-m', is_flag=True, default=False)
 @click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True))
+@click.option('--tsv', '-t', is_flag=True, default=False, help="Do not show summary")
+@click.pass_context
+def report(ctx, repos, file_ids, manifest, output, tsv):
+    if not repos:
+        raise click.BadOptionUsage("Must include prioritized repositories")
+    api_url = get_api_url(ctx.default_map)
+    dispatch = StatusScreenDispatcher()
+    dispatch.file_table(repos, file_ids, manifest, api_url, output, tsv)
+
+
+@cli.command()
+@click.argument('file-ids', nargs=-1, required=True)
+@click.option('--repos', '-r', type=click.Choice(REPOS), multiple=True)
+@click.option('--manifest', '-m', is_flag=True, default=False)
+@click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True))
+@click.option('--tsv', '-t', is_flag=True, default=False, help="Do not show summary")
+@click.pass_context
+def summary(ctx, repos, file_ids, manifest, output, tsv):
+    if not repos:
+        raise click.BadOptionUsage("Must include prioritized repositories")
+    api_url = get_api_url(ctx.default_map)
+    dispatch = StatusScreenDispatcher()
+    dispatch.summary_table(repos, file_ids, manifest, api_url, output, tsv)
+
+
+@cli.command()
+@click.argument('file-ids', nargs=-1, required=False)
+@click.option('--repos', '-r', type=click.Choice(REPOS), multiple=True)
+@click.option('--manifest', '-m', is_flag=True, default=False)
+@click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True))
 @click.option('--cghub-access', type=click.STRING)
 @click.option('--cghub-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--ega-access', type=click.STRING)
@@ -134,23 +164,15 @@ def download(ctx, repos, file_ids, manifest, output,
 @click.option('--pdc-access', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
 @click.option('--pdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--pdc-region', type=click.STRING)
-@click.option('--no-files', '-nf', is_flag=True, default=False, help="Do not show individual file information")
-@click.option('--no-summary', '-ns', is_flag=True, default=False, help="Do not show summary")
-@click.option('--tsv', '-t', is_flag=True, default=False, help="Do not show summary")
 @click.pass_context
-def status(ctx, repos, file_ids, manifest, output,
-           cghub_access, cghub_path, ega_access, gdc_access, icgc_access, pdc_access, pdc_path, pdc_region,
-           no_files, no_summary, tsv):
+def check(ctx, repos, file_ids, manifest, output,
+          cghub_access, cghub_path, ega_access, gdc_access, icgc_access, pdc_access, pdc_path, pdc_region):
     if not repos:
         raise click.BadOptionUsage("Must include prioritized repositories")
     api_url = get_api_url(ctx.default_map)
     dispatch = StatusScreenDispatcher()
-    if not no_files:
-        dispatch.file_table(repos, file_ids, manifest, api_url, output, tsv)
-    if not no_summary:
-        dispatch.summary_table(repos, file_ids, manifest, api_url, output, tsv)
-    dispatch.access_checks(repos, cghub_access, cghub_path, ega_access, gdc_access, icgc_access, pdc_access,
-                           pdc_path, pdc_region, output, api_url)
+    dispatch.access_checks(repos, file_ids, manifest, cghub_access, cghub_path, ega_access, gdc_access, icgc_access,
+                           pdc_access, pdc_path, pdc_region, output, api_url)
 
 
 @cli.command()
@@ -166,7 +188,7 @@ def version(cghub_path, ega_access, ega_path, gdc_path, icgc_path, pdc_path):
 
 @cli.command()
 @click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True))
-def check(output):
+def status(output):
     pickle_path = output + '/.staging/state.pk'
     if os.path.isfile(pickle_path):
         check_download(output)

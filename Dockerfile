@@ -28,7 +28,8 @@ RUN \
 # Install OpenSSL for Genetorrent
 #
 
-RUN apt-get install openssl
+
+RUN apt-get install -y openssl libssl-dev
 
 #
 # Install Oracle JDK 8 for icgc-storage client 
@@ -46,7 +47,7 @@ ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
 # Install python 2.7 and dependancies for Genetorrent and icgc-get.
 #
 
-RUN apt-get install -y python-pip python-dev libffi-dev libssl-dev
+RUN apt-get install -y python-pip python-dev libffi-dev
 RUN apt-get upgrade -y
 RUN pip install -U pip setuptools
 

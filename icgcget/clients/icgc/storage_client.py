@@ -19,8 +19,8 @@
 import os
 import re
 
-from cli.icgcget.clients.download_client import DownloadClient
-from cli.icgcget.clients.portal_client import call_api
+from icgcget.clients.download_client import DownloadClient
+from icgcget.clients.portal_client import call_api
 
 
 class StorageClient(DownloadClient):

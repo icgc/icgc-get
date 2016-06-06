@@ -19,8 +19,8 @@
 
 import os
 import re
-from cli.icgcget.clients.errors import SubprocessError
-from cli.icgcget.clients.download_client import DownloadClient
+from icgcget.clients.errors import SubprocessError
+from icgcget.clients.download_client import DownloadClient
 
 
 class PdcDownloadClient(DownloadClient):
@@ -66,6 +66,6 @@ class PdcDownloadClient(DownloadClient):
         self.logger.info(output)
 
     def version_parser(self, output):
-        version = re.findall(r"aws-cli/[0-9.]+", output)
+        version = re.findall(r"aws-icgcget/[0-9.]+", output)
         if version:
             self.logger.info("AWS CLI Version: {}".format(version[0][8:]))

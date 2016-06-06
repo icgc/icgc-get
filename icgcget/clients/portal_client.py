@@ -27,10 +27,10 @@ def call_api(request, api_url, headers=None, head=False):
         if head:
             resp = requests.head(request, headers=headers)
         else:
-            resp = requests.get(request, headers=headers, verify=False)
+            resp = requests.get(request, headers=headers)
     except requests.exceptions.ConnectionError as e:
         logger.debug(e.message)
-        raise ApiError(request, "Unable to connect to the icgc api at {}".format(api_url))
+        raise ApiError(request, e.message + "  Unable to connect to the icgc api at {}".format(api_url))
     except requests.exceptions.Timeout as e:
         logger.debug(e.message)
         raise ApiError(request, e.message)
