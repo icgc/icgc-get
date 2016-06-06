@@ -15,15 +15,3 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
-class SubprocessError(BaseException):
-    def __init__(self, code, message):
-        self.message = message
-        self.code = code
-
-
-class ApiError(BaseException):
-    def __init__(self, request_string, message, code=None):
-        self.message = message
-        self.request_string = request_string
-        self.code = code

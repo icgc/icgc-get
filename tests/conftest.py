@@ -23,7 +23,7 @@ import threading
 import pytest
 from click.testing import CliRunner
 
-from cli import cli
+import icgcget
 from tests.fixtures import stub_thread
 
 
@@ -69,7 +69,7 @@ def download_test(file_id, mode, repo, file_names, sizes, data):
     if mode == 'download':
         args.append('-y')
     runner.env = dict(os.environ, ICGCGET_API_URL="http://127.0.0.1:8000/")
-    rc = runner.invoke(cli.cli, args)
+    rc = runner.invoke(icgcget.cli, args)
     if rc.exit_code != 0:
         assert rc.output == 0  # An error occurred during the download attempt
     if mode == 'download':

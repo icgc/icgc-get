@@ -21,13 +21,13 @@ import logging
 import click
 import os
 from collections import OrderedDict
-from cli.icgcget.clients.ega.ega_client import EgaDownloadClient
-from cli.icgcget.clients.errors import SubprocessError
-from cli.icgcget.clients.gdc.gdc_client import GdcDownloadClient
-from cli.icgcget.clients.icgc.storage_client import StorageClient
-from cli.icgcget.clients.pdc.pdc_client import PdcDownloadClient
-from cli.icgcget.clients.gnos.gnos_client import GnosDownloadClient
-from cli.icgcget.clients.utils import convert_size, donor_addition, increment_types, build_table
+from icgcget.clients.ega.ega_client import EgaDownloadClient
+from icgcget.clients.errors import SubprocessError
+from icgcget.clients.gdc.gdc_client import GdcDownloadClient
+from icgcget.clients.icgc.storage_client import StorageClient
+from icgcget.clients.pdc.pdc_client import PdcDownloadClient
+from icgcget.clients.gnos.gnos_client import GnosDownloadClient
+from icgcget.clients.utils import convert_size, donor_addition, increment_types, build_table
 
 from tabulate import tabulate
 
@@ -37,16 +37,6 @@ from utils import check_access, api_error_catch,  get_entities
 class StatusScreenDispatcher:
     def __init__(self):
         self.logger = logging.getLogger("__log__")
-        self.gdc_client = GdcDownloadClient()
-        self.ega_client = EgaDownloadClient()
-        self.gt_client = GnosDownloadClient()
-        self.icgc_client = StorageClient()
-        self.pdc_client = PdcDownloadClient()
-
-        self.cghub_ids = []
-        self.gdc_ids = []
-
-        self.pdc_urls = []
 
     def summary_table(self, repos, file_ids, manifest, api_url, output, tsv):
         repo_counts = {}
@@ -121,48 +111,58 @@ class StatusScreenDispatcher:
 
     def access_checks(self, repo_list, file_ids, manifest, cghub_access, cghub_path, ega_access, gdc_access,
                       icgc_access, pdc_access, pdc_path, pdc_region, output, api_url):
+        cghub_ids = []
+        gdc_ids = []
+        pdc_urls = []
+
+        gdc_client = GdcDownloadClient()
+        ega_client = EgaDownloadClient()
+        gt_client = GnosDownloadClient()
+        icgc_client = StorageClient()
+        pdc_client = PdcDownloadClient()
+
         entities = get_entities(self, manifest, file_ids, api_url, repo_list)
         for entity in entities:
             repository, copy = self.match_repositories(repo_list, entity)
             if repository == "gdc":
-                self.gdc_ids.append(entity["dataBundle"]["dataBundleId"])
+                gdc_ids.append(entity["dataBundle"]["dataBundleId"])
             if repository == "cghub":
-                self.cghub_ids.append(entity["dataBundle"]["dataBundleId"])
+                cghub_ids.append(entity["dataBundle"]["dataBundleId"])
             if repository == "pdc":
-                self.pdc_urls.append('s3' + copy['repoBaseUrl'][5:] + copy["repoDataPath"])
+                pdc_urls.append('s3' + copy['repoBaseUrl'][5:] + copy["repoDataPath"])
 
         if "collaboratory" in repo_list:
             check_access(self, icgc_access, "icgc")
-            self.access_response(self.icgc_client.access_check(icgc_access, repo="collab", api_url=api_url),
+            self.access_response(icgc_client.access_check(icgc_access, repo="collab", api_url=api_url),
                                  "Collaboratory.")
         if "aws-virginia" in repo_list:
             check_access(self, icgc_access, "icgc")
-            self.access_response(self.icgc_client.access_check(icgc_access, repo="aws", api_url=api_url),
-                                 "Amazon Web server.")
+            self.access_response(icgc_client.access_check(icgc_access, repo="aws", api_url=api_url),
+                                 "Amazon Web Server.")
         if 'ega' in repo_list:
             check_access(self, ega_access, 'ega')
-            self.access_response(self.ega_client.access_check(ega_access), "ega.")
+            self.access_response(ega_client.access_check(ega_access), "EGA.")
 
-        if 'gdc' in repo_list and self.gdc_ids:
+        if 'gdc' in repo_list and gdc_ids:
             check_access(self, gdc_access, 'gdc')
-            gdc_result = api_error_catch(self, self.gdc_client.access_check, gdc_access, self.gdc_ids)
-            self.access_response(gdc_result, "gdc files specified.")
+            gdc_result = api_error_catch(self, gdc_client.access_check, gdc_access, gdc_ids)
+            self.access_response(gdc_result, "GDC files specified.")
 
-        if 'cghub' in repo_list and self.cghub_ids:  # as before, can't check cghub permissions without files
+        if 'cghub' in repo_list and cghub_ids:  # as before, can't check cghub permissions without files
             check_access(self, cghub_access, 'cghub', cghub_path)
 
             try:
-                self.access_response(self.gt_client.access_check(cghub_access, self.cghub_ids, cghub_path,
-                                                                 output=output), "cghub files.")
+                self.access_response(gt_client.access_check(cghub_access, cghub_ids, cghub_path, output=output),
+                                     "CGHub files.")
             except SubprocessError as e:
                 self.logger.error(e.message)
                 raise click.Abort
 
-        if 'pdc' in repo_list and self.pdc_urls:
+        if 'pdc' in repo_list and pdc_urls:
             check_access(self, pdc_access, 'pdc', pdc_path)
             try:
-                self.access_response(self.pdc_client.access_check(pdc_access, self.pdc_urls, pdc_path, output=output,
-                                                                  region=pdc_region), "pdc files.")
+                self.access_response(pdc_client.access_check(pdc_access, pdc_urls, pdc_path, output=output,
+                                                             region=pdc_region), "PDC files.")
             except SubprocessError as e:
                 self.logger.error(e.message)
                 raise click.Abort

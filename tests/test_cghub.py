@@ -20,7 +20,7 @@
 from conftest import download_test
 
 
-def test_cghub( data_dir):
+def test_cghub(data_dir):
     download_test(['FI99990'], 'status', 'cghub', ['TCGA-DQ-5624-01A-01R-1872-13_mirna.bam'], [435700000],
                   data_dir)
 

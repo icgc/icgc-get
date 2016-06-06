@@ -18,8 +18,8 @@
 #
 import click
 
-from cli.icgcget.clients import errors
-from cli.icgcget.clients import portal_client
+from icgcget.clients import errors
+from icgcget.clients import portal_client
 
 
 def filter_manifest_ids(self, manifest_json, repos):

@@ -21,13 +21,13 @@ import os
 import pickle
 
 import click
-from icgcget.clients.utils import config_parse, get_api_url
-from icgcget.commands.versions import versions_command
-from icgcget.commands.reports import StatusScreenDispatcher
-from icgcget.commands.download import DownloadDispatcher
-from icgcget.commands.status import check_download
+from clients.utils import config_parse, get_api_url
+from commands.versions import versions_command
+from commands.reports import StatusScreenDispatcher
+from commands.download import DownloadDispatcher
+from commands.status import check_download
 
-DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgc-get', force_posix=True), 'config.yaml')
+DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgcget', force_posix=True), 'config.yaml')
 REPOS = ['collaboratory', 'aws-virginia', 'ega', 'gdc', 'cghub', 'pdc']
 VERSION = '0.5'
 

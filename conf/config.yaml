@@ -23,6 +23,12 @@
 logfile: /icgc/mnt/logs/logfile.log
 output:
 repos:
+ - cghub
+ - collaboratory
+ - ega
+ - pdc
+ - gdc
+ - aws-virginia
 
 portal:
   url: https://dev.dcc.icgc.org/

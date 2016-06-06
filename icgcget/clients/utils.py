@@ -68,7 +68,7 @@ def config_parse(filename):
         config_download = flatten_dict(normalize_keys(config_temp))
         config = {'download': config_download, 'status': config_download, 'version': config_download,
                   'check': config_download, 'logfile': config_temp['logfile']}
-    except yaml.YAMLError as e:
+    except yaml.YAMLError:
 
         print("Could not read config file {}".format(filename))
         return {}
@@ -86,11 +86,11 @@ def donor_addition(donor_list, donor, data_type):
     return donor_list
 
 
-def increment_types(typename, dict,  size):
-    if typename not in dict:
-        dict[typename] = 0
-    dict["total"] += size
-    dict[typename] += size
+def increment_types(typename, count_dict,  size):
+    if typename not in count_dict:
+        count_dict[typename] = 0
+    count_dict["total"] += size
+    count_dict[typename] += size
 
     return dict
 
