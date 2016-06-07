@@ -69,6 +69,6 @@ def check_access(self, access, name, path="Default"):
 def api_error_catch(self, func, *args):
     try:
         return func(*args)
-    except errors.ApiError as e:
-        self.logger.error(e.message)
+    except errors.ApiError as ex:
+        self.logger.error(ex.message)
         raise click.Abort

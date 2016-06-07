@@ -21,11 +21,11 @@ import os
 import pickle
 
 import click
-from clients.utils import config_parse, get_api_url
-from commands.versions import versions_command
-from commands.reports import StatusScreenDispatcher
-from commands.download import DownloadDispatcher
-from commands.status import check_download
+from icgcget.clients.utils import config_parse, get_api_url
+from icgcget.commands.versions import versions_command
+from icgcget.commands.reports import StatusScreenDispatcher
+from icgcget.commands.download import DownloadDispatcher
+
 
 DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgcget', force_posix=True), 'config.yaml')
 REPOS = ['collaboratory', 'aws-virginia', 'ega', 'gdc', 'cghub', 'pdc']
@@ -38,14 +38,14 @@ def logger_setup(logfile):
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 
     if logfile is not None:
-        fh = logging.FileHandler(logfile)
-        fh.setLevel(logging.DEBUG)
-        fh.setFormatter(formatter)
-        logger.addHandler(fh)
+        file_handler = logging.FileHandler(logfile)
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
 
-    sh = logging.StreamHandler()
-    sh.setLevel(logging.INFO)
-    logger.addHandler(sh)
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.INFO)
+    logger.addHandler(stream_handler)
 
 
 @click.group()
@@ -123,32 +123,25 @@ def download(ctx, repos, file_ids, manifest, output,
 
 @cli.command()
 @click.argument('file-ids', nargs=-1, required=True)
-@click.option('--repos', '-r', type=click.Choice(REPOS),  multiple=True)
-@click.option('--manifest', '-m', is_flag=True, default=False)
-@click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True))
-@click.option('--tsv', '-t', is_flag=True, default=False, help="Do not show summary")
-@click.pass_context
-def report(ctx, repos, file_ids, manifest, output, tsv):
-    if not repos:
-        raise click.BadOptionUsage("Must include prioritized repositories")
-    api_url = get_api_url(ctx.default_map)
-    dispatch = StatusScreenDispatcher()
-    dispatch.file_table(repos, file_ids, manifest, api_url, output, tsv)
-
-
-@cli.command()
-@click.argument('file-ids', nargs=-1, required=True)
 @click.option('--repos', '-r', type=click.Choice(REPOS), multiple=True)
 @click.option('--manifest', '-m', is_flag=True, default=False)
 @click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True))
-@click.option('--tsv', '-t', is_flag=True, default=False, help="Do not show summary")
+@click.option('--table-format', '-f', type=click.Choice(['tsv', 'pretty', 'json']), default='pretty')
+@click.option('--data-type', '-t', type=click.Choice(['file', 'summary']), default='file')
 @click.pass_context
-def summary(ctx, repos, file_ids, manifest, output, tsv):
+def report(ctx, repos, file_ids, manifest, output, table_format, data_type):
     if not repos:
         raise click.BadOptionUsage("Must include prioritized repositories")
     api_url = get_api_url(ctx.default_map)
+    pickle_path = output + '/.staging/state.pk'
+    if os.path.isfile(pickle_path):
+        session_info = pickle.load(open(pickle_path, 'r+'))
+
     dispatch = StatusScreenDispatcher()
-    dispatch.summary_table(repos, file_ids, manifest, api_url, output, tsv)
+    if data_type == 'file':
+        dispatch.file_table(repos, file_ids, manifest, api_url, output, table_format)
+    elif data_type == 'summary':
+        dispatch.summary_table(repos, file_ids, manifest, api_url, output, table_format)
 
 
 @cli.command()
@@ -184,16 +177,6 @@ def check(ctx, repos, file_ids, manifest, output,
 @click.option('--pdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 def version(cghub_path, ega_access, ega_path, gdc_path, icgc_path, pdc_path):
     versions_command(cghub_path, ega_access, ega_path, gdc_path, icgc_path, pdc_path, VERSION)
-
-
-@cli.command()
-@click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True))
-def status(output):
-    pickle_path = output + '/.staging/state.pk'
-    if os.path.isfile(pickle_path):
-        check_download(output)
-    else:
-        raise click.BadOptionUsage("No download is occurring in output directory")
 
 
 def main():

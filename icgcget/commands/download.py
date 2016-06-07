@@ -30,10 +30,10 @@ from icgcget.clients.icgc.storage_client import StorageClient
 from icgcget.clients.pdc.pdc_client import PdcDownloadClient
 from icgcget.clients.utils import calculate_size, convert_size
 
-from utils import api_error_catch, filter_manifest_ids, check_access, get_manifest_json
+from icgcget.commands.utils import api_error_catch, filter_manifest_ids, check_access, get_manifest_json
 
 
-class DownloadDispatcher:
+class DownloadDispatcher(object):
     def __init__(self, pickle_path):
         self.logger = logging.getLogger("__log__")
         self.gdc_client = GdcDownloadClient(pickle_path)
@@ -65,13 +65,13 @@ class DownloadDispatcher:
             else:
                 continue
 
-            filecopies = entity['fileCopies']
-            for copy in filecopies:
+            file_copies = entity['fileCopies']
+            for copy in file_copies:
                 if copy['repoCode'] == repo:
                     if copy["fileName"] in os.listdir(output):
 
                         object_ids[repo].pop(entity['id'])
-                        self.logger.warning("File {} found in download directory, skipping".format(entity['id']))
+                        self.logger.warning("File %s found in download directory, skipping", entity['id'])
                         break
                     object_ids[repo][entity["id"]]['filename'] = copy["fileName"]
                     if "fileName" in copy["indexFile"]:
@@ -169,7 +169,7 @@ class DownloadDispatcher:
 
     def check_code(self, client, code):
         if code != 0:
-            self.logger.error("{} client exited with a nonzero error code {}.".format(client, code))
+            self.logger.error("%s client exited with a nonzero error code %s.", client, code)
             raise click.ClickException("Please check client output for error messages")
 
     @staticmethod
@@ -189,8 +189,8 @@ class DownloadDispatcher:
                 self.logger.info("User aborted download")
                 raise click.Abort
         elif free <= size:
-            self.logger.error("Not enough space detected for download of {0}.".format(''.join(convert_size(size))) +
-                              "{} of space in {}".format(''.join(convert_size(free)), output))
+            self.logger.error("Not enough space detected for download of %s. %s of space in %s",
+                              ''.join(convert_size(size)), ''.join(convert_size(free)), output)
 
     @staticmethod
     def get_uuids(object_ids):
@@ -205,4 +205,4 @@ class DownloadDispatcher:
                 try:
                     shutil.move(staging + '/' + staged_file, output)
                 except shutil.Error:
-                    self.logger.warning('File {} already present in download directory'.format(staged_file))
+                    self.logger.warning('File %s already present in download directory', staged_file)

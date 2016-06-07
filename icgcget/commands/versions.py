@@ -27,7 +27,7 @@ import icgcget.clients.gnos.gnos_client as gnos_client
 
 def versions_command(cghub_path, ega_access, ega_path, gdc_path, icgc_path, pdc_path, version_num):
     logger = logging.getLogger("__log__")
-    logger.warning("ICGC-Get Version: {}".format(version_num))
+    logger.warning("ICGC-Get Version: %s", version_num)
     if pdc_path:
         pdc_client.PdcDownloadClient().print_version(pdc_path)
     if ega_path and ega_access:

@@ -15,27 +15,26 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
+import os
 import collections
 import yaml
-import os
 
 
-def flatten_dict(d, parent_key='', sep='_'):
+def flatten_dict(dictionary, parent_key='', sep='_'):
     items = []
-    for k, v in d.items():
-        new_key = parent_key + sep + k if parent_key else k
-        if isinstance(v, collections.MutableMapping):
-            items.extend(flatten_dict(v, new_key, sep=sep).items())
+    for key, value in dictionary.items():
+        new_key = parent_key + sep + key if parent_key else key
+        if isinstance(value, collections.MutableMapping):
+            items.extend(flatten_dict(value, new_key, sep=sep).items())
         else:
-            items.append((new_key, v))
+            items.append((new_key, value))
     return dict(items)
 
 
 def convert_size(num, suffix='B'):
     for unit in ['', 'K', 'M', 'G', 'T']:
         if abs(num) < 1024.0:
-            return ["%3.2f" % num,  "%s%s" % (unit, suffix)]
+            return ["%3.2f" % num, "%s%s" % (unit, suffix)]
         num /= 1024.0
     return ["%.2f" % num, "%s%s" % ('Yi', suffix)]
 
@@ -49,7 +48,7 @@ def get_api_url(context_map):
 
 
 def normalize_keys(obj):
-    if type(obj) != dict:
+    if isinstance(obj, dict):
         return obj
     else:
         return {k.replace('.', '_'): normalize_keys(v) for k, v in obj.items()}
@@ -61,7 +60,7 @@ def config_parse(filename):
         config_text = open(filename, 'r')
     except IOError:
 
-        print("Config file {} not found".format(filename))
+        print "Config file {} not found".format(filename)
         return config
     try:
         config_temp = yaml.safe_load(config_text)
@@ -70,7 +69,7 @@ def config_parse(filename):
                   'check': config_download, 'logfile': config_temp['logfile']}
     except yaml.YAMLError:
 
-        print("Could not read config file {}".format(filename))
+        print "Could not read config file {}".format(filename)
         return {}
 
     return config
@@ -86,7 +85,7 @@ def donor_addition(donor_list, donor, data_type):
     return donor_list
 
 
-def increment_types(typename, count_dict,  size):
+def increment_types(typename, count_dict, size):
     if typename not in count_dict:
         count_dict[typename] = 0
     count_dict["total"] += size
@@ -111,7 +110,7 @@ def build_table(table, repo, sizes, counts, donors, downloads):
 
 def calculate_size(manifest_json):
     size = 0
-    object_ids = {}
+    object_ids = {'pid': os.getpid()}
     for repo_info in manifest_json["entries"]:
         repo = repo_info["repo"]
         object_ids[repo] = {}

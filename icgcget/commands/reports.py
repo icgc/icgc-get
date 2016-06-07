@@ -16,11 +16,13 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
-import logging
-import click
+from json import dumps, load
 import os
+import logging
 from collections import OrderedDict
+import click
+from tabulate import tabulate
+
 from icgcget.clients.ega.ega_client import EgaDownloadClient
 from icgcget.clients.errors import SubprocessError
 from icgcget.clients.gdc.gdc_client import GdcDownloadClient
@@ -28,17 +30,14 @@ from icgcget.clients.icgc.storage_client import StorageClient
 from icgcget.clients.pdc.pdc_client import PdcDownloadClient
 from icgcget.clients.gnos.gnos_client import GnosDownloadClient
 from icgcget.clients.utils import convert_size, donor_addition, increment_types, build_table
-
-from tabulate import tabulate
-
-from utils import check_access, api_error_catch,  get_entities
+from icgcget.commands.utils import check_access, api_error_catch, get_entities
 
 
-class StatusScreenDispatcher:
+class StatusScreenDispatcher(object):
     def __init__(self):
         self.logger = logging.getLogger("__log__")
 
-    def summary_table(self, repos, file_ids, manifest, api_url, output, tsv):
+    def summary_table(self, repos, file_ids, manifest, api_url, output, table_format):
         repo_counts = {}
         repo_sizes = {}
         repo_donors = {}
@@ -50,7 +49,8 @@ class StatusScreenDispatcher:
         type_sizes = OrderedDict({"total": 0})
 
         repo_list = []
-        summary_table = [["", "Size", "Unit", "File Count", "Donor Count", "Downloaded Files"]]
+        headers = ["", "Size", "Unit", "File Count", "Donor Count", "Downloaded Files"]
+        summary_table = [[]]
         for repository in repos:
             repo_sizes[repository] = OrderedDict({"total": 0})
             repo_counts[repository] = {"total": 0}
@@ -80,15 +80,11 @@ class StatusScreenDispatcher:
                                         repo_download_count[repo])
             repo_list.append(repo)
         summary_table = build_table(summary_table, 'Total', type_sizes, type_counts, type_donors, download_count)
-        if tsv:
-            for line in summary_table:
-                line = map(str, line)
-                self.logger.info('  '.join(line))
-        else:
-            self.logger.info(tabulate(summary_table, headers="firstrow", numalign="right"))
+        self.print_table(headers, summary_table, table_format)
 
-    def file_table(self, repos, file_ids, manifest, api_url, output, tsv):
-        file_table = [["", "Size", "Unit", "File Format", "Data Type", "Repo", "File Name", "Downloaded"]]
+    def file_table(self, repos, file_ids, manifest, api_url, output, table_format):
+        headers = ["", "Size", "Unit", "File Format", "Data Type", "Repo", "Donor" "File Name", "Downloaded"]
+        file_table = [[]]
         entities = get_entities(self, manifest, file_ids, api_url, repos)
 
         for entity in entities:
@@ -101,13 +97,24 @@ class StatusScreenDispatcher:
                 state = "No"
             file_size = convert_size(size)
             file_table.append([entity["id"], file_size[0], file_size[1], copy["fileFormat"],
-                               data_type, repository, copy["fileName"], state])
-        if tsv:
+                               data_type, repository, entity["donor"], copy["fileName"], state])
+        self.print_table(headers, file_table, table_format)
+
+    def print_table(self, headers, file_table, table_format):
+        if table_format == 'tsv':
             for line in file_table:
                 line = map(str, line)
                 self.logger.info('  '.join(line))
-        else:
+        elif table_format == 'pretty':
+            file_table[:0] = [headers]
             self.logger.info(tabulate(file_table, headers="firstrow", tablefmt="fancy_grid", numalign="right"))
+        elif table_format == 'json':
+            json_dict = {}
+            for line in file_table:
+                line_dict = {}
+                for i in range(1, len(headers)):
+                    line_dict[headers[i]] = line[i]
+                json_dict[line[0]] = line_dict
 
     def access_checks(self, repo_list, file_ids, manifest, cghub_access, cghub_path, ega_access, gdc_access,
                       icgc_access, pdc_access, pdc_path, pdc_region, output, api_url):
@@ -154,8 +161,8 @@ class StatusScreenDispatcher:
             try:
                 self.access_response(gt_client.access_check(cghub_access, cghub_ids, cghub_path, output=output),
                                      "CGHub files.")
-            except SubprocessError as e:
-                self.logger.error(e.message)
+            except SubprocessError as ex:
+                self.logger.error(ex.message)
                 raise click.Abort
 
         if 'pdc' in repo_list and pdc_urls:
@@ -163,8 +170,8 @@ class StatusScreenDispatcher:
             try:
                 self.access_response(pdc_client.access_check(pdc_access, pdc_urls, pdc_path, output=output,
                                                              region=pdc_region), "PDC files.")
-            except SubprocessError as e:
-                self.logger.error(e.message)
+            except SubprocessError as ex:
+                self.logger.error(ex.message)
                 raise click.Abort
 
     def match_repositories(self, repos, copies):
@@ -172,7 +179,7 @@ class StatusScreenDispatcher:
             for copy in copies["fileCopies"]:
                 if repository == copy["repoCode"]:
                     return repository, copy
-        self.logger.error("File {} not found on repositories {}".format(copies["id"], repos))
+        self.logger.error("File %s not found on repositories %s", copies["id"], repos)
         raise click.Abort
 
     def access_response(self, result, repo):

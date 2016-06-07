@@ -16,9 +16,9 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import requests
 import logging
-from errors import ApiError
+import requests
+from icgcget.clients.errors import ApiError
 
 
 def call_api(request, api_url, headers=None, head=False):
@@ -28,22 +28,22 @@ def call_api(request, api_url, headers=None, head=False):
             resp = requests.head(request, headers=headers)
         else:
             resp = requests.get(request, headers=headers)
-    except requests.exceptions.ConnectionError as e:
-        logger.debug(e.message)
-        raise ApiError(request, e.message + "  Unable to connect to the icgc api at {}".format(api_url))
-    except requests.exceptions.Timeout as e:
-        logger.debug(e.message)
-        raise ApiError(request, e.message)
-    except requests.exceptions.RequestException as e:
-        logger.error(e.message)
-        raise ApiError(request, e.message)
+    except requests.exceptions.ConnectionError as ex:
+        logger.debug(ex.message)
+        raise ApiError(request, ex.message + "  Unable to connect to the icgc api at {}".format(api_url))
+    except requests.exceptions.Timeout as ex:
+        logger.debug(ex.message)
+        raise ApiError(request, ex.message)
+    except requests.exceptions.RequestException as ex:
+        logger.error(ex.message)
+        raise ApiError(request, ex.message)
     if resp.status_code != 200:
-        raise ApiError(request, "API request failed due to {} error.".format(resp.reason, resp.text),
+        raise ApiError(request, "API request failed due to {} error.".format(resp.reason),
                        code=resp.status_code)
     return resp.json()
 
 
-class IcgcPortalClient:
+class IcgcPortalClient(object):
     def __init__(self):
         self.logger = logging.getLogger('__log__')
 
@@ -56,11 +56,11 @@ class IcgcPortalClient:
             request = api_url + 'manifests/' + manifest_id + '?' + fields
         try:
             entity_set = call_api(request, api_url)
-        except ApiError as e:
-            if e.code == 404:
+        except ApiError as ex:
+            if ex.code == 404:
                 self.logger.error("Manifest {} not found in database. ".format(manifest_id) +
                                   " Please check your manifest id")
-            raise ApiError(e.request_string, '', e.code)
+            raise ApiError(ex.request_string, '', ex.code)
         return entity_set
 
     def get_manifest(self, file_ids, api_url, repos=None):

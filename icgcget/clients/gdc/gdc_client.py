@@ -29,7 +29,7 @@ class GdcDownloadClient(DownloadClient):
         super(GdcDownloadClient, self) .__init__(pickle_path)
         self.repo = 'gdc'
 
-    def download(self, uuids, access, tool_path, output,  processes, udt=None, file_from=None, repo=None, region=None):
+    def download(self, uuids, access, tool_path, output, processes, udt=None, file_from=None, repo=None, region=None):
         call_args = [tool_path, 'download']
         call_args.extend(uuids)
         call_args.extend(['--dir', output, '-n', processes])
@@ -47,11 +47,11 @@ class GdcDownloadClient(DownloadClient):
         try:
             call_api(request, base_url, header, head=True)
             return True
-        except ApiError as e:
-            if e.code == 403:
+        except ApiError as ex:
+            if ex.code == 403:
                 return False
             else:
-                raise e
+                raise ex
 
     def print_version(self, path, access=None):
         self._run_command([path, '-v'], self.version_parser)
@@ -59,7 +59,7 @@ class GdcDownloadClient(DownloadClient):
     def version_parser(self, response):
         version = re.findall(r"v[0-9.]+", response)
         if version:
-            self.logger.info("GDC Client Version {}".format(version[0]))
+            self.logger.info("GDC Client Version %s", version[0])
 
     def download_parser(self, response):
         file_id = re.findall(r'v------ \w{8}-\w{4}-\w{4}-\w{4}-\w{12} ------v', response)
