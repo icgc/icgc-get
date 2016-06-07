@@ -17,13 +17,13 @@
 #
 
 
-class SubprocessError(BaseException):
+class SubprocessError(Exception):
     def __init__(self, code, message):
         self.message = message
         self.code = code
 
 
-class ApiError(BaseException):
+class ApiError(Exception):
     def __init__(self, request_string, message, code=None):
         self.message = message
         self.request_string = request_string

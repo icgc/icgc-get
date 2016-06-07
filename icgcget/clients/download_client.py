@@ -63,7 +63,7 @@ class DownloadClient(object):
         return return_code
 
     def session_update(self, file_name, repo):
-        for fi_id, file_object in self.session[repo].items():
+        for file_object in self.session[repo].values():
             if file_object['index_filename'] == file_name or file_object['filename'] == file_name:
                 file_object['state'] = 'Running'
             elif file_object['state'] == 'Running':  # only one file at a time can be downloaded.

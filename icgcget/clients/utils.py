@@ -17,6 +17,7 @@
 #
 import os
 import collections
+import datetime
 import yaml
 
 
@@ -117,5 +118,5 @@ def calculate_size(manifest_json):
                                                  'filename': 'None', 'index_filename': 'None',
                                                  'fileUrl': 'None', 'size': file_info['size']}
             size += file_info["size"]
-    session_info = {'pid': os.getpid(), 'object_ids': object_ids}
+    session_info = {'pid': os.getpid(), 'start_time': datetime.datetime.now(), 'object_ids': object_ids}
     return size, session_info
