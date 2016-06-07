@@ -30,7 +30,7 @@ from icgcget.clients.icgc.storage_client import StorageClient
 from icgcget.clients.pdc.pdc_client import PdcDownloadClient
 from icgcget.clients.utils import calculate_size, convert_size
 
-from icgcget.commands.utils import api_error_catch, filter_manifest_ids, check_access, get_manifest_json
+from utils import api_error_catch, filter_manifest_ids, check_access, get_manifest_json
 
 
 class DownloadDispatcher(object):
@@ -51,16 +51,17 @@ class DownloadDispatcher(object):
 
         if not manifest_json["unique"] or len(manifest_json["entries"]) != 1:
             filter_manifest_ids(self, manifest_json, repos)
-        size, object_ids = calculate_size(manifest_json)
+        size, session_info = calculate_size(manifest_json)
+        object_ids = session_info['object_ids']
         if manifest:
             file_ids = []
-            for repo in object_ids:
+            for repo in repos:
                 file_ids.append(object_ids[repo].keys())
         entities = api_error_catch(self, portal.get_metadata_bulk, file_ids, api_url)
         for entity in entities:
-            for repo_ids in object_ids:
-                if entity['id'] in object_ids[repo_ids]:
-                    repo = repo_ids
+            for repo_id in object_ids:
+                if entity['id'] in object_ids[repo_id]:
+                    repo = repo_id
                     break
             else:
                 continue
@@ -69,7 +70,6 @@ class DownloadDispatcher(object):
             for copy in file_copies:
                 if copy['repoCode'] == repo:
                     if copy["fileName"] in os.listdir(output):
-
                         object_ids[repo].pop(entity['id'])
                         self.logger.warning("File %s found in download directory, skipping", entity['id'])
                         break
@@ -80,7 +80,8 @@ class DownloadDispatcher(object):
                         object_ids[repo][entity['id']]['fileUrl'] = 's3' + copy['repoBaseUrl'][5:] + \
                                                                     copy['repoDataPath']
         self.size_check(size, yes_to_all, output)
-        return object_ids
+        session_info['object_ids'] = object_ids
+        return session_info
 
     def download(self, object_ids, staging, output,
                  cghub_access, cghub_path, cghub_transport_parallel,
@@ -151,35 +152,10 @@ class DownloadDispatcher(object):
             self.check_code('Gdc', return_code)
         self.move_files(staging, output)
 
-    def compare(self, current_session, old_session, override):
-        updated_session = {}
-        for repo in current_session:
-            updated_session[repo] = {}
-            if repo not in old_session:
-                if self.override_prompt(override):
-                    return current_session
-            for fi_id in current_session[repo]:
-                if fi_id in old_session[repo]:
-                    if old_session[repo][fi_id]['state'] != "Finished":
-                        updated_session[repo][fi_id] = current_session[repo][fi_id]
-                else:
-                    if self.override_prompt(override):
-                        return current_session
-        return updated_session
-
     def check_code(self, client, code):
         if code != 0:
             self.logger.error("%s client exited with a nonzero error code %s.", client, code)
             raise click.ClickException("Please check client output for error messages")
-
-    @staticmethod
-    def override_prompt(override):
-        if override:
-            return True
-        if click.confirm("Previous session data does not match current command.  Ok to delete previous session info?"):
-            return True
-        else:
-            raise click.Abort
 
     def size_check(self, size, override, output):
         free = psutil.disk_usage(output)[2]

@@ -60,16 +60,14 @@ def config_parse(filename):
         config_text = open(filename, 'r')
     except IOError:
 
-        print "Config file {} not found".format(filename)
         return config
     try:
         config_temp = yaml.safe_load(config_text)
         config_download = flatten_dict(normalize_keys(config_temp))
-        config = {'download': config_download, 'status': config_download, 'version': config_download,
+        config = {'download': config_download, 'report': config_download, 'version': config_download,
                   'check': config_download, 'logfile': config_temp['logfile']}
     except yaml.YAMLError:
 
-        print "Could not read config file {}".format(filename)
         return {}
 
     return config
@@ -91,7 +89,7 @@ def increment_types(typename, count_dict, size):
     count_dict["total"] += size
     count_dict[typename] += size
 
-    return dict
+    return count_dict
 
 
 def build_table(table, repo, sizes, counts, donors, downloads):
@@ -110,13 +108,14 @@ def build_table(table, repo, sizes, counts, donors, downloads):
 
 def calculate_size(manifest_json):
     size = 0
-    object_ids = {'pid': os.getpid()}
+    object_ids = {}
     for repo_info in manifest_json["entries"]:
         repo = repo_info["repo"]
         object_ids[repo] = {}
         for file_info in repo_info["files"]:
             object_ids[repo][file_info['id']] = {'uuid': file_info["repoFileId"], 'state': "Not started",
-                                                 'filename': 'None', 'index_filename': 'None', 'fileUrl': 'None',
-                                                 'size': file_info['size']}
+                                                          'filename': 'None', 'index_filename': 'None',
+                                                          'fileUrl': 'None', 'size': file_info['size']}
             size += file_info["size"]
-    return size, object_ids
+    session_info = {'pid': os.getpid(), 'object_ids': object_ids}
+    return size, session_info

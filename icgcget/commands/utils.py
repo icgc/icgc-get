@@ -39,10 +39,10 @@ def filter_manifest_ids(self, manifest_json, repos):
     return fi_ids
 
 
-def get_entities(self, manifest, file_ids, api_url, repos):
-    if manifest:
-        manifest_json = get_manifest_json(self, file_ids, api_url, repos)
-        file_ids = filter_manifest_ids(self, manifest_json, repos)
+def get_entities(self, object_ids, api_url):
+    file_ids = []
+    for repo in object_ids:
+        file_ids.extend(object_ids[repo].keys())
     portal = portal_client.IcgcPortalClient()
     entities = api_error_catch(self, portal.get_metadata_bulk, file_ids, api_url)
     return entities
@@ -64,6 +64,41 @@ def check_access(self, access, name, path="Default"):
     if path is None:
         self.logger.error("Path to {} download client not provided.".format(name))
         raise click.BadParameter("Please provide a path to the {} download client".format(name))
+
+
+def compare_ids(current_session, old_session, override):
+    updated_session = {}
+    for repo in current_session:
+        updated_session[repo] = {}
+        if repo not in old_session:
+            if override_prompt(override):
+                return current_session
+        for fi_id in current_session[repo]:
+            if fi_id in old_session[repo]:
+                if old_session[repo][fi_id]['state'] != "Finished":
+                    updated_session[repo][fi_id] = current_session[repo][fi_id]
+            else:
+                if override_prompt(override):
+                    return current_session
+    return updated_session
+
+
+def override_prompt(override):
+    if override:
+        return True
+    if click.confirm("Previous session data does not match current command.  Ok to delete previous session info?"):
+        return True
+    else:
+        raise click.Abort
+
+
+def match_repositories(self, repos, copies):
+    for repository in repos:
+        for copy in copies["fileCopies"]:
+            if repository == copy["repoCode"]:
+                return repository, copy
+    self.logger.error("File %s not found on repositories %s", copies["id"], repos)
+    raise click.Abort
 
 
 def api_error_catch(self, func, *args):
