@@ -19,7 +19,7 @@
 import logging
 import os
 import pickle
-
+import psutil
 import click
 from icgcget.clients.utils import config_parse, get_api_url
 from icgcget.commands.versions import versions_command
@@ -122,7 +122,7 @@ def download(ctx, repos, file_ids, manifest, output,
 
 
 @cli.command()
-@click.argument('file-ids', nargs=-1, required=True)
+@click.argument('file-ids', nargs=-1, required=False)
 @click.option('--repos', '-r', type=click.Choice(REPOS), multiple=True)
 @click.option('--manifest', '-m', is_flag=True, default=False)
 @click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True))
@@ -136,6 +136,8 @@ def report(ctx, repos, file_ids, manifest, output, table_format, data_type):
     pickle_path = output + '/.staging/state.pk'
     if os.path.isfile(pickle_path):
         session_info = pickle.load(open(pickle_path, 'r+'))
+
+        if psutil.pid_exists(session_info['pid']):
 
     dispatch = StatusScreenDispatcher()
     if data_type == 'file':

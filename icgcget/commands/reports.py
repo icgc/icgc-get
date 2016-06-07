@@ -16,7 +16,7 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-from json import dumps, load
+from json import dumps
 import os
 import logging
 from collections import OrderedDict
@@ -80,7 +80,7 @@ class StatusScreenDispatcher(object):
                                         repo_download_count[repo])
             repo_list.append(repo)
         summary_table = build_table(summary_table, 'Total', type_sizes, type_counts, type_donors, download_count)
-        self.print_table(headers, summary_table, table_format)
+        self.print_table(headers, summary_table, table_format, output)
 
     def file_table(self, repos, file_ids, manifest, api_url, output, table_format):
         headers = ["", "Size", "Unit", "File Format", "Data Type", "Repo", "Donor" "File Name", "Downloaded"]
@@ -98,9 +98,9 @@ class StatusScreenDispatcher(object):
             file_size = convert_size(size)
             file_table.append([entity["id"], file_size[0], file_size[1], copy["fileFormat"],
                                data_type, repository, entity["donor"], copy["fileName"], state])
-        self.print_table(headers, file_table, table_format)
+        self.print_table(headers, file_table, table_format, output)
 
-    def print_table(self, headers, file_table, table_format):
+    def print_table(self, headers, file_table, table_format, output):
         if table_format == 'tsv':
             for line in file_table:
                 line = map(str, line)
