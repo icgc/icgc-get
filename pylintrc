@@ -186,6 +186,7 @@ max-nested-blocks=5
 [FORMAT]
 
 # Maximum number of characters on a single line.
+
 max-line-length=120
 
 # Regexp for a line that is allowed to be longer than the limit.
@@ -320,6 +321,7 @@ exclude-protected=_asdict,_fields,_replace,_source,_make
 [DESIGN]
 
 # Maximum number of arguments for function / method
+
 max-args=30
 
 # Argument names that match this expression will be ignored. Default to name
@@ -327,6 +329,7 @@ max-args=30
 ignored-argument-names=_.*
 
 # Maximum number of locals for function / method body
+
 max-locals=35
 
 # Maximum number of return / yield for function / method body
@@ -377,3 +380,6 @@ int-import-graph=
 # Exceptions that will emit a warning when being caught. Defaults to
 # "Exception"
 overgeneral-exceptions=Exception
+
+>>>>>>> cfedf915ee8dc917b4c0d6c6b5acd3f3616f0b1a
+
