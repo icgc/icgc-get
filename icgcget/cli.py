@@ -130,7 +130,7 @@ def download(ctx, file_ids, repos, manifest, output,
 @click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True))
 @click.option('--table-format', '-f', type=click.Choice(['tsv', 'pretty', 'json']), default='pretty')
 @click.option('--data-type', '-t', type=click.Choice(['file', 'summary']), default='file')
-@click.option('--override', '-o',  is_flag=True, default=False, help="Bypass all prompts from cached session info")
+@click.option('--override', '-o', is_flag=True, default=False, help="Bypass all prompts from cached session info")
 @click.pass_context
 def report(ctx, repos, file_ids, manifest, output, table_format, data_type, override):
     if not repos:
@@ -138,12 +138,11 @@ def report(ctx, repos, file_ids, manifest, output, table_format, data_type, over
     api_url = get_api_url(ctx.default_map)
     pickle_path = output + '/.staging/state.pk'
     session_info = None
-    dispatch = DownloadDispatcher(pickle_path)
+    download_dispatch = DownloadDispatcher(pickle_path)
     if file_ids:
-        session_info = dispatch.download_manifest(repos, file_ids, manifest, output, True, api_url)
+        session_info = download_dispatch.download_manifest(repos, file_ids, manifest, output, True, api_url)
     if os.path.isfile(pickle_path):
         old_session_info = pickle.load(open(pickle_path, 'r+'))
-        running = psutil.pid_exists(old_session_info['pid'])
         if session_info:
             session_info = compare_ids(session_info, old_session_info, override)
         else:

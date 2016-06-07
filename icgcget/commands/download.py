@@ -30,7 +30,7 @@ from icgcget.clients.icgc.storage_client import StorageClient
 from icgcget.clients.pdc.pdc_client import PdcDownloadClient
 from icgcget.clients.utils import calculate_size, convert_size
 
-from utils import api_error_catch, filter_manifest_ids, check_access, get_manifest_json
+from icgcget.commands.utils import api_error_catch, filter_manifest_ids, check_access, get_manifest_json
 
 
 class DownloadDispatcher(object):
@@ -44,13 +44,7 @@ class DownloadDispatcher(object):
 
     def download_manifest(self, repos, file_ids, manifest, output, yes_to_all, api_url):
         portal = portal_client.IcgcPortalClient()
-        if manifest:
-            manifest_json = get_manifest_json(self, file_ids, api_url, repos)
-        else:
-            manifest_json = api_error_catch(self, portal.get_manifest, file_ids, api_url, repos)
-
-        if not manifest_json["unique"] or len(manifest_json["entries"]) != 1:
-            filter_manifest_ids(self, manifest_json, repos)
+        manifest_json = self.get_manifest(manifest, file_ids, api_url, repos, portal)
         size, session_info = calculate_size(manifest_json)
         object_ids = session_info['object_ids']
         if manifest:
@@ -174,6 +168,16 @@ class DownloadDispatcher(object):
         for object_id in object_ids:
             uuids.append(object_ids[object_id]['uuid'])
         return uuids
+
+    def get_manifest(self, manifest, file_ids, api_url, repos, portal):
+        if manifest:
+            manifest_json = get_manifest_json(self, file_ids, api_url, repos)
+        else:
+            manifest_json = api_error_catch(self, portal.get_manifest, file_ids, api_url, repos)
+
+        if not manifest_json["unique"] or len(manifest_json["entries"]) != 1:
+            filter_manifest_ids(self, manifest_json, repos)
+        return manifest_json
 
     def move_files(self, staging, output):
         for staged_file in os.listdir(staging):

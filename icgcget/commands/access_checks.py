@@ -24,8 +24,9 @@ from icgcget.clients.gdc.gdc_client import GdcDownloadClient
 from icgcget.clients.icgc.storage_client import StorageClient
 from icgcget.clients.pdc.pdc_client import PdcDownloadClient
 from icgcget.clients.gnos.gnos_client import GnosDownloadClient
-
-from utils import check_access, api_error_catch, get_entities, match_repositories
+from icgcget.clients.portal_client import IcgcPortalClient
+from icgcget.commands.utils import check_access, api_error_catch, get_manifest_json, filter_manifest_ids, \
+    match_repositories
 
 
 class AccessCheckDispatcher(object):
@@ -43,7 +44,8 @@ class AccessCheckDispatcher(object):
         icgc_client = StorageClient()
         pdc_client = PdcDownloadClient()
 
-        entities = get_entities(self, manifest, file_ids, api_url, repo_list)
+        entities = self.entity_search(manifest, file_ids, api_url, repo_list)
+
         for entity in entities:
             repository, copy = match_repositories(self, repo_list, entity)
             if repository == "gdc":
@@ -72,13 +74,12 @@ class AccessCheckDispatcher(object):
 
         if 'cghub' in repo_list and cghub_ids:  # as before, can't check cghub permissions without files
             check_access(self, cghub_access, 'cghub', cghub_path)
-
-        try:
-            self.access_response(gt_client.access_check(cghub_access, cghub_ids, cghub_path, output=output),
-                                 "CGHub files.")
-        except SubprocessError as ex:
-            self.logger.error(ex.message)
-            raise click.Abort
+            try:
+                self.access_response(gt_client.access_check(cghub_access, cghub_ids, cghub_path, output=output),
+                                     "CGHub files.")
+            except SubprocessError as ex:
+                self.logger.error(ex.message)
+                raise click.Abort
 
         if 'pdc' in repo_list and pdc_urls:
             check_access(self, pdc_access, 'pdc', pdc_path)
@@ -94,3 +95,11 @@ class AccessCheckDispatcher(object):
             self.logger.info("Valid access to the " + repo)
         else:
             self.logger.info("Invalid access to the " + repo)
+
+    def entity_search(self, manifest, file_ids, api_url, repo_list):
+        portal = IcgcPortalClient()
+        if manifest:
+            manifest_json = get_manifest_json(self, file_ids, api_url, repo_list)
+            file_ids = filter_manifest_ids(self, manifest_json, repo_list)
+        entities = api_error_catch(self, portal.get_metadata_bulk, file_ids, api_url)
+        return entities
