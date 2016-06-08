@@ -21,7 +21,7 @@ import os
 import pickle
 import psutil
 import click
-from clients.utils import config_parse, get_api_url
+from clients.utils import config_parse
 from commands.versions import versions_command
 from commands.reports import StatusScreenDispatcher
 from commands.download import DownloadDispatcher
@@ -47,6 +47,16 @@ def logger_setup(logfile):
     stream_handler = logging.StreamHandler()
     stream_handler.setLevel(logging.INFO)
     logger.addHandler(stream_handler)
+
+
+def get_api_url(context_map):
+    if os.getenv("ICGCGET_API_URL"):
+        api_url = os.getenv("ICGCGET_API_URL")
+    elif context_map:
+        api_url = context_map["portal_url"] + 'api/v1/'
+    else:
+        raise click.BadParameter("No API url specified by config file or environmental variable.")
+    return api_url
 
 
 @click.group()
@@ -174,7 +184,7 @@ def report(ctx, repos, file_ids, manifest, output, table_format, data_type, over
 def check(ctx, repos, file_ids, manifest, output,
           cghub_access, cghub_path, ega_access, gdc_access, icgc_access, pdc_access, pdc_path, pdc_region):
     if not repos:
-        raise click.BadOptionUsage("Must include prioritized repositories")
+        raise click.BadOptionUsage("Please specify repositories to check access to")
     if not file_ids:
         if 'gdc' in repos or 'cghub' in repos or 'pdc' in repos:
             raise click.BadOptionUsage("Access checks on Gdc, cghub, and pdc require a manifest or file ids to process")

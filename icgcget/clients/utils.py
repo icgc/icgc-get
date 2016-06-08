@@ -40,14 +40,6 @@ def convert_size(num, suffix='B'):
     return ["%.2f" % num, "%s%s" % ('Yi', suffix)]
 
 
-def get_api_url(context_map):
-    if os.getenv("ICGCGET_API_URL"):
-        api_url = os.getenv("ICGCGET_API_URL")
-    else:
-        api_url = context_map["portal_url"] + 'api/v1/'
-    return api_url
-
-
 def normalize_keys(obj):
     if isinstance(obj, dict):
         return obj
