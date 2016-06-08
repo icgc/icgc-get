@@ -1,0 +1,189 @@
+2016-06-07 14:35:11,011 - INFO - ╒════╤════════╤════════╤═══════════════╤═════════════╤════════╤══════════════════╤══════════════╕
+│    │ Size   │ Unit   │ File Format   │ Data Type   │ Repo   │ DonorFile Name   │ Downloaded   │
+╞════╪════════╪════════╪═══════════════╪═════════════╪════════╪══════════════════╪══════════════╡
+╘════╧════════╧════════╧═══════════════╧═════════════╧════════╧══════════════════╧══════════════╛
+2016-06-07 14:36:56,471 - INFO - ╒══════════╤════════╤════╤═════╤═══════════════╤═══════════════╤═════════╤═════════════════════════════════════════════════════════════════════════════════════════════╤════════════════════════════════════════════════════════════════════════════════════════════╕
+│          │        │    │     │               │               │         │                                                                                             │ ['', 'Size', 'Unit', 'File Format', 'Data Type', 'Repo', 'DonorFile Name', 'Downloaded']   │
+╞══════════╪════════╪════╪═════╪═══════════════╪═══════════════╪═════════╪═════════════════════════════════════════════════════════════════════════════════════════════╪════════════════════════════════════════════════════════════════════════════════════════════╡
+│ FI99990  │  435.7 │ MB │ BAM │ Aligned Reads │ cghub         │ DO14158 │ TCGA-DQ-5624-01A-01R-1872-13_mirna.bam                                                      │ No                                                                                         │
+├──────────┼────────┼────┼─────┼───────────────┼───────────────┼─────────┼─────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────┤
+│ FI51526  │ 102.29 │ GB │ BAM │ Aligned Reads │ collaboratory │ DO44808 │ f28662d5d3374bcc14157c24dc59d322.bam                                                        │ No                                                                                         │
+├──────────┼────────┼────┼─────┼───────────────┼───────────────┼─────────┼─────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────┤
+│ FI250134 │ 197.44 │ KB │ VCF │ StGV          │ collaboratory │ DO52558 │ fc447d55-95d8-0b34-e040-11ac0d483afa.embl-delly_1-0-0-preFilter.20150618.germline.sv.vcf.gz │ No                                                                                         │
+╘══════════╧════════╧════╧═════╧═══════════════╧═══════════════╧═════════╧═════════════════════════════════════════════════════════════════════════════════════════════╧════════════════════════════════════════════════════════════════════════════════════════════╛
+2016-06-07 14:38:10,245 - INFO - ╒══════════╤════════╤════════╤════════╤═══════════════╤═══════════════╤═════════╤═════════════════════════════════════════════════════════════════════════════════════════════╤══════════════╕
+│          │        │ Size   │ Unit   │ File Format   │ Data Type     │ Repo    │ DonorFile Name                                                                              │ Downloaded   │
+╞══════════╪════════╪════════╪════════╪═══════════════╪═══════════════╪═════════╪═════════════════════════════════════════════════════════════════════════════════════════════╪══════════════╡
+│ FI99990  │  435.7 │ MB     │ BAM    │ Aligned Reads │ cghub         │ DO14158 │ TCGA-DQ-5624-01A-01R-1872-13_mirna.bam                                                      │ No           │
+├──────────┼────────┼────────┼────────┼───────────────┼───────────────┼─────────┼─────────────────────────────────────────────────────────────────────────────────────────────┼──────────────┤
+│ FI51526  │ 102.29 │ GB     │ BAM    │ Aligned Reads │ collaboratory │ DO44808 │ f28662d5d3374bcc14157c24dc59d322.bam                                                        │ No           │
+├──────────┼────────┼────────┼────────┼───────────────┼───────────────┼─────────┼─────────────────────────────────────────────────────────────────────────────────────────────┼──────────────┤
+│ FI250134 │ 197.44 │ KB     │ VCF    │ StGV          │ collaboratory │ DO52558 │ fc447d55-95d8-0b34-e040-11ac0d483afa.embl-delly_1-0-0-preFilter.20150618.germline.sv.vcf.gz │ No           │
+╘══════════╧════════╧════════╧════════╧═══════════════╧═══════════════╧═════════╧═════════════════════════════════════════════════════════════════════════════════════════════╧══════════════╛
+2016-06-07 14:39:09,845 - INFO - ╒══════════╤════════╤════════╤═══════════════╤═══════════════╤═══════════════╤═════════╤═════════════════════════════════════════════════════════════════════════════════════════════╤══════════════╕
+│          │   Size │ Unit   │ File Format   │ Data Type     │ Repo          │ Donor   │ File Name                                                                                   │ Downloaded   │
+╞══════════╪════════╪════════╪═══════════════╪═══════════════╪═══════════════╪═════════╪═════════════════════════════════════════════════════════════════════════════════════════════╪══════════════╡
+│ FI99990  │  435.7 │ MB     │ BAM           │ Aligned Reads │ cghub         │ DO14158 │ TCGA-DQ-5624-01A-01R-1872-13_mirna.bam                                                      │ No           │
+├──────────┼────────┼────────┼───────────────┼───────────────┼───────────────┼─────────┼─────────────────────────────────────────────────────────────────────────────────────────────┼──────────────┤
+│ FI51526  │ 102.29 │ GB     │ BAM           │ Aligned Reads │ collaboratory │ DO44808 │ f28662d5d3374bcc14157c24dc59d322.bam                                                        │ No           │
+├──────────┼────────┼────────┼───────────────┼───────────────┼───────────────┼─────────┼─────────────────────────────────────────────────────────────────────────────────────────────┼──────────────┤
+│ FI250134 │ 197.44 │ KB     │ VCF           │ StGV          │ collaboratory │ DO52558 │ fc447d55-95d8-0b34-e040-11ac0d483afa.embl-delly_1-0-0-preFilter.20150618.germline.sv.vcf.gz │ No           │
+╘══════════╧════════╧════════╧═══════════════╧═══════════════╧═══════════════╧═════════╧═════════════════════════════════════════════════════════════════════════════════════════════╧══════════════╛
+2016-06-07 14:43:49,612 - ERROR - No connection adapters were found for '/Users/GavinWilson/git/icgc-get/mnt/downloadsrepository/files?filters={"file":{"id":{"is":["FI250134","FI51526","FI99990"]}}}"&&from=1&size=10&sort=id&order=desc'
+2016-06-07 14:43:49,612 - ERROR - No connection adapters were found for '/Users/GavinWilson/git/icgc-get/mnt/downloadsrepository/files?filters={"file":{"id":{"is":["FI250134","FI51526","FI99990"]}}}"&&from=1&size=10&sort=id&order=desc'
+2016-06-07 14:44:04,431 - ERROR - No connection adapters were found for '/Users/GavinWilson/git/icgc-get/mnt/downloadsrepository/files?filters={"file":{"id":{"is":["FI250134","FI51526","FI99990"]}}}"&&from=1&size=10&sort=id&order=desc'
+2016-06-07 14:44:04,431 - ERROR - No connection adapters were found for '/Users/GavinWilson/git/icgc-get/mnt/downloadsrepository/files?filters={"file":{"id":{"is":["FI250134","FI51526","FI99990"]}}}"&&from=1&size=10&sort=id&order=desc'
+2016-06-07 15:27:42,790 - INFO - ╒══════════════════════════════╤════════╤════════╤══════════════╤═══════════════╤════════════════════╕
+│                              │   Size │ Unit   │   File Count │   Donor Count │   Downloaded Files │
+╞══════════════════════════════╪════════╪════════╪══════════════╪═══════════════╪════════════════════╡
+│ collaboratory                │ 102.29 │ GB     │            2 │             2 │                  0 │
+├──────────────────────────────┼────────┼────────┼──────────────┼───────────────┼────────────────────┤
+│ collaboratory: Aligned Reads │ 102.29 │ GB     │            1 │             1 │                  0 │
+├──────────────────────────────┼────────┼────────┼──────────────┼───────────────┼────────────────────┤
+│ collaboratory: StGV          │ 197.44 │ KB     │            1 │             1 │                  0 │
+├──────────────────────────────┼────────┼────────┼──────────────┼───────────────┼────────────────────┤
+│ ega                          │      0 │ B      │            0 │             0 │                  0 │
+├──────────────────────────────┼────────┼────────┼──────────────┼───────────────┼────────────────────┤
+│ cghub                        │  435.7 │ MB     │            1 │             1 │                  0 │
+├──────────────────────────────┼────────┼────────┼──────────────┼───────────────┼────────────────────┤
+│ cghub: Aligned Reads         │  435.7 │ MB     │            1 │             1 │                  0 │
+├──────────────────────────────┼────────┼────────┼──────────────┼───────────────┼────────────────────┤
+│ Total                        │ 102.72 │ GB     │            3 │             3 │                  0 │
+├──────────────────────────────┼────────┼────────┼──────────────┼───────────────┼────────────────────┤
+│ Total: Aligned Reads         │ 102.72 │ GB     │            2 │             2 │                  0 │
+├──────────────────────────────┼────────┼────────┼──────────────┼───────────────┼────────────────────┤
+│ Total: StGV                  │ 197.44 │ KB     │            1 │             1 │                  0 │
+╘══════════════════════════════╧════════╧════════╧══════════════╧═══════════════╧════════════════════╛
+2016-06-07 15:28:01,073 - ERROR - No credentials provided for the ega repository
+2016-06-07 15:40:47,180 - WARNING - ICGC-Get Version: 0.5
+2016-06-07 16:02:02,682 - WARNING - ICGC-Get Version: 0.5
+2016-06-07 16:02:02,683 - DEBUG - ['/Library/Frameworks/Python.framework/Versions/3.4/bin/aws', '--version']
+2016-06-07 16:02:06,867 - DEBUG - ['java', '-jar', '/Users/GavinWilson/Downloads/EgaDemoClient_2-2/EgaDemoClient.jar', '-pf', u'/Users/GavinWilson/git/icgc-get/passfile.txt']
+2016-06-07 16:02:13,814 - INFO - EGA Client Version: 2.2.2
+2016-06-07 16:02:15,757 - DEBUG - ['/Users/GavinWilson/Downloads/gdc-clientv07osxx64/gdc-client', '-v']
+2016-06-07 16:02:17,939 - INFO - GDC Client Version v0.7
+2016-06-07 16:02:17,977 - DEBUG - ['/usr/local/bin/gtdownload', '--version']
+2016-06-07 16:02:18,796 - INFO - Gtdownload Release 3.8.7
+2016-06-07 16:02:18,822 - DEBUG - ['/Users/GavinWilson/DevENV2.7/icgc-storage-client-1.0.13/bin/icgc-storage-client', 'version']
+2016-06-07 16:02:27,758 - INFO - ICGC Storage Client Version: 1.0.13
+2016-06-07 16:03:48,998 - WARNING - ICGC-Get Version: 0.5
+2016-06-07 16:03:49,003 - DEBUG - ['/Library/Frameworks/Python.framework/Versions/3.4/bin/aws', '--version']
+2016-06-07 16:03:52,461 - DEBUG - ['java', '-jar', '/Users/GavinWilson/Downloads/EgaDemoClient_2-2/EgaDemoClient.jar', '-pf', u'/Users/GavinWilson/git/icgc-get/passfile.txt']
+2016-06-07 16:03:54,659 - INFO - EGA Client Version: 2.2.2
+2016-06-07 16:03:56,311 - DEBUG - ['/Users/GavinWilson/Downloads/gdc-clientv07osxx64/gdc-client', '-v']
+2016-06-07 16:03:57,578 - INFO - GDC Client Version v0.7
+2016-06-07 16:03:57,605 - DEBUG - ['/usr/local/bin/gtdownload', '--version']
+2016-06-07 16:03:57,739 - INFO - Gtdownload Release 3.8.7
+2016-06-07 16:03:57,739 - DEBUG - ['/Users/GavinWilson/DevENV2.7/icgc-storage-client-1.0.13/bin/icgc-storage-client', 'version']
+2016-06-07 16:04:01,187 - INFO - ICGC Storage Client Version: 1.0.13
+2016-06-07 16:12:12,458 - WARNING - ICGC-Get Version: 0.5
+2016-06-07 16:12:12,458 - DEBUG - ['/Library/Frameworks/Python.framework/Versions/3.4/bin/aws', '--version']
+2016-06-07 16:12:14,871 - DEBUG - ['java', '-jar', '/Users/GavinWilson/Downloads/EgaDemoClient_2-2/EgaDemoClient.jar', '-pf', u'/Users/GavinWilson/git/icgc-get/passfile.txt']
+2016-06-07 16:12:16,951 - INFO - EGA Client Version: 2.2.2
+2016-06-07 16:12:18,484 - DEBUG - ['/Users/GavinWilson/Downloads/gdc-clientv07osxx64/gdc-client', '-v']
+2016-06-07 16:12:19,160 - INFO - GDC Client Version v0.7
+2016-06-07 16:12:19,188 - DEBUG - ['/usr/local/bin/gtdownload', '--version']
+2016-06-07 16:12:19,205 - INFO - Gtdownload Release 3.8.7
+2016-06-07 16:12:19,205 - DEBUG - ['/Users/GavinWilson/DevENV2.7/icgc-storage-client-1.0.13/bin/icgc-storage-client', 'version']
+2016-06-07 16:12:22,308 - INFO - ICGC Storage Client Version: 1.0.13
+2016-06-07 16:13:14,585 - DEBUG - ['java', '-jar', '/Users/GavinWilson/Downloads/EgaDemoClient_2-2/EgaDemoClient.jar', '-pf', '/Users/GavinWilson/git/icgc-get/passfile.txt', '-nt', u'1', '-rf', u'EGAF00001059414', '-re', 'S0EK', '-label', u'EGAF00001059414_download_request']
+2016-06-07 16:13:16,368 - INFO - Ega Demo Download Client  Version: 2.2.2
+2016-06-07 16:13:17,371 - INFO - Verbose set: true
+2016-06-07 16:13:17,372 - INFO - 
+2016-06-07 16:13:17,372 - INFO - Requesting....
+2016-06-07 16:13:18,418 - INFO - Resulting Request:
+2016-06-07 16:13:18,418 - INFO - EGAF00001059414_download_request	(1 new request(s)).
+2016-06-07 16:13:18,418 - INFO - 
+2016-06-07 16:13:18,940 - INFO - Logout!
+2016-06-07 16:13:18,941 - INFO - 
+2016-06-07 16:13:18,941 - INFO - Exit
+2016-06-07 16:13:19,005 - DEBUG - ['java', '-jar', '/Users/GavinWilson/Downloads/EgaDemoClient_2-2/EgaDemoClient.jar', '-pf', '/Users/GavinWilson/git/icgc-get/passfile.txt', '-nt', u'1', '-rf', u'EGAF00001059414', '-re', 'S0EK', '-label', u'EGAF00001059414_download_request', '-dr', u'EGAF00001059414_download_request', '-path', '/Users/GavinWilson/git/icgc-get/mnt/downloads/.staging']
+2016-06-07 16:13:20,164 - INFO - Ega Demo Download Client  Version: 2.2.2
+2016-06-07 16:13:21,344 - INFO - Verbose set: true
+2016-06-07 16:13:21,345 - INFO - 
+2016-06-07 16:13:21,345 - INFO - Requesting....
+2016-06-08 10:26:34,481 - WARNING - ICGC-Get Version: 0.5
+2016-06-08 13:08:19,356 - WARNING - ICGC-Get Version: 0.5
+2016-06-08 13:08:21,849 - WARNING - ICGC-Get Version: 0.5
+2016-06-08 13:31:35,365 - WARNING - ICGC-Get Version: 0.5
+2016-06-08 13:32:01,389 - WARNING - ICGC-Get Version: 0.5
+2016-06-08 13:40:58,342 - ERROR - API request failed due to Server Error error.
+2016-06-08 13:41:50,047 - ERROR - API request failed due to Server Error error.
+2016-06-08 13:42:59,459 - ERROR - API request failed due to Server Error error.
+2016-06-08 13:57:09,893 - ERROR - API request failed due to Server Error error.
+2016-06-08 13:59:02,092 - ERROR - No credentials provided for the ega repository
+2016-06-08 14:03:05,295 - ERROR - No credentials provided for the ega repository
+2016-06-08 14:19:03,545 - WARNING - Files on manifest are not found on specified repositories
+2016-06-08 14:19:10,953 - WARNING - ICGC-Get Version: 0.5
+2016-06-08 14:19:10,954 - DEBUG - ['java', '-jar', '/Users/GavinWilson/Downloads/EgaDemoClient_2-2/EgaDemoClient.jar', '-pf', u'/Users/GavinWilson/git/icgc-get/passfile.txt']
+2016-06-08 14:19:16,066 - WARNING - ICGC-Get Version: 0.5
+2016-06-08 14:19:16,068 - DEBUG - ['/Library/Frameworks/Python.framework/Versions/3.4/bin/aws', '--version']
+2016-06-08 14:19:19,480 - DEBUG - ['java', '-jar', '/Users/GavinWilson/Downloads/EgaDemoClient_2-2/EgaDemoClient.jar', '-pf', u'/Users/GavinWilson/git/icgc-get/passfile.txt']
+2016-06-08 14:19:25,672 - INFO - EGA Client Version: 2.2.2
+2016-06-08 14:19:27,796 - DEBUG - ['/Users/GavinWilson/Downloads/gdc-clientv07osxx64/gdc-client', '-v']
+2016-06-08 14:19:28,934 - INFO - GDC Client Version v0.7
+2016-06-08 14:19:28,959 - DEBUG - ['/usr/local/bin/gtdownload', '--version']
+2016-06-08 14:19:29,769 - INFO - Gtdownload Release 3.8.7
+2016-06-08 14:19:29,791 - DEBUG - ['/Users/GavinWilson/DevENV2.7/icgc-storage-client-1.0.13/bin/icgc-storage-client', 'version']
+2016-06-08 14:19:36,941 - INFO - ICGC Storage Client Version: 1.0.13
+2016-06-08 14:20:37,962 - WARNING - Parallel streams on the ega client may cause reliability issues and failed downloads.  This option is not recommended.
+2016-06-08 14:20:37,963 - DEBUG - ['java', '-jar', '/Users/GavinWilson/Downloads/EgaDemoClient_2-2/EgaDemoClient.jar', '-pf', '/Users/GavinWilson/git/icgc-get/passfile.txt', '-nt', None, '-rf', u'EGAF00001059414', '-re', '4FSH', '-label', u'EGAF00001059414_download_request']
+2016-06-08 14:20:37,963 - WARNING - Missing argument in ['java', '-jar', '/Users/GavinWilson/Downloads/EgaDemoClient_2-2/EgaDemoClient.jar', '-pf', '/Users/GavinWilson/git/icgc-get/passfile.txt', '-nt', None, '-rf', u'EGAF00001059414', '-re', '4FSH', '-label', u'EGAF00001059414_download_request']
+2016-06-08 14:20:37,963 - ERROR - Ega client exited with a nonzero error code 1.
+2016-06-08 14:21:25,419 - DEBUG - ['java', '-jar', '/Users/GavinWilson/Downloads/EgaDemoClient_2-2/EgaDemoClient.jar', '-pf', '/Users/GavinWilson/git/icgc-get/passfile.txt', '-nt', u'1', '-rf', u'EGAF00001059414', '-re', 'FOSX', '-label', u'EGAF00001059414_download_request']
+2016-06-08 14:21:27,406 - INFO - Ega Demo Download Client  Version: 2.2.2
+2016-06-08 14:21:28,429 - INFO - Verbose set: true
+2016-06-08 14:21:28,429 - INFO - 
+2016-06-08 14:21:28,429 - INFO - Requesting....
+2016-06-08 14:22:35,284 - INFO - ╒══════════╤════════╤════════╤═══════════════╤═══════════════╤═══════════════╤═════════╤═════════════════════════════════════════════════════════════════════════════════════════════╤══════════════╕
+│          │   Size │ Unit   │ File Format   │ Data Type     │ Repo          │ Donor   │ File Name                                                                                   │ Downloaded   │
+╞══════════╪════════╪════════╪═══════════════╪═══════════════╪═══════════════╪═════════╪═════════════════════════════════════════════════════════════════════════════════════════════╪══════════════╡
+│ FI99996  │   3.52 │ GB     │ BAM           │ Aligned Reads │ cghub         │ DO14274 │ UNCID_1494485.f3d43f0e-f734-47d5-954e-ed847b463c2c.sorted_genome_alignments.bam             │ No           │
+├──────────┼────────┼────────┼───────────────┼───────────────┼───────────────┼─────────┼─────────────────────────────────────────────────────────────────────────────────────────────┼──────────────┤
+│ FI99990  │  435.7 │ MB     │ BAM           │ Aligned Reads │ cghub         │ DO14158 │ TCGA-DQ-5624-01A-01R-1872-13_mirna.bam                                                      │ No           │
+├──────────┼────────┼────────┼───────────────┼───────────────┼───────────────┼─────────┼─────────────────────────────────────────────────────────────────────────────────────────────┼──────────────┤
+│ FI250134 │ 197.44 │ KB     │ VCF           │ StGV          │ collaboratory │ DO52558 │ fc447d55-95d8-0b34-e040-11ac0d483afa.embl-delly_1-0-0-preFilter.20150618.germline.sv.vcf.gz │ No           │
+╘══════════╧════════╧════════╧═══════════════╧═══════════════╧═══════════════╧═════════╧═════════════════════════════════════════════════════════════════════════════════════════════╧══════════════╛
+2016-06-08 14:24:51,891 - ERROR - API request failed due to Server Error error.
+2016-06-08 14:25:08,334 - DEBUG - ['java', '-jar', '/Users/GavinWilson/Downloads/EgaDemoClient_2-2/EgaDemoClient.jar', '-pf', '/Users/GavinWilson/git/icgc-get/passfile.txt', '-nt', u'1', '-rf', u'EGAF00001059414', '-re', 'ADJI', '-label', u'EGAF00001059414_download_request']
+2016-06-08 14:25:10,264 - INFO - Ega Demo Download Client  Version: 2.2.2
+2016-06-08 14:25:11,279 - INFO - Verbose set: true
+2016-06-08 14:25:11,279 - INFO - 
+2016-06-08 14:25:11,280 - INFO - Requesting....
+2016-06-08 14:25:30,352 - ERROR - API request failed due to Server Error error.
+2016-06-08 14:26:03,322 - ERROR - API request failed due to Server Error error.
+2016-06-08 14:48:09,759 - INFO - None of the specified ids will be downloaded from the cghub repository
+2016-06-08 14:50:22,537 - INFO - None of the specified ids will be downloaded from the cghub repository,cannot verify access credentials
+2016-06-08 14:50:38,512 - INFO - None of the specified ids will be downloaded from the cghub repository, unable to verify access credentials
+2016-06-08 15:17:02,413 - INFO - ╒══════════════════════╤════════╤════════╤══════════════╤═══════════════╤════════════════════╕
+│                      │   Size │ Unit   │   File Count │   Donor Count │   Downloaded Files │
+╞══════════════════════╪════════╪════════╪══════════════╪═══════════════╪════════════════════╡
+│ ega                  │  89.07 │ GB     │            1 │             1 │                  0 │
+├──────────────────────┼────────┼────────┼──────────────┼───────────────┼────────────────────┤
+│ ega: Aligned Reads   │  89.07 │ GB     │            1 │             1 │                  0 │
+├──────────────────────┼────────┼────────┼──────────────┼───────────────┼────────────────────┤
+│ Total                │  89.07 │ GB     │            1 │             1 │                  0 │
+├──────────────────────┼────────┼────────┼──────────────┼───────────────┼────────────────────┤
+│ Total: Aligned Reads │  89.07 │ GB     │            1 │             1 │                  0 │
+╘══════════════════════╧════════╧════════╧══════════════╧═══════════════╧════════════════════╛
+2016-06-08 15:29:10,814 - INFO - 
+2016-06-08 15:29:10,831 - INFO - ega  89.07  GB  1  1  0
+2016-06-08 15:29:10,832 - INFO - ega: Aligned Reads  89.07  GB  1  1  0
+2016-06-08 15:29:10,833 - INFO - Total  89.07  GB  1  1  0
+2016-06-08 15:29:10,834 - INFO - Total: Aligned Reads  89.07  GB  1  1  0
+2016-06-08 15:30:32,849 - INFO - 
+2016-06-08 15:30:32,849 - INFO - ega  89.07  GB  1  1  0
+2016-06-08 15:30:32,849 - INFO - ega: Aligned Reads  89.07  GB  1  1  0
+2016-06-08 15:30:32,849 - INFO - Total  89.07  GB  1  1  0
+2016-06-08 15:30:32,849 - INFO - Total: Aligned Reads  89.07  GB  1  1  0
+2016-06-08 16:04:46,970 - INFO - ╒══════════════════════╤════════╤════════╤══════════════╤═══════════════╤════════════════════╕
+│                      │   Size │ Unit   │   File Count │   Donor Count │   Downloaded Files │
+╞══════════════════════╪════════╪════════╪══════════════╪═══════════════╪════════════════════╡
+│ ega                  │  89.07 │ GB     │            1 │             1 │                  0 │
+├──────────────────────┼────────┼────────┼──────────────┼───────────────┼────────────────────┤
+│ ega: Aligned Reads   │  89.07 │ GB     │            1 │             1 │                  0 │
+├──────────────────────┼────────┼────────┼──────────────┼───────────────┼────────────────────┤
+│ Total                │  89.07 │ GB     │            1 │             1 │                  0 │
+├──────────────────────┼────────┼────────┼──────────────┼───────────────┼────────────────────┤
+│ Total: Aligned Reads │  89.07 │ GB     │            1 │             1 │                  0 │
+╘══════════════════════╧════════╧════════╧══════════════╧═══════════════╧════════════════════╛

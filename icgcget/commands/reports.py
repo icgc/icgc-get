@@ -42,7 +42,7 @@ class StatusScreenDispatcher(object):
 
         repo_list = []
         headers = ["", "Size", "Unit", "File Count", "Donor Count", "Downloaded Files"]
-        summary_table = [[]]
+        summary_table = []
         for repository in repos:
             repo_sizes[repository] = OrderedDict({"total": 0})
             repo_counts[repository] = {"total": 0}
@@ -76,7 +76,7 @@ class StatusScreenDispatcher(object):
     def file_table(self, object_ids, output, api_url, table_format):
         repos = object_ids.keys()
         headers = ["", "Size", "Unit", "File Format", "Data Type", "Repo", "Donor", "File Name", "Downloaded"]
-        file_table = [[]]
+        file_table = []
         entities = get_entities(self, object_ids, api_url)
         for entity in entities:
             size = entity["fileCopies"][0]["fileSize"]
@@ -97,7 +97,7 @@ class StatusScreenDispatcher(object):
                 line = [str(item) for item in line]
                 self.logger.info('  '.join(line))
         elif table_format == 'pretty':
-            file_table[0] = headers
+            file_table = [headers] + file_table
             self.logger.info(tabulate(file_table, headers="firstrow", tablefmt="fancy_grid", numalign="right"))
         elif table_format == 'json':
             json_dict = {}
@@ -106,3 +106,4 @@ class StatusScreenDispatcher(object):
                 for i in range(1, len(headers)):
                     line_dict[headers[i]] = line[i]
                 json_dict[line[0]] = line_dict
+            print json_dict

@@ -21,12 +21,12 @@ import os
 import pickle
 import psutil
 import click
-from icgcget.clients.utils import config_parse, get_api_url
-from icgcget.commands.versions import versions_command
-from icgcget.commands.reports import StatusScreenDispatcher
-from icgcget.commands.download import DownloadDispatcher
-from icgcget.commands.access_checks import AccessCheckDispatcher
-from icgcget.commands.utils import compare_ids
+from clients.utils import config_parse, get_api_url
+from commands.versions import versions_command
+from commands.reports import StatusScreenDispatcher
+from commands.download import DownloadDispatcher
+from commands.access_checks import AccessCheckDispatcher
+from commands.utils import compare_ids
 
 DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgcget', force_posix=True), 'config.yaml')
 REPOS = ['collaboratory', 'aws-virginia', 'ega', 'gdc', 'cghub', 'pdc']
@@ -144,7 +144,8 @@ def report(ctx, repos, file_ids, manifest, output, table_format, data_type, over
     if os.path.isfile(pickle_path):
         old_session_info = pickle.load(open(pickle_path, 'r+'))
         if session_info:
-            session_info = compare_ids(session_info, old_session_info, override)
+            session_info['object_ids'] = compare_ids(session_info['object_ids'], old_session_info['object_ids'],
+                                                     override)
         else:
             session_info = old_session_info
     dispatch = StatusScreenDispatcher()
