@@ -60,7 +60,7 @@ def config_parse(filename):
     try:
         config_text = open(filename, 'r')
     except IOError as ex:
-        print("Config file {0} not found: {1}".format(filename, ex.message))
+        print "Config file {0} not found: {1}".format(filename, ex.message)
         return config
     try:
         config_temp = yaml.safe_load(config_text)
@@ -68,7 +68,7 @@ def config_parse(filename):
         config = {'download': config_download, 'report': config_download, 'version': config_download,
                   'check': config_download, 'logfile': config_temp['logfile']}
     except yaml.YAMLError:
-        print("Failed to parse config file {}.  Config must be in YAML format.".format(filename))
+        print "Failed to parse config file {}.  Config must be in YAML format.".format(filename)
         return {}
 
     return config

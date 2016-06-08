@@ -19,12 +19,12 @@
 
 class SubprocessError(Exception):
     def __init__(self, code, message):
-        self.message = message
+        Exception.__init__(self, message)
         self.code = code
 
 
 class ApiError(Exception):
     def __init__(self, request_string, message, code=None):
-        self.message = message
+        Exception.__init__(self, message)
         self.request_string = request_string
         self.code = code

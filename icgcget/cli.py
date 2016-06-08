@@ -21,12 +21,12 @@ import os
 import pickle
 import psutil
 import click
-from clients.utils import config_parse, get_api_url
-from commands.versions import versions_command
-from commands.reports import StatusScreenDispatcher
-from commands.download import DownloadDispatcher
-from commands.access_checks import AccessCheckDispatcher
-from commands.utils import compare_ids
+from icgcget.clients.utils import config_parse, get_api_url
+from icgcget.commands.versions import versions_command
+from icgcget.commands.reports import StatusScreenDispatcher
+from icgcget.commands.download import DownloadDispatcher
+from icgcget.commands.access_checks import AccessCheckDispatcher
+from icgcget.commands.utils import compare_ids
 
 DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgcget', force_posix=True), 'config.yaml')
 REPOS = ['collaboratory', 'aws-virginia', 'ega', 'gdc', 'cghub', 'pdc']

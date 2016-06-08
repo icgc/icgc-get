@@ -25,7 +25,7 @@ from icgcget.clients.icgc.storage_client import StorageClient
 from icgcget.clients.pdc.pdc_client import PdcDownloadClient
 from icgcget.clients.gnos.gnos_client import GnosDownloadClient
 from icgcget.clients.portal_client import IcgcPortalClient
-from utils import check_access, api_error_catch, get_manifest_json, filter_manifest_ids, \
+from icgcget.commands.utils import check_access, api_error_catch, get_manifest_json, filter_manifest_ids, \
     match_repositories
 
 
@@ -105,7 +105,7 @@ class AccessCheckDispatcher(object):
             file_ids = filter_manifest_ids(self, manifest_json, repo_list)
         entities = api_error_catch(self, portal.get_metadata_bulk, file_ids, api_url)
         for entity in entities:
-            repository, copy = match_repositories(repo_list, entity)
+            repository, copy = match_repositories(self, repo_list, entity)
             if repository == "gdc":
                 self.gdc_ids.append(entity["dataBundle"]["dataBundleId"])
             if repository == "cghub":
