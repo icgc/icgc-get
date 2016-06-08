@@ -21,12 +21,12 @@ import os
 import pickle
 import psutil
 import click
-from icgcget.clients.utils import config_parse, get_api_url
-from icgcget.commands.versions import versions_command
-from icgcget.commands.reports import StatusScreenDispatcher
-from icgcget.commands.download import DownloadDispatcher
-from icgcget.commands.access_checks import AccessCheckDispatcher
-from icgcget.commands.utils import compare_ids
+from clients.utils import config_parse, get_api_url
+from commands.versions import versions_command
+from commands.reports import StatusScreenDispatcher
+from commands.download import DownloadDispatcher
+from commands.access_checks import AccessCheckDispatcher
+from commands.utils import compare_ids
 
 DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgcget', force_posix=True), 'config.yaml')
 REPOS = ['collaboratory', 'aws-virginia', 'ega', 'gdc', 'cghub', 'pdc']
@@ -56,7 +56,7 @@ def logger_setup(logfile):
 def cli(ctx, config, logfile):
     config_file = config_parse(config)
     if config != DEFAULT_CONFIG_FILE and not config_file:
-        raise click.BadParameter(message="Invalid config file {}".format(config))
+        raise click.Abort()
     ctx.default_map = config_file
 
     if logfile is not None:
@@ -112,7 +112,7 @@ def download(ctx, file_ids, repos, manifest, output,
         old_session_info = pickle.load(open(pickle_path, 'r+'))
         if psutil.pid_exists(old_session_info['pid']):
             raise click.Abort("Download currently in progress")
-        session_info = compare_ids(session_info, old_session_info, yes_to_all)
+        session_info['object_ids'] = compare_ids(session_info['object_ids'], old_session_info['object_ids'], yes_to_all)
     pickle.dump(session_info, open(pickle_path, 'w'), pickle.HIGHEST_PROTOCOL)
     dispatch.download(session_info['object_ids'], staging, output,
                       cghub_access, cghub_path, cghub_transport_parallel,
@@ -174,6 +174,9 @@ def check(ctx, repos, file_ids, manifest, output,
           cghub_access, cghub_path, ega_access, gdc_access, icgc_access, pdc_access, pdc_path, pdc_region):
     if not repos:
         raise click.BadOptionUsage("Must include prioritized repositories")
+    if not file_ids:
+        if 'gdc' in repos or 'cghub' in repos or 'pdc' in repos:
+            raise click.BadOptionUsage("Access checks on Gdc, cghub, and pdc require a manifest or file ids to process")
     api_url = get_api_url(ctx.default_map)
     dispatch = AccessCheckDispatcher()
     dispatch.access_checks(repos, file_ids, manifest, cghub_access, cghub_path, ega_access, gdc_access, icgc_access,
@@ -187,7 +190,6 @@ def check(ctx, repos, file_ids, manifest, output,
 @click.option('--gdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--icgc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--pdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
-@click.pass_context
 def version(cghub_path, ega_access, ega_path, gdc_path, icgc_path, pdc_path):
     versions_command(cghub_path, ega_access, ega_path, gdc_path, icgc_path, pdc_path, VERSION)
 

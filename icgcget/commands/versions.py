@@ -38,4 +38,3 @@ def versions_command(cghub_path, ega_access, ega_path, gdc_path, icgc_path, pdc_
         gnos_client.GnosDownloadClient().print_version(cghub_path)
     if icgc_path:
         storage_client.StorageClient().print_version(icgc_path)
-
