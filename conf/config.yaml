@@ -21,7 +21,7 @@
 # Common
 
 logfile: /icgc/mnt/logs/logfile.log
-output:
+output: /icgc/mnt/downloads
 repos:
  - cghub
  - collaboratory
@@ -36,16 +36,18 @@ portal:
 icgc:
   access:
   path: /icgc/icgc-storage-client/bin/icgc-storage-client
-  transport.file.from: remote
-  transport.memory: '1'  # All numerical values must be explicity declared as strings
-  transport.parallel: '6'
+  transport:
+    file.from: remote
+    memory: '1'  # All numerical values must be explicity declared as strings
+    parallel: '6'
 
 
 # GDC
 gdc:
   access:
   path: /icgc/gdc-data-transfer-tool/gdc-client
-  transport.parallel: '6'
+  transport:
+    parallel: '6'
   udt: false
 
 # EGA
@@ -53,15 +55,13 @@ ega:
   access:
   path: /icgc/ega-download-demo/EgaDemoClient.jar
 
-  transport.parallel: '1'
+  transport:
+    parallel: '1'
   udt: false
 
 # CGHub
 cghub:
   access: https://cghub.ucsc.edu/software/downloads/cghub_public.key
   path: /icgc/genetorrent/bin/gtdownload
-  transport.parallel: '8'
-
-
-
-
+  transport:
+    parallel: '8'

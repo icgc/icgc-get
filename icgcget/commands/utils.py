@@ -16,10 +16,12 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+import re
 import click
-
+import yaml
 from icgcget.clients import errors
 from icgcget.clients import portal_client
+from icgcget.clients.utils import normalize_keys, flatten_dict
 
 
 def filter_manifest_ids(self, manifest_json, repos):
@@ -39,10 +41,10 @@ def filter_manifest_ids(self, manifest_json, repos):
     return fi_ids
 
 
-def get_entities(self, manifest, file_ids, api_url, repos):
-    if manifest:
-        manifest_json = get_manifest_json(self, file_ids, api_url, repos)
-        file_ids = filter_manifest_ids(self, manifest_json, repos)
+def get_entities(self, object_ids, api_url):
+    file_ids = []
+    for repo in object_ids:
+        file_ids.extend(object_ids[repo].keys())
     portal = portal_client.IcgcPortalClient()
     entities = api_error_catch(self, portal.get_metadata_bulk, file_ids, api_url)
     return entities
@@ -66,9 +68,99 @@ def check_access(self, access, name, path="Default"):
         raise click.BadParameter("Please provide a path to the {} download client".format(name))
 
 
+def compare_ids(current_session, old_session, override):
+    updated_session = {}
+    for repo in current_session:
+        updated_session[repo] = {}
+        if repo not in old_session:
+            if override_prompt(override):
+                return current_session
+        for fi_id in current_session[repo]:
+            if fi_id in old_session[repo]:
+                if old_session[repo][fi_id]['state'] != "Finished":
+                    updated_session[repo][fi_id] = current_session[repo][fi_id]
+            else:
+                if override_prompt(override):
+                    return current_session
+    return updated_session
+
+
+def config_parse(filename, default_filename):
+    default = filename == default_filename
+    try:
+        config_text = open(filename, 'r')
+    except IOError as ex:
+        if default:
+            return {}
+        else:
+            print "Config file {0} not found: {1}".format(filename, ex.strerror)
+            raise click.Abort()
+    try:
+        config_temp = yaml.safe_load(config_text)
+        if config_temp:
+            config_download = flatten_dict(normalize_keys(config_temp))
+            config = {'download': config_download, 'report': config_download, 'version': config_download,
+                      'check': config_download, 'logfile': config_temp['logfile']}
+        else:
+            if default:
+                return {}
+            else:
+                print "Config file {} is an empty file.".format(filename)
+                raise click.Abort()
+    except yaml.YAMLError:
+        config_errors("Failed to parse config file {}.  Config must be in YAML format.".format(filename), default)
+        if default:
+            return {}
+        else:
+            print "Failed to parse config file {}.  Config must be in YAML format.".format(filename)
+            raise click.Abort()
+    return config
+
+
+def config_errors(message, default):
+    if default:
+        return {}
+    else:
+        print message
+        raise click.Abort()
+
+
+def override_prompt(override):
+    if override:
+        return True
+    if click.confirm("Previous session data does not match current command.  Ok to overwrite previous session info?"):
+        return True
+    else:
+        raise click.Abort
+
+
+def validate_ids(ids, manifest):
+    if manifest:
+        if not re.match(r'\w{8}-\w{4}-\w{4}-\w{4}-\w{12}', ids[0]):
+            raise click.BadArgumentUsage(message="Bad Manifest ID: passed argument {} isn't in uuid format".format(ids))
+    else:
+        for fi_id in ids:
+            if not re.findall(r'FI\d*', fi_id):
+                if re.match(r'\w{8}-\w{4}-\w{4}-\w{4}-\w{12}', fi_id):
+                    raise click.BadArgumentUsage(message="Bad FI ID: passed argument {}".format(fi_id) +
+                                                         "is in uuid format.  If you intended to use a manifest," +
+                                                         "add the -m tag.")
+                raise click.BadArgumentUsage(message="Bad FI ID: passed argument {}".format(fi_id) +
+                                                     "isn't in FI00000 format")
+
+
+def match_repositories(self, repos, copies):
+    for repository in repos:
+        for copy in copies["fileCopies"]:
+            if repository == copy["repoCode"]:
+                return repository, copy
+    self.logger.error("File %s not found on repositories %s", copies["id"], repos)
+    raise click.Abort
+
+
 def api_error_catch(self, func, *args):
     try:
         return func(*args)
-    except errors.ApiError as e:
-        self.logger.error(e.message)
+    except errors.ApiError as ex:
+        self.logger.error(ex.message)
         raise click.Abort

@@ -101,7 +101,7 @@ class EgaDownloadClient(DownloadClient):
     def version_parser(self, response):
         version = re.findall(r"Version: [0-9.]+", response)
         if version:
-            self.logger.info("EGA Client {}".format(version[0]))
+            self.logger.info("EGA Client %s", version[0])
 
     def download_parser(self, response):
         filename = re.findall(r'/[^/]+.cip  \(', response)

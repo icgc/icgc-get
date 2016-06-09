@@ -20,7 +20,7 @@ from setuptools import setup, find_packages
 
 
 setup(name='icgcget',
-      version='0.0.2',
+      version='0.0.3',
       description='Universal download client for ICGC data residing in various environments',
       url="https://github.com/icgc/icgcget",
       packages=find_packages(exclude=['tests']),

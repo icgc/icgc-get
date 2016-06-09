@@ -16,29 +16,20 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
-import logging
-import click
 import os
+import logging
 from collections import OrderedDict
-from icgcget.clients.ega.ega_client import EgaDownloadClient
-from icgcget.clients.errors import SubprocessError
-from icgcget.clients.gdc.gdc_client import GdcDownloadClient
-from icgcget.clients.icgc.storage_client import StorageClient
-from icgcget.clients.pdc.pdc_client import PdcDownloadClient
-from icgcget.clients.gnos.gnos_client import GnosDownloadClient
+from tabulate import tabulate
+from icgcget.commands.utils import match_repositories, get_entities
 from icgcget.clients.utils import convert_size, donor_addition, increment_types, build_table
 
-from tabulate import tabulate
 
-from utils import check_access, api_error_catch,  get_entities
-
-
-class StatusScreenDispatcher:
+class StatusScreenDispatcher(object):
     def __init__(self):
         self.logger = logging.getLogger("__log__")
 
-    def summary_table(self, repos, file_ids, manifest, api_url, output, tsv):
+    def summary_table(self, object_ids, output, api_url, table_format):
+        repos = object_ids.keys()
         repo_counts = {}
         repo_sizes = {}
         repo_donors = {}
@@ -50,24 +41,28 @@ class StatusScreenDispatcher:
         type_sizes = OrderedDict({"total": 0})
 
         repo_list = []
-        summary_table = [["", "Size", "Unit", "File Count", "Donor Count", "Downloaded Files"]]
+        if output:
+            headers = ["", "Size", "Unit", "File Count", "Donor Count", "Downloaded Files"]
+        else:
+            headers = ["", "Size", "Unit", "File Count", "Donor Count"]
+        summary_table = []
         for repository in repos:
             repo_sizes[repository] = OrderedDict({"total": 0})
             repo_counts[repository] = {"total": 0}
             repo_donors[repository] = {"total": []}
             repo_download_count[repository] = {"total": 0}
-
-        entities = get_entities(self, manifest, file_ids, api_url, repos)
+        entities = get_entities(self, object_ids, api_url)
         for entity in entities:
+            state = False
             size = entity["fileCopies"][0]["fileSize"]
-            repository, copy = self.match_repositories(repos, entity)
+            repository, copy = match_repositories(self, repos, entity)
             data_type = entity["dataCategorization"]["dataType"]
-            state = copy["fileName"] in os.listdir(output)
+            if output:
+                state = copy["fileName"] in os.listdir(output)
             type_sizes = increment_types(data_type, type_sizes, size)
             type_counts = increment_types(data_type, type_counts, 1)
             repo_sizes[repository] = increment_types(data_type, repo_sizes[repository], size)
             repo_counts[repository] = increment_types(data_type, repo_counts[repository], 1)
-
             if state:
                 download_count = increment_types(data_type, download_count, 1)
                 repo_download_count[repository] = increment_types(data_type, repo_download_count[repository], 1)
@@ -77,23 +72,20 @@ class StatusScreenDispatcher:
 
         for repo in repo_sizes:
             summary_table = build_table(summary_table, repo, repo_sizes[repo], repo_counts[repo], repo_donors[repo],
-                                        repo_download_count[repo])
+                                        repo_download_count[repo], output)
             repo_list.append(repo)
-        summary_table = build_table(summary_table, 'Total', type_sizes, type_counts, type_donors, download_count)
-        if tsv:
-            for line in summary_table:
-                line = map(str, line)
-                self.logger.info('  '.join(line))
-        else:
-            self.logger.info(tabulate(summary_table, headers="firstrow", numalign="right"))
+        summary_table = build_table(summary_table, 'Total', type_sizes, type_counts, type_donors, download_count,
+                                    output)
+        self.print_table(headers, summary_table, table_format)
 
-    def file_table(self, repos, file_ids, manifest, api_url, output, tsv):
-        file_table = [["", "Size", "Unit", "File Format", "Data Type", "Repo", "File Name", "Downloaded"]]
-        entities = get_entities(self, manifest, file_ids, api_url, repos)
-
+    def file_table(self, object_ids, output, api_url, table_format):
+        repos = object_ids.keys()
+        headers = ["", "Size", "Unit", "File Format", "Data Type", "Repo", "Donor", "File Name", "Downloaded"]
+        file_table = []
+        entities = get_entities(self, object_ids, api_url)
         for entity in entities:
             size = entity["fileCopies"][0]["fileSize"]
-            repository, copy = self.match_repositories(repos, entity)
+            repository, copy = match_repositories(self, repos, entity)
             data_type = entity["dataCategorization"]["dataType"]
             if copy["fileName"] in os.listdir(output):
                 state = "Yes"
@@ -101,82 +93,22 @@ class StatusScreenDispatcher:
                 state = "No"
             file_size = convert_size(size)
             file_table.append([entity["id"], file_size[0], file_size[1], copy["fileFormat"],
-                               data_type, repository, copy["fileName"], state])
-        if tsv:
+                               data_type, repository, entity["donors"][0]['donorId'], copy["fileName"], state])
+        self.print_table(headers, file_table, table_format)
+
+    def print_table(self, headers, file_table, table_format):
+        if table_format == 'tsv':
             for line in file_table:
-                line = map(str, line)
+                line = [str(item) for item in line]
                 self.logger.info('  '.join(line))
-        else:
+        elif table_format == 'pretty':
+            file_table = [headers] + file_table
             self.logger.info(tabulate(file_table, headers="firstrow", tablefmt="fancy_grid", numalign="right"))
-
-    def access_checks(self, repo_list, file_ids, manifest, cghub_access, cghub_path, ega_access, gdc_access,
-                      icgc_access, pdc_access, pdc_path, pdc_region, output, api_url):
-        cghub_ids = []
-        gdc_ids = []
-        pdc_urls = []
-
-        gdc_client = GdcDownloadClient()
-        ega_client = EgaDownloadClient()
-        gt_client = GnosDownloadClient()
-        icgc_client = StorageClient()
-        pdc_client = PdcDownloadClient()
-
-        entities = get_entities(self, manifest, file_ids, api_url, repo_list)
-        for entity in entities:
-            repository, copy = self.match_repositories(repo_list, entity)
-            if repository == "gdc":
-                gdc_ids.append(entity["dataBundle"]["dataBundleId"])
-            if repository == "cghub":
-                cghub_ids.append(entity["dataBundle"]["dataBundleId"])
-            if repository == "pdc":
-                pdc_urls.append('s3' + copy['repoBaseUrl'][5:] + copy["repoDataPath"])
-
-        if "collaboratory" in repo_list:
-            check_access(self, icgc_access, "icgc")
-            self.access_response(icgc_client.access_check(icgc_access, repo="collab", api_url=api_url),
-                                 "Collaboratory.")
-        if "aws-virginia" in repo_list:
-            check_access(self, icgc_access, "icgc")
-            self.access_response(icgc_client.access_check(icgc_access, repo="aws", api_url=api_url),
-                                 "Amazon Web Server.")
-        if 'ega' in repo_list:
-            check_access(self, ega_access, 'ega')
-            self.access_response(ega_client.access_check(ega_access), "EGA.")
-
-        if 'gdc' in repo_list and gdc_ids:
-            check_access(self, gdc_access, 'gdc')
-            gdc_result = api_error_catch(self, gdc_client.access_check, gdc_access, gdc_ids)
-            self.access_response(gdc_result, "GDC files specified.")
-
-        if 'cghub' in repo_list and cghub_ids:  # as before, can't check cghub permissions without files
-            check_access(self, cghub_access, 'cghub', cghub_path)
-
-            try:
-                self.access_response(gt_client.access_check(cghub_access, cghub_ids, cghub_path, output=output),
-                                     "CGHub files.")
-            except SubprocessError as e:
-                self.logger.error(e.message)
-                raise click.Abort
-
-        if 'pdc' in repo_list and pdc_urls:
-            check_access(self, pdc_access, 'pdc', pdc_path)
-            try:
-                self.access_response(pdc_client.access_check(pdc_access, pdc_urls, pdc_path, output=output,
-                                                             region=pdc_region), "PDC files.")
-            except SubprocessError as e:
-                self.logger.error(e.message)
-                raise click.Abort
-
-    def match_repositories(self, repos, copies):
-        for repository in repos:
-            for copy in copies["fileCopies"]:
-                if repository == copy["repoCode"]:
-                    return repository, copy
-        self.logger.error("File {} not found on repositories {}".format(copies["id"], repos))
-        raise click.Abort
-
-    def access_response(self, result, repo):
-        if result:
-            self.logger.info("Valid access to the " + repo)
-        else:
-            self.logger.info("Invalid access to the " + repo)
+        elif table_format == 'json':
+            json_dict = {}
+            for line in file_table:
+                line_dict = {}
+                for i in range(1, len(headers)):
+                    line_dict[headers[i]] = line[i]
+                json_dict[line[0]] = line_dict
+            print json_dict

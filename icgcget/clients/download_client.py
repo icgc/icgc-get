@@ -2,8 +2,8 @@ import abc
 import logging
 import pickle
 import subprocess
-import subprocess32
 import re
+import subprocess32
 
 
 class DownloadClient(object):
@@ -18,7 +18,7 @@ class DownloadClient(object):
         self.repo = ''
 
     @abc.abstractmethod
-    def download(self, manifest, access, tool_path, output,  processes, udt=None, file_from=None, repo=None,
+    def download(self, manifest, access, tool_path, output, processes, udt=None, file_from=None, repo=None,
                  region=None):
         return
 
@@ -41,15 +41,15 @@ class DownloadClient(object):
     def _run_command(self, args, parser, env=None):
         self.logger.debug(args)
         if None in args:
-            self.logger.warning("Missing argument in {}".format(args))
+            self.logger.warning("Missing argument in %s", args)
             return 1
         try:
             process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
-        except subprocess.CalledProcessError as e:
-            self.logger.warning(e.output)
-            return e.returncode
+        except subprocess.CalledProcessError as ex:
+            self.logger.warning(ex.output)
+            return ex.returncode
         except OSError:
-            self.logger.warning("Path to download tool does not lead to expected application")
+            self.logger.warning("Path to download tool, %s, does not lead to expected application", args[0])
             return 2
         while True:
             output = process.stdout.readline()
@@ -57,13 +57,13 @@ class DownloadClient(object):
                 break
             if output:
                 parser(output.strip())
-        rc = process.poll()
-        if rc == 0 and self.session:
+        return_code = process.poll()
+        if return_code == 0 and self.session:
             self.session_update('', self.repo)  # clear any running files if exit cleanly
-        return rc
+        return return_code
 
     def session_update(self, file_name, repo):
-        for fi_id, file_object in self.session[repo].items():
+        for file_object in self.session[repo].values():
             if file_object['index_filename'] == file_name or file_object['filename'] == file_name:
                 file_object['state'] = 'Running'
             elif file_object['state'] == 'Running':  # only one file at a time can be downloaded.
@@ -72,18 +72,18 @@ class DownloadClient(object):
 
     def _run_test_command(self, args, forbidden, not_found, env=None):
         if None in args:
-            self.logger.warning("Missing argument in {}".format(args))
+            self.logger.warning("Missing argument in %s", args)
             return 1
         try:
             subprocess32.check_output(args, stderr=subprocess.STDOUT, env=env, timeout=2)
-        except subprocess32.CalledProcessError as e:
-            self.logger.info(e.output)
-            return e.returncode
+        except subprocess32.CalledProcessError as ex:
+            self.logger.info(ex.output)
+            return ex.returncode
         except OSError:
             return 2
-        except subprocess32.TimeoutExpired as e:
-            invalid_login = re.findall(forbidden, e.output)
-            not_found = re.findall(not_found, e.output)
+        except subprocess32.TimeoutExpired as ex:
+            invalid_login = re.findall(forbidden, ex.output)
+            not_found = re.findall(not_found, ex.output)
             if invalid_login:
                 return 3
             elif not_found:

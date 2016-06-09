@@ -28,7 +28,7 @@ class StorageClient(DownloadClient):
     def __init__(self, pickle_path=None):
         super(StorageClient, self) .__init__(pickle_path)
 
-    def download(self, uuids, access, tool_path, output,  processes, udt=None, file_from=None, repo=None, region=None):
+    def download(self, uuids, access, tool_path, output, processes, udt=None, file_from=None, repo=None, region=None):
         os.environ['ACCESSTOKEN'] = access
         os.environ['TRANSPORT_PARALLEL'] = processes
         if file_from is not None:
@@ -55,7 +55,7 @@ class StorageClient(DownloadClient):
     def version_parser(self, response):
         version = re.findall(r"Version: [0-9.]+", response)
         if version:
-            self.logger.info("ICGC Storage Client {}".format(version[0]))
+            self.logger.info("ICGC Storage Client %s", version[0])
 
     def download_parser(self, response):
         filename = re.findall(r"\(\w{8}-\w{4}-\w{4}-\w{4}-\w{12}.+", response)

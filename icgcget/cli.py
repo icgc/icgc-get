@@ -19,13 +19,13 @@
 import logging
 import os
 import pickle
-
+import psutil
 import click
-from clients.utils import config_parse, get_api_url
 from commands.versions import versions_command
 from commands.reports import StatusScreenDispatcher
 from commands.download import DownloadDispatcher
-from commands.status import check_download
+from commands.access_checks import AccessCheckDispatcher
+from commands.utils import compare_ids, config_parse, validate_ids
 
 DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgcget', force_posix=True), 'config.yaml')
 REPOS = ['collaboratory', 'aws-virginia', 'ega', 'gdc', 'cghub', 'pdc']
@@ -35,17 +35,32 @@ VERSION = '0.5'
 def logger_setup(logfile):
     logger = logging.getLogger('__log__')
     logger.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    if logfile:
+        if not os.path.isfile(logfile):
+            print "Unable to find logfile {}: No file found".format(logfile)
+        elif not os.access(logfile, os.W_OK | os.X_OK):
+            print "Unable to write to logfile {}".format(logfile)
+        else:
+            formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+            file_handler = logging.FileHandler(logfile)
+            file_handler.setLevel(logging.DEBUG)
+            file_handler.setFormatter(formatter)
+            logger.addHandler(file_handler)
 
-    if logfile is not None:
-        fh = logging.FileHandler(logfile)
-        fh.setLevel(logging.DEBUG)
-        fh.setFormatter(formatter)
-        logger.addHandler(fh)
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.INFO)
+    logger.addHandler(stream_handler)
 
-    sh = logging.StreamHandler()
-    sh.setLevel(logging.INFO)
-    logger.addHandler(sh)
+
+def get_api_url(context_map):
+    if os.getenv("ICGCGET_API_URL"):
+        api_url = os.getenv("ICGCGET_API_URL")
+    elif context_map:
+        api_url = context_map["portal_url"] + 'api/v1/'
+    else:
+        raise click.BadParameter("No API url specified by config file(portal:  url) or environmental variable" +
+                                 " (ICGCGET_PORTAL_URL).")
+    return api_url
 
 
 @click.group()
@@ -53,10 +68,9 @@ def logger_setup(logfile):
 @click.option('--logfile', default=None)
 @click.pass_context
 def cli(ctx, config, logfile):
-    config_file = config_parse(config)
+    config_file = config_parse(config, DEFAULT_CONFIG_FILE)
     if config != DEFAULT_CONFIG_FILE and not config_file:
-        raise click.BadParameter(message="Invalid config file")
-
+        raise click.Abort()
     ctx.default_map = config_file
 
     if logfile is not None:
@@ -71,7 +85,8 @@ def cli(ctx, config, logfile):
 @click.argument('file-ids', nargs=-1, required=True)
 @click.option('--repos', '-r', type=click.Choice(REPOS), multiple=True)
 @click.option('--manifest', '-m', is_flag=True, default=False)
-@click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True))
+@click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True),
+              required=True)
 @click.option('--cghub-access', type=click.STRING)
 @click.option('--cghub-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--cghub-transport-parallel', type=click.STRING)
@@ -93,7 +108,7 @@ def cli(ctx, config, logfile):
 @click.option('--pdc-transport-parallel', type=click.STRING)
 @click.option('--yes-to-all', '-y', is_flag=True, default=False, help="Bypass all confirmation prompts")
 @click.pass_context
-def download(ctx, repos, file_ids, manifest, output,
+def download(ctx, file_ids, repos, manifest, output,
              cghub_access, cghub_path, cghub_transport_parallel,
              ega_access, ega_path, ega_transport_parallel, ega_udt,
              gdc_access, gdc_path, gdc_transport_parallel, gdc_udt,
@@ -106,13 +121,20 @@ def download(ctx, repos, file_ids, manifest, output,
         os.mkdir(staging, 0777)
     pickle_path = output + '/.staging/state.pk'
     dispatch = DownloadDispatcher(pickle_path)
-    object_ids = dispatch.download_manifest(repos, file_ids, manifest, output, yes_to_all, api_url)
-
+    old_session_info = None
     if os.path.isfile(pickle_path):
-        session_info = pickle.load(open(pickle_path, 'r+'))
-        object_ids = dispatch.compare(object_ids, session_info, yes_to_all)
-    pickle.dump(object_ids, open(pickle_path, 'w'), pickle.HIGHEST_PROTOCOL)
-    dispatch.download(object_ids, staging, output,
+        old_session_info = pickle.load(open(pickle_path, 'r+'))
+        if psutil.pid_exists(old_session_info['pid']):
+            raise click.Abort("Download currently in progress")
+    if file_ids == 'resume':
+        session_info = old_session_info
+    else:
+        validate_ids(file_ids, manifest)
+        session_info = dispatch.download_manifest(repos, file_ids, manifest, output, yes_to_all, api_url)
+    if old_session_info:
+        session_info['object_ids'] = compare_ids(session_info['object_ids'], old_session_info['object_ids'], yes_to_all)
+    pickle.dump(session_info, open(pickle_path, 'w'), pickle.HIGHEST_PROTOCOL)
+    dispatch.download(session_info['object_ids'], staging, output,
                       cghub_access, cghub_path, cghub_transport_parallel,
                       ega_access, ega_path, ega_transport_parallel, ega_udt,
                       gdc_access, gdc_path, gdc_transport_parallel, gdc_udt,
@@ -122,33 +144,38 @@ def download(ctx, repos, file_ids, manifest, output,
 
 
 @cli.command()
-@click.argument('file-ids', nargs=-1, required=True)
-@click.option('--repos', '-r', type=click.Choice(REPOS),  multiple=True)
-@click.option('--manifest', '-m', is_flag=True, default=False)
-@click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True))
-@click.option('--tsv', '-t', is_flag=True, default=False, help="Do not show summary")
-@click.pass_context
-def report(ctx, repos, file_ids, manifest, output, tsv):
-    if not repos:
-        raise click.BadOptionUsage("Must include prioritized repositories")
-    api_url = get_api_url(ctx.default_map)
-    dispatch = StatusScreenDispatcher()
-    dispatch.file_table(repos, file_ids, manifest, api_url, output, tsv)
-
-
-@cli.command()
-@click.argument('file-ids', nargs=-1, required=True)
+@click.argument('file-ids', nargs=-1, required=False)
 @click.option('--repos', '-r', type=click.Choice(REPOS), multiple=True)
 @click.option('--manifest', '-m', is_flag=True, default=False)
 @click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True))
-@click.option('--tsv', '-t', is_flag=True, default=False, help="Do not show summary")
+@click.option('--table-format', '-f', type=click.Choice(['tsv', 'pretty', 'json']), default='pretty')
+@click.option('--data-type', '-t', type=click.Choice(['file', 'summary']), default='file')
+@click.option('--override', '-o', is_flag=True, default=False, help="Bypass all prompts from cached session info")
 @click.pass_context
-def summary(ctx, repos, file_ids, manifest, output, tsv):
+def report(ctx, repos, file_ids, manifest, output, table_format, data_type, override):
     if not repos:
         raise click.BadOptionUsage("Must include prioritized repositories")
     api_url = get_api_url(ctx.default_map)
+    pickle_path = output + '/.staging/state.pk'
+    session_info = None
+    download_dispatch = DownloadDispatcher(pickle_path)
+    if file_ids:
+        validate_ids(file_ids, manifest)
+        session_info = download_dispatch.download_manifest(repos, file_ids, manifest, output, True, api_url)
+    if os.path.isfile(pickle_path):
+        old_session_info = pickle.load(open(pickle_path, 'r+'))
+        if session_info:
+            session_info['object_ids'] = compare_ids(session_info['object_ids'], old_session_info['object_ids'],
+                                                     override)
+        else:
+            session_info = old_session_info
     dispatch = StatusScreenDispatcher()
-    dispatch.summary_table(repos, file_ids, manifest, api_url, output, tsv)
+    if not session_info:
+        raise click.BadArgumentUsage("No id's provided and no session info found, Aborting")
+    if data_type == 'file':
+        dispatch.file_table(session_info['object_ids'], output, api_url, table_format)
+    elif data_type == 'summary':
+        dispatch.summary_table(session_info['object_ids'], output, api_url, table_format)
 
 
 @cli.command()
@@ -168,9 +195,12 @@ def summary(ctx, repos, file_ids, manifest, output, tsv):
 def check(ctx, repos, file_ids, manifest, output,
           cghub_access, cghub_path, ega_access, gdc_access, icgc_access, pdc_access, pdc_path, pdc_region):
     if not repos:
-        raise click.BadOptionUsage("Must include prioritized repositories")
+        raise click.BadOptionUsage("Please specify repositories to check access to")
+    if not file_ids:
+        if 'gdc' in repos or 'cghub' in repos or 'pdc' in repos:
+            raise click.BadOptionUsage("Access checks on Gdc, cghub, and pdc require a manifest or file ids to process")
     api_url = get_api_url(ctx.default_map)
-    dispatch = StatusScreenDispatcher()
+    dispatch = AccessCheckDispatcher()
     dispatch.access_checks(repos, file_ids, manifest, cghub_access, cghub_path, ega_access, gdc_access, icgc_access,
                            pdc_access, pdc_path, pdc_region, output, api_url)
 
@@ -184,16 +214,6 @@ def check(ctx, repos, file_ids, manifest, output,
 @click.option('--pdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 def version(cghub_path, ega_access, ega_path, gdc_path, icgc_path, pdc_path):
     versions_command(cghub_path, ega_access, ega_path, gdc_path, icgc_path, pdc_path, VERSION)
-
-
-@cli.command()
-@click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True))
-def status(output):
-    pickle_path = output + '/.staging/state.pk'
-    if os.path.isfile(pickle_path):
-        check_download(output)
-    else:
-        raise click.BadOptionUsage("No download is occurring in output directory")
 
 
 def main():

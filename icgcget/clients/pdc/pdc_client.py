@@ -29,7 +29,7 @@ class PdcDownloadClient(DownloadClient):
         super(PdcDownloadClient, self).__init__(pickle_path)
         self.repo = 'pdc'
 
-    def download(self, data_paths, access, tool_path, output,  processes, udt=None, file_from=None, repo=None,
+    def download(self, data_paths, access, tool_path, output, processes, udt=None, file_from=None, repo=None,
                  region=None):
         access_file = open(access)
         key = access_file.readline()
@@ -54,9 +54,9 @@ class PdcDownloadClient(DownloadClient):
             if result == 3:
                 return False
             elif result == 2:
-                raise SubprocessError(result, "Path to gentorrent client did not lead to expected application")
+                raise SubprocessError(result, "Path to AWS client did not lead to expected application")
             else:
-                raise SubprocessError(result, "Genetorrent failed with code {}".format(result))
+                raise SubprocessError(result, "AWS failed with code {}".format(result))
 
     def print_version(self, path, access=None):
         call_args = [path, '--version']
@@ -68,4 +68,4 @@ class PdcDownloadClient(DownloadClient):
     def version_parser(self, output):
         version = re.findall(r"aws-icgcget/[0-9.]+", output)
         if version:
-            self.logger.info("AWS CLI Version: {}".format(version[0][8:]))
+            self.logger.info("AWS CLI Version: %s", version[0][8:])

@@ -30,10 +30,10 @@ from icgcget.clients.icgc.storage_client import StorageClient
 from icgcget.clients.pdc.pdc_client import PdcDownloadClient
 from icgcget.clients.utils import calculate_size, convert_size
 
-from utils import api_error_catch, filter_manifest_ids, check_access, get_manifest_json
+from icgcget.commands.utils import api_error_catch, filter_manifest_ids, check_access, get_manifest_json
 
 
-class DownloadDispatcher:
+class DownloadDispatcher(object):
     def __init__(self, pickle_path):
         self.logger = logging.getLogger("__log__")
         self.gdc_client = GdcDownloadClient(pickle_path)
@@ -44,34 +44,28 @@ class DownloadDispatcher:
 
     def download_manifest(self, repos, file_ids, manifest, output, yes_to_all, api_url):
         portal = portal_client.IcgcPortalClient()
-        if manifest:
-            manifest_json = get_manifest_json(self, file_ids, api_url, repos)
-        else:
-            manifest_json = api_error_catch(self, portal.get_manifest, file_ids, api_url, repos)
-
-        if not manifest_json["unique"] or len(manifest_json["entries"]) != 1:
-            filter_manifest_ids(self, manifest_json, repos)
-        size, object_ids = calculate_size(manifest_json)
+        manifest_json = self.get_manifest(manifest, file_ids, api_url, repos, portal)
+        size, session_info = calculate_size(manifest_json)
+        object_ids = session_info['object_ids']
         if manifest:
             file_ids = []
-            for repo in object_ids:
+            for repo in repos:
                 file_ids.append(object_ids[repo].keys())
         entities = api_error_catch(self, portal.get_metadata_bulk, file_ids, api_url)
         for entity in entities:
-            for repo_ids in object_ids:
-                if entity['id'] in object_ids[repo_ids]:
-                    repo = repo_ids
+            for repo_id in object_ids:
+                if entity['id'] in object_ids[repo_id]:
+                    repo = repo_id
                     break
             else:
                 continue
 
-            filecopies = entity['fileCopies']
-            for copy in filecopies:
+            file_copies = entity['fileCopies']
+            for copy in file_copies:
                 if copy['repoCode'] == repo:
                     if copy["fileName"] in os.listdir(output):
-
                         object_ids[repo].pop(entity['id'])
-                        self.logger.warning("File {} found in download directory, skipping".format(entity['id']))
+                        self.logger.warning("File %s found in download directory, skipping", entity['id'])
                         break
                     object_ids[repo][entity["id"]]['filename'] = copy["fileName"]
                     if "fileName" in copy["indexFile"]:
@@ -80,7 +74,8 @@ class DownloadDispatcher:
                         object_ids[repo][entity['id']]['fileUrl'] = 's3' + copy['repoBaseUrl'][5:] + \
                                                                     copy['repoDataPath']
         self.size_check(size, yes_to_all, output)
-        return object_ids
+        session_info['object_ids'] = object_ids
+        return session_info
 
     def download(self, object_ids, staging, output,
                  cghub_access, cghub_path, cghub_transport_parallel,
@@ -151,35 +146,10 @@ class DownloadDispatcher:
             self.check_code('Gdc', return_code)
         self.move_files(staging, output)
 
-    def compare(self, current_session, old_session, override):
-        updated_session = {}
-        for repo in current_session:
-            updated_session[repo] = {}
-            if repo not in old_session:
-                if self.override_prompt(override):
-                    return current_session
-            for fi_id in current_session[repo]:
-                if fi_id in old_session[repo]:
-                    if old_session[repo][fi_id]['state'] != "Finished":
-                        updated_session[repo][fi_id] = current_session[repo][fi_id]
-                else:
-                    if self.override_prompt(override):
-                        return current_session
-        return updated_session
-
     def check_code(self, client, code):
         if code != 0:
-            self.logger.error("{} client exited with a nonzero error code {}.".format(client, code))
+            self.logger.error("%s client exited with a nonzero error code %s.", client, code)
             raise click.ClickException("Please check client output for error messages")
-
-    @staticmethod
-    def override_prompt(override):
-        if override:
-            return True
-        if click.confirm("Previous session data does not match current command.  Ok to delete previous session info?"):
-            return True
-        else:
-            raise click.Abort
 
     def size_check(self, size, override, output):
         free = psutil.disk_usage(output)[2]
@@ -189,8 +159,8 @@ class DownloadDispatcher:
                 self.logger.info("User aborted download")
                 raise click.Abort
         elif free <= size:
-            self.logger.error("Not enough space detected for download of {0}.".format(''.join(convert_size(size))) +
-                              "{} of space in {}".format(''.join(convert_size(free)), output))
+            self.logger.error("Not enough space detected for download of %s. %s of space in %s",
+                              ''.join(convert_size(size)), ''.join(convert_size(free)), output)
 
     @staticmethod
     def get_uuids(object_ids):
@@ -199,10 +169,20 @@ class DownloadDispatcher:
             uuids.append(object_ids[object_id]['uuid'])
         return uuids
 
+    def get_manifest(self, manifest, file_ids, api_url, repos, portal):
+        if manifest:
+            manifest_json = get_manifest_json(self, file_ids, api_url, repos)
+        else:
+            manifest_json = api_error_catch(self, portal.get_manifest, file_ids, api_url, repos)
+
+        if not manifest_json["unique"] or len(manifest_json["entries"]) != 1:
+            filter_manifest_ids(self, manifest_json, repos)
+        return manifest_json
+
     def move_files(self, staging, output):
         for staged_file in os.listdir(staging):
             if staged_file != "state.pk":
                 try:
                     shutil.move(staging + '/' + staged_file, output)
                 except shutil.Error:
-                    self.logger.warning('File {} already present in download directory'.format(staged_file))
+                    self.logger.warning('File %s already present in download directory', staged_file)

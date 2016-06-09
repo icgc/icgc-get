@@ -54,7 +54,7 @@ class GnosDownloadClient(DownloadClient):
     def version_parser(self, response):
         version = re.findall(r"elease [0-9.]+", response)
         if version:
-            self.logger.info("Gtdownload R{}".format(version[0]))
+            self.logger.info("Gtdownload R%s", version[0])
 
     def download_parser(self, response):
         self.logger.info(response)

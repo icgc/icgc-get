@@ -53,7 +53,7 @@ configurable options and the defaults for using these options in a docker contai
 In addition to editing the config file most configuration options can either be overwritten 
 through the command line or environmental variables. Environmental variables are in all caps, 
 have underscores as separators, and are prefixed by ICGCGET_. Command line options have dashes 
-as separators and are prefixed by two dashes.  Config file options have periods as separators.  The 
+as separators and are prefixed by two dashes.  Config file options a colon, followed by a newline and two spaces as separators.  The 
 only exception to this rule is the ICGC api path: it cannot be set via the command line.
 
 To specify which config file to use either pass an absolute path to the config file to the 
