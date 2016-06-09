@@ -18,7 +18,6 @@
 import os
 import collections
 import datetime
-import yaml
 
 
 def flatten_dict(dictionary, parent_key='', sep='_'):
@@ -47,25 +46,6 @@ def normalize_keys(obj):
         return {k.replace('.', '_'): normalize_keys(v) for k, v in obj.items()}
 
 
-def config_parse(filename):
-    config = {}
-    try:
-        config_text = open(filename, 'r')
-    except IOError as ex:
-        print "Config file {0} not found: {1}".format(filename, ex.message)
-        return config
-    try:
-        config_temp = yaml.safe_load(config_text)
-        config_download = flatten_dict(normalize_keys(config_temp))
-        config = {'download': config_download, 'report': config_download, 'version': config_download,
-                  'check': config_download, 'logfile': config_temp['logfile']}
-    except yaml.YAMLError:
-        print "Failed to parse config file {}.  Config must be in YAML format.".format(filename)
-        return {}
-
-    return config
-
-
 def donor_addition(donor_list, donor, data_type):
     if data_type not in donor_list:
         donor_list[data_type] = []
@@ -85,17 +65,20 @@ def increment_types(typename, count_dict, size):
     return count_dict
 
 
-def build_table(table, repo, sizes, counts, donors, downloads):
+def build_table(table, repo, sizes, counts, donors, downloads, output):
     for data_type in sizes:
         file_size = convert_size(sizes[data_type])
         if data_type == 'total':
             name = repo
         else:
             name = repo + ": " + data_type
-        if data_type not in downloads:
-            downloads[data_type] = 0
-        table.append([name, file_size[0], file_size[1], counts[data_type], len(donors[data_type]),
-                      downloads[data_type]])
+        if output:
+            if data_type not in downloads:
+                downloads[data_type] = 0
+            table.append([name, file_size[0], file_size[1], counts[data_type], len(donors[data_type]),
+                          downloads[data_type]])
+        else:
+            table.append([name, file_size[0], file_size[1], counts[data_type], len(donors[data_type])])
     return table
 
 

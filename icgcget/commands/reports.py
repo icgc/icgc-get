@@ -41,7 +41,10 @@ class StatusScreenDispatcher(object):
         type_sizes = OrderedDict({"total": 0})
 
         repo_list = []
-        headers = ["", "Size", "Unit", "File Count", "Donor Count", "Downloaded Files"]
+        if output:
+            headers = ["", "Size", "Unit", "File Count", "Donor Count", "Downloaded Files"]
+        else:
+            headers = ["", "Size", "Unit", "File Count", "Donor Count"]
         summary_table = []
         for repository in repos:
             repo_sizes[repository] = OrderedDict({"total": 0})
@@ -50,15 +53,16 @@ class StatusScreenDispatcher(object):
             repo_download_count[repository] = {"total": 0}
         entities = get_entities(self, object_ids, api_url)
         for entity in entities:
+            state = False
             size = entity["fileCopies"][0]["fileSize"]
             repository, copy = match_repositories(self, repos, entity)
             data_type = entity["dataCategorization"]["dataType"]
-            state = copy["fileName"] in os.listdir(output)
+            if output:
+                state = copy["fileName"] in os.listdir(output)
             type_sizes = increment_types(data_type, type_sizes, size)
             type_counts = increment_types(data_type, type_counts, 1)
             repo_sizes[repository] = increment_types(data_type, repo_sizes[repository], size)
             repo_counts[repository] = increment_types(data_type, repo_counts[repository], 1)
-
             if state:
                 download_count = increment_types(data_type, download_count, 1)
                 repo_download_count[repository] = increment_types(data_type, repo_download_count[repository], 1)
@@ -68,9 +72,10 @@ class StatusScreenDispatcher(object):
 
         for repo in repo_sizes:
             summary_table = build_table(summary_table, repo, repo_sizes[repo], repo_counts[repo], repo_donors[repo],
-                                        repo_download_count[repo])
+                                        repo_download_count[repo], output)
             repo_list.append(repo)
-        summary_table = build_table(summary_table, 'Total', type_sizes, type_counts, type_donors, download_count)
+        summary_table = build_table(summary_table, 'Total', type_sizes, type_counts, type_donors, download_count,
+                                    output)
         self.print_table(headers, summary_table, table_format)
 
     def file_table(self, object_ids, output, api_url, table_format):

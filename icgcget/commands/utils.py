@@ -16,10 +16,12 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+import re
 import click
-
+import yaml
 from icgcget.clients import errors
 from icgcget.clients import portal_client
+from icgcget.clients.utils import normalize_keys, flatten_dict
 
 
 def filter_manifest_ids(self, manifest_json, repos):
@@ -83,13 +85,68 @@ def compare_ids(current_session, old_session, override):
     return updated_session
 
 
+def config_parse(filename, default_filename):
+    default = filename == default_filename
+    try:
+        config_text = open(filename, 'r')
+    except IOError as ex:
+        if default:
+            return {}
+        else:
+            print "Config file {0} not found: {1}".format(filename, ex.strerror)
+            raise click.Abort()
+    try:
+        config_temp = yaml.safe_load(config_text)
+        if config_temp:
+            config_download = flatten_dict(normalize_keys(config_temp))
+            config = {'download': config_download, 'report': config_download, 'version': config_download,
+                      'check': config_download, 'logfile': config_temp['logfile']}
+        else:
+            if default:
+                return {}
+            else:
+                print "Config file {} is an empty file.".format(filename)
+                raise click.Abort()
+    except yaml.YAMLError:
+        config_errors("Failed to parse config file {}.  Config must be in YAML format.".format(filename), default)
+        if default:
+            return {}
+        else:
+            print "Failed to parse config file {}.  Config must be in YAML format.".format(filename)
+            raise click.Abort()
+    return config
+
+
+def config_errors(message, default):
+    if default:
+        return {}
+    else:
+        print message
+        raise click.Abort()
+
+
 def override_prompt(override):
     if override:
         return True
-    if click.confirm("Previous session data does not match current command.  Ok to delete previous session info?"):
+    if click.confirm("Previous session data does not match current command.  Ok to overwrite previous session info?"):
         return True
     else:
         raise click.Abort
+
+
+def validate_ids(ids, manifest):
+    if manifest:
+        if not re.match(r'\w{8}-\w{4}-\w{4}-\w{4}-\w{12}', ids[0]):
+            raise click.BadArgumentUsage(message="Bad Manifest ID: passed argument {} isn't in uuid format".format(ids))
+    else:
+        for fi_id in ids:
+            if not re.findall(r'FI\d*', fi_id):
+                if re.match(r'\w{8}-\w{4}-\w{4}-\w{4}-\w{12}', fi_id):
+                    raise click.BadArgumentUsage(message="Bad FI ID: passed argument {}".format(fi_id) +
+                                                         "is in uuid format.  If you intended to use a manifest," +
+                                                         "add the -m tag.")
+                raise click.BadArgumentUsage(message="Bad FI ID: passed argument {}".format(fi_id) +
+                                                     "isn't in FI00000 format")
 
 
 def match_repositories(self, repos, copies):

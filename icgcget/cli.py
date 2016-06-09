@@ -21,12 +21,11 @@ import os
 import pickle
 import psutil
 import click
-from clients.utils import config_parse
 from commands.versions import versions_command
 from commands.reports import StatusScreenDispatcher
 from commands.download import DownloadDispatcher
 from commands.access_checks import AccessCheckDispatcher
-from commands.utils import compare_ids
+from commands.utils import compare_ids, config_parse, validate_ids
 
 DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgcget', force_posix=True), 'config.yaml')
 REPOS = ['collaboratory', 'aws-virginia', 'ega', 'gdc', 'cghub', 'pdc']
@@ -36,13 +35,17 @@ VERSION = '0.5'
 def logger_setup(logfile):
     logger = logging.getLogger('__log__')
     logger.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-
-    if logfile is not None:
-        file_handler = logging.FileHandler(logfile)
-        file_handler.setLevel(logging.DEBUG)
-        file_handler.setFormatter(formatter)
-        logger.addHandler(file_handler)
+    if logfile:
+        if not os.path.isfile(logfile):
+            print "Unable to find logfile {}: No file found".format(logfile)
+        elif not os.access(logfile, os.W_OK | os.X_OK):
+            print "Unable to write to logfile {}".format(logfile)
+        else:
+            formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+            file_handler = logging.FileHandler(logfile)
+            file_handler.setLevel(logging.DEBUG)
+            file_handler.setFormatter(formatter)
+            logger.addHandler(file_handler)
 
     stream_handler = logging.StreamHandler()
     stream_handler.setLevel(logging.INFO)
@@ -55,7 +58,8 @@ def get_api_url(context_map):
     elif context_map:
         api_url = context_map["portal_url"] + 'api/v1/'
     else:
-        raise click.BadParameter("No API url specified by config file or environmental variable.")
+        raise click.BadParameter("No API url specified by config file(portal:  url) or environmental variable" +
+                                 " (ICGCGET_PORTAL_URL).")
     return api_url
 
 
@@ -64,7 +68,7 @@ def get_api_url(context_map):
 @click.option('--logfile', default=None)
 @click.pass_context
 def cli(ctx, config, logfile):
-    config_file = config_parse(config)
+    config_file = config_parse(config, DEFAULT_CONFIG_FILE)
     if config != DEFAULT_CONFIG_FILE and not config_file:
         raise click.Abort()
     ctx.default_map = config_file
@@ -81,7 +85,8 @@ def cli(ctx, config, logfile):
 @click.argument('file-ids', nargs=-1, required=True)
 @click.option('--repos', '-r', type=click.Choice(REPOS), multiple=True)
 @click.option('--manifest', '-m', is_flag=True, default=False)
-@click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True))
+@click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True),
+              required=True)
 @click.option('--cghub-access', type=click.STRING)
 @click.option('--cghub-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--cghub-transport-parallel', type=click.STRING)
@@ -116,12 +121,17 @@ def download(ctx, file_ids, repos, manifest, output,
         os.mkdir(staging, 0777)
     pickle_path = output + '/.staging/state.pk'
     dispatch = DownloadDispatcher(pickle_path)
-    session_info = dispatch.download_manifest(repos, file_ids, manifest, output, yes_to_all, api_url)
-
+    old_session_info = None
     if os.path.isfile(pickle_path):
         old_session_info = pickle.load(open(pickle_path, 'r+'))
         if psutil.pid_exists(old_session_info['pid']):
             raise click.Abort("Download currently in progress")
+    if file_ids == 'resume':
+        session_info = old_session_info
+    else:
+        validate_ids(file_ids, manifest)
+        session_info = dispatch.download_manifest(repos, file_ids, manifest, output, yes_to_all, api_url)
+    if old_session_info:
         session_info['object_ids'] = compare_ids(session_info['object_ids'], old_session_info['object_ids'], yes_to_all)
     pickle.dump(session_info, open(pickle_path, 'w'), pickle.HIGHEST_PROTOCOL)
     dispatch.download(session_info['object_ids'], staging, output,
@@ -150,6 +160,7 @@ def report(ctx, repos, file_ids, manifest, output, table_format, data_type, over
     session_info = None
     download_dispatch = DownloadDispatcher(pickle_path)
     if file_ids:
+        validate_ids(file_ids, manifest)
         session_info = download_dispatch.download_manifest(repos, file_ids, manifest, output, True, api_url)
     if os.path.isfile(pickle_path):
         old_session_info = pickle.load(open(pickle_path, 'r+'))

@@ -21,7 +21,7 @@
 # Common
 
 logfile: /icgc/mnt/logs/logfile.log
-output:
+output: /icgc/mnt/downloads
 repos:
  - cghub
  - collaboratory

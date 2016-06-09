@@ -49,7 +49,7 @@ class DownloadClient(object):
             self.logger.warning(ex.output)
             return ex.returncode
         except OSError:
-            self.logger.warning("Path to download tool does not lead to expected application")
+            self.logger.warning("Path to download tool, %s, does not lead to expected application", args[0])
             return 2
         while True:
             output = process.stdout.readline()

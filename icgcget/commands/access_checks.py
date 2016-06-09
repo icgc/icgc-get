@@ -68,6 +68,7 @@ class AccessCheckDispatcher(object):
 
         if 'cghub' in repo_list and self.id_check('cghub', self.cghub_ids):
             check_access(self, cghub_access, 'cghub', cghub_path)
+
             try:
                 self.access_response(gt_client.access_check(cghub_access, self.cghub_ids, cghub_path, output=output),
                                      "CGHub files.")
