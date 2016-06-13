@@ -224,18 +224,14 @@ def check(ctx, repos, file_ids, manifest, output,
 @click.option('--pdc-region', type=click.STRING, prompt=True)
 def configure(repos, output, cghub_access, cghub_path, ega_access, ega_path, 
               gdc_access, gdc_path, icgc_access, icgc_path, pdc_access, pdc_path, pdc_region):
-	os.environ['ICGCGET_OUTPUT'] = output
-	os.environ['ICGCGET_CGHUB_ACCESS'] = cghub_access
-	os.environ['ICGCGET_CGHUB_PATH'] = cghub_path
-	os.environ['ICGCGET_EGA_ACCESS'] = ega_access
-	os.environ['ICGCGET_EGA_PATH'] = ega_path
-	os.environ['ICGCGET_GDC_ACCESS'] = gdc_access
-	os.environ['ICGCGET_GDC_PATH'] = gdc_path
-	os.environ['ICGCGET_ICGC_ACCESS'] = icgc_access
-	os.environ['ICGCGET_ICGC_PATH'] = icgc_path
-	os.environ['ICGCGET_PDC_ACCESS'] = pdc_access
-	os.environ['ICGCGET_PDC_PATH'] = pdc_path
-	os.environ['ICGCGET_PDC_REGION'] = pdc_region
+	conf_yaml = {'output': output, 'repos': repos,
+		     'icgc': {'path': icgc_path, 'access': icgc_access},
+	             'cghub': {'path': cghub_path, 'access': cghub_access},
+                     'ega': {'path': ega_path, 'access': ega_access},
+                     'gdc': {'path': gdc_path, 'access': gdc_access},
+                     'pdc': {'path': pdc_path, 'access': pdc_access, 'region': pdc_region}} 
+	config_file = file(output + 'config.yaml', 'w')
+	yaml.dump(conf_yaml, config_file)
 
 
 @cli.command()
