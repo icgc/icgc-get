@@ -21,6 +21,7 @@ import os
 import pickle
 import psutil
 import click
+import yaml
 from commands.versions import versions_command
 from commands.reports import StatusScreenDispatcher
 from commands.download import DownloadDispatcher
@@ -35,6 +36,7 @@ VERSION = '0.5'
 def logger_setup(logfile):
     logger = logging.getLogger('__log__')
     logger.setLevel(logging.DEBUG)
+
     if logfile:
         if not os.path.isfile(logfile):
             print "Unable to find logfile {}: No file found".format(logfile)
@@ -88,26 +90,27 @@ def cli(ctx, config, logfile):
               required=True)
 @click.option('--cghub-access', type=click.STRING)
 @click.option('--cghub-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
-@click.option('--cghub-transport-parallel', type=click.STRING)
+@click.option('--cghub-transport-parallel', type=click.STRING, default='8')
 @click.option('--ega-access', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
 @click.option('--ega-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
-@click.option('--ega-transport-parallel', type=click.STRING)
-@click.option('--ega-udt', type=click.BOOL)
+@click.option('--ega-transport-parallel', type=click.STRING, default='1')
+@click.option('--ega-udt', type=click.BOOL, default=False)
 @click.option('--gdc-access', type=click.STRING)
 @click.option('--gdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
-@click.option('--gdc-transport-parallel', type=click.STRING)
-@click.option('--gdc-udt', type=click.BOOL)
+@click.option('--gdc-transport-parallel', type=click.STRING, default='8')
+@click.option('--gdc-udt', type=click.BOOL, default=False)
 @click.option('--icgc-access', type=click.STRING)
 @click.option('--icgc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
-@click.option('--icgc-transport-file-from', type=click.STRING)
-@click.option('--icgc-transport-parallel', type=click.STRING)
+@click.option('--icgc-transport-file-from', type=click.STRING, default='remote')
+@click.option('--icgc-transport-parallel', type=click.STRING, default='8')
 @click.option('--pdc-access', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
 @click.option('--pdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
-@click.option('--pdc-region', type=click.STRING)
-@click.option('--pdc-transport-parallel', type=click.STRING)
+
+@click.option('--pdc-region', type=click.STRING, default='us-east-1')
+@click.option('--pdc-transport-parallel', type=click.STRING, default='8')
 @click.option('--override', '-o', is_flag=True, default=False, help="Bypass all confirmation prompts")
 @click.pass_context
-def download(ctx, ids, repos, manifest, output,
+def download(ctx, file_ids, repos, manifest, output,
              cghub_access, cghub_path, cghub_transport_parallel,
              ega_access, ega_path, ega_transport_parallel, ega_udt,
              gdc_access, gdc_path, gdc_transport_parallel, gdc_udt,
@@ -123,13 +126,16 @@ def download(ctx, ids, repos, manifest, output,
     old_session_info = None
     if os.path.isfile(pickle_path):
         old_session_info = pickle.load(open(pickle_path, 'r+'))
-    if ids == 'resume':
+
+        if psutil.pid_exists(old_session_info['pid']):
+            raise click.Abort("Download currently in progress")
+    if file_ids == 'resume':
         session_info = old_session_info
     else:
-        validate_ids(ids, manifest)
-        session_info = dispatch.download_manifest(repos, ids, manifest, output, api_url)
+        validate_ids(file_ids, manifest)
+        session_info = dispatch.download_manifest(repos, file_ids, manifest, output, api_url)
     if old_session_info:
-        session_info['object_ids'] = compare_ids(session_info['object_ids'], old_session_info['object_ids'], override)
+        session_info['object_ids'] = compare_ids(session_info['object_ids'], old_session_info['object_ids'], yes_to_all)
     pickle.dump(session_info, open(pickle_path, 'w'), pickle.HIGHEST_PROTOCOL)
     dispatch.download(session_info['object_ids'], staging, output,
                       cghub_access, cghub_path, cghub_transport_parallel,
@@ -187,7 +193,7 @@ def report(ctx, repos, ids, manifest, output, table_format, data_type, override)
 @click.option('--icgc-access', type=click.STRING)
 @click.option('--pdc-access', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
 @click.option('--pdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
-@click.option('--pdc-region', type=click.STRING)
+@click.option('--pdc-region', type=click.STRING, default='us-west-2')
 @click.pass_context
 def check(ctx, repos, ids, manifest, output,
           cghub_access, cghub_path, ega_access, gdc_access, icgc_access, pdc_access, pdc_path, pdc_region):
@@ -203,11 +209,41 @@ def check(ctx, repos, ids, manifest, output,
 
 
 @cli.command()
+@click.option('--repos', '-r', type=click.Choice(REPOS), multiple=True, prompt=True)
+@click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True),
+              prompt=True)
+@click.option('--cghub-access', type=click.STRING, prompt=True, hide_input=True)
+@click.option('--cghub-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True), prompt=True)
+@click.option('--ega-access', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True),
+              prompt=True)
+@click.option('--ega-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True), prompt=True)
+@click.option('--gdc-access', type=click.STRING, prompt=True, hide_input=True)
+@click.option('--gdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True), prompt=True)
+@click.option('--icgc-access', type=click.STRING, prompt=True, hide_input=True)
+@click.option('--icgc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True), prompt=True)
+@click.option('--pdc-access', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True),
+              prompt=True)
+@click.option('--pdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True), prompt=True)
+@click.option('--pdc-region', type=click.STRING, prompt=True)
+def configure(repos, output, cghub_access, cghub_path, ega_access, ega_path, 
+              gdc_access, gdc_path, icgc_access, icgc_path, pdc_access, pdc_path, pdc_region):
+    conf_yaml = {'output': output, 'repos': repos,
+                 'icgc': {'path': icgc_path, 'access': icgc_access},
+                 'cghub': {'path': cghub_path, 'access': cghub_access},
+                 'ega': {'path': ega_path, 'access': ega_access},
+                 'gdc': {'path': gdc_path, 'access': gdc_access},
+                 'pdc': {'path': pdc_path, 'access': pdc_access, 'region': pdc_region}}
+    config_file = file(output + 'config.yaml', 'w')
+    yaml.dump(conf_yaml, config_file)
+    os.environ['ICGCGET_CONFIG'] = output + 'config.yaml'
+
+
+@cli.command()
 @click.option('--cghub-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--ega-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--gdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--icgc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
-@click.option('--pdc-path')
+@click.option('--pdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 def version(cghub_path, ega_path, gdc_path, icgc_path, pdc_path):
     versions_command(cghub_path, ega_path, gdc_path, icgc_path, pdc_path, VERSION)
 

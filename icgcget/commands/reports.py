@@ -46,12 +46,14 @@ class StatusScreenDispatcher(object):
         else:
             headers = ["", "Size", "Unit", "File Count", "Donor Count"]
         summary_table = []
+
         for repository in repos:
             repo_sizes[repository] = OrderedDict({"total": 0})
             repo_counts[repository] = {"total": 0}
             repo_donors[repository] = {"total": []}
             repo_download_count[repository] = {"total": 0}
         entities = get_entities(self, object_ids, api_url)
+
         for entity in entities:
             state = False
             size = entity["fileCopies"][0]["fileSize"]
@@ -74,6 +76,7 @@ class StatusScreenDispatcher(object):
             summary_table = build_table(summary_table, repo, repo_sizes[repo], repo_counts[repo], repo_donors[repo],
                                         repo_download_count[repo], output)
             repo_list.append(repo)
+
         summary_table = build_table(summary_table, 'Total', type_sizes, type_counts, type_donors, download_count,
                                     output)
         self.print_table(headers, summary_table, table_format)
@@ -93,7 +96,8 @@ class StatusScreenDispatcher(object):
                 state = "No"
             file_size = convert_size(size)
             file_table.append([entity["id"], file_size[0], file_size[1], copy["fileFormat"],
-                               data_type, repository, entity["donors"][0]['donorId'], copy["fileName"], state])
+                               data_type, repository, entity["donor"], copy["fileName"], state])
+
         self.print_table(headers, file_table, table_format)
 
     def print_table(self, headers, file_table, table_format):

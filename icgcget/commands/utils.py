@@ -73,19 +73,16 @@ def compare_ids(current_session, old_session, override):
     for repo in current_session:
         updated_session[repo] = {}
         if repo not in old_session:
-            if override:
+            if override_prompt(override):
                 return current_session
-            else:
-                return old_session
         for fi_id in current_session[repo]:
             if fi_id in old_session[repo]:
                 if old_session[repo][fi_id]['state'] != "Finished":
                     updated_session[repo][fi_id] = current_session[repo][fi_id]
             else:
-                if override:
+
+                if override_prompt(override):
                     return current_session
-                else:
-                    return old_session
     return updated_session
 
 
@@ -94,8 +91,12 @@ def config_parse(filename, default_filename):
     try:
         config_text = open(filename, 'r')
     except IOError as ex:
-        config_errors("Config file {0} not found: {1}".format(filename, ex.strerror), default)
-        return {}
+
+        if default:
+            return {}
+        else:
+            print "Config file {0} not found: {1}".format(filename, ex.strerror)
+            raise click.Abort()
     try:
         config_temp = yaml.safe_load(config_text)
         if config_temp:
@@ -103,16 +104,25 @@ def config_parse(filename, default_filename):
             config = {'download': config_download, 'report': config_download, 'version': config_download,
                       'check': config_download, 'logfile': config_temp['logfile']}
         else:
-            config_errors("Config file {} is an empty file.".format(filename), default)
-            return {}
+            if default:
+                return {}
+            else:
+                print "Config file {} is an empty file.".format(filename)
+                raise click.Abort()
     except yaml.YAMLError:
         config_errors("Failed to parse config file {}.  Config must be in YAML format.".format(filename), default)
-        return {}
+        if default:
+            return {}
+        else:
+            print "Failed to parse config file {}.  Config must be in YAML format.".format(filename)
+            raise click.Abort()
     return config
 
 
 def config_errors(message, default):
-    if not default:
+    if default:
+        return {}
+    else:
         print message
         raise click.Abort()
 
@@ -123,22 +133,22 @@ def override_prompt(override):
     if click.confirm("Previous session data does not match current command.  Ok to overwrite previous session info?"):
         return True
     else:
-        return False
+        raise click.Abort
 
 
 def validate_ids(ids, manifest):
     if manifest:
         if not re.match(r'\w{8}-\w{4}-\w{4}-\w{4}-\w{12}', ids[0]):
-            raise click.BadArgumentUsage(message="Bad Manifest ID: passed id {} isn't in UUID format".format(ids[0]))
+            raise click.BadArgumentUsage(message="Bad Manifest ID: passed argument {} isn't in uuid format".format(ids))
     else:
         for fi_id in ids:
             if not re.findall(r'FI\d*', fi_id):
                 if re.match(r'\w{8}-\w{4}-\w{4}-\w{4}-\w{12}', fi_id):
-                    raise click.BadArgumentUsage(message="Bad FI ID: passed argument {} ".format(fi_id) +
-                                                         "is in UUID format.  If you intended to use a manifest, " +
+                    raise click.BadArgumentUsage(message="Bad FI ID: passed argument {}".format(fi_id) +
+                                                         "is in uuid format.  If you intended to use a manifest," +
                                                          "add the -m tag.")
-                raise click.BadArgumentUsage(message="Bad FI ID: passed argument {} is invalid.".format(fi_id) +
-                                                     " File ids begin with 'FI' followed by a number. e.g. 'FI12345'")
+                raise click.BadArgumentUsage(message="Bad FI ID: passed argument {}".format(fi_id) +
+                                                     "isn't in FI00000 format")
 
 
 def match_repositories(self, repos, copies):

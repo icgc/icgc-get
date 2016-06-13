@@ -47,9 +47,9 @@ ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
 # Install python 2.7 and dependancies for Genetorrent and icgc-get.
 #
 
-RUN apt-get install -y python-pip python-dev libffi-dev
-RUN apt-get upgrade -y
-RUN pip install -U pip setuptools
+RUN apt-get install -y python-pip python-dev libffi-dev && \
+    apt-get upgrade -y && \
+    pip install -U pip setuptools
 
 COPY . /icgc/icgcget/
 COPY /conf/ /icgc/conf
@@ -111,5 +111,15 @@ RUN mkdir -p /icgc/aws-command-line-client && \
 #
 
 WORKDIR /icgc
+
+#
+# Set path defaults as environmental variables
+#
+
+ENV ICGCGET_ICGC_PATH = /icgc/icgc-storage-client/bin/icgc-storage-client
+ENV ICGCGET_GDC_PATH = /icgc/gdc-data-transfer-tool/gdc-client
+ENV ICGCGET_EGA_PATH = /icgc/ega-download-demo/EgaDemoClient.jar
+ENV ICGCGET_CGHUB_PATH = /icgc/genetorrent/bin/gtdownload
+ENV ICGCGET_PDC_PATH = /local/bin/aws
 
 ENTRYPOINT ["icgc-get"]

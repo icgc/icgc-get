@@ -42,7 +42,6 @@ icgc:
     memory: '1'  # All numerical values must be explicity declared as strings
     parallel: '6'
 
-
 # GDC
 gdc:
   access:
@@ -64,7 +63,7 @@ ega:
 pdc:
   access:
   path: /usr/local/bin/aws
-  region: us-west-1
+  region: us-west-2
   transport:
     parallel: '1'
 
@@ -74,3 +73,4 @@ cghub:
   path: /icgc/genetorrent/bin/gtdownload
   transport:
     parallel: '8'
+

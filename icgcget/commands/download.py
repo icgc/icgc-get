@@ -51,6 +51,7 @@ class DownloadDispatcher(object):
             file_ids = []
             for repo in object_ids:
                 file_ids.extend(object_ids[repo].keys())
+
         entities = api_error_catch(self, portal.get_metadata_bulk, file_ids, api_url)
         for entity in entities:
             for repo_id in object_ids:
@@ -150,6 +151,7 @@ class DownloadDispatcher(object):
         if code != 0:
             self.logger.error("%s client exited with a nonzero error code %s.", client, code)
             raise click.ClickException("Please check client output for error messages")
+
 
     def size_check(self, size, output):
         free = psutil.disk_usage(output)[2]
