@@ -47,9 +47,9 @@ ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
 # Install python 2.7 and dependancies for Genetorrent and icgc-get.
 #
 
-RUN apt-get install -y python-pip python-dev libffi-dev && \
-    apt-get upgrade -y && \
-    pip install -U pip setuptools
+RUN apt-get install -y python-pip python-dev libffi-dev
+RUN apt-get upgrade -y
+RUN pip install -U pip setuptools
 
 COPY . /icgc/icgcget/
 COPY /conf/ /icgc/conf
@@ -84,7 +84,7 @@ ENV PATH=$PATH:/icgc/genetorrent/bin
 
 RUN mkdir -p /icgc/icgc-storage-client && \
     cd /icgc/icgc-storage-client && \
-    wget -qO- https://seqwaremaven.oicr.on.ca/artifactory/dcc-release/org/icgc/dcc/icgc-storage-client/[RELEASE]/icgc-storage-client-[RELEASE]-dist.tar.gz | \
+    wget -qO- https://artifacts.oicr.on.ca/artifactory/dcc-release/org/icgc/dcc/icgc-storage-client/[RELEASE]/icgc-storage-client-[RELEASE]-dist.tar.gz | \
     tar xvz --strip-components 1
 
 #
@@ -93,7 +93,7 @@ RUN mkdir -p /icgc/icgc-storage-client && \
 
 RUN mkdir -p /icgc/gdc-data-transfer-tool && \
     cd /icgc/gdc-data-transfer-tool && \
-    wget -qO- https://gdc.nci.nih.gov/files/public/file/gdc-clientv07ubuntu1404x64_1.zip -O temp.zip ; \
+    wget -qO- https://gdc.nci.nih.gov/files/public/file/gdc-client_v1.0.1_Ubuntu14.04_x64_0.zip -O temp.zip ; \
     unzip temp.zip -d /icgc/gdc-data-transfer-tool ; \
     rm temp.zip && \
     cd /icgc

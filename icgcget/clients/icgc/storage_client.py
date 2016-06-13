@@ -49,13 +49,13 @@ class StorageClient(DownloadClient):
         match = repo + ".download"
         return match in resp["scope"]
 
-    def print_version(self, path, access=None):
+    def print_version(self, path):
         self._run_command([path, 'version'], self.version_parser)
 
     def version_parser(self, response):
         version = re.findall(r"Version: [0-9.]+", response)
         if version:
-            self.logger.info("ICGC Storage Client %s", version[0])
+            self.logger.info(" ICGC Storage Client %s", version[0])
 
     def download_parser(self, response):
         filename = re.findall(r"\(\w{8}-\w{4}-\w{4}-\w{4}-\w{12}.+", response)

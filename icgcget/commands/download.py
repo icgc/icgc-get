@@ -42,15 +42,15 @@ class DownloadDispatcher(object):
         self.pdc_client = PdcDownloadClient(pickle_path)
         self.icgc_client = StorageClient(pickle_path)
 
-    def download_manifest(self, repos, file_ids, manifest, output, yes_to_all, api_url):
+    def download_manifest(self, repos, file_ids, manifest, output, api_url):
         portal = portal_client.IcgcPortalClient()
         manifest_json = self.get_manifest(manifest, file_ids, api_url, repos, portal)
         size, session_info = calculate_size(manifest_json)
         object_ids = session_info['object_ids']
         if manifest:
             file_ids = []
-            for repo in repos:
-                file_ids.append(object_ids[repo].keys())
+            for repo in object_ids:
+                file_ids.extend(object_ids[repo].keys())
         entities = api_error_catch(self, portal.get_metadata_bulk, file_ids, api_url)
         for entity in entities:
             for repo_id in object_ids:
@@ -73,7 +73,7 @@ class DownloadDispatcher(object):
                     if repo == 'pdc':
                         object_ids[repo][entity['id']]['fileUrl'] = 's3' + copy['repoBaseUrl'][5:] + \
                                                                     copy['repoDataPath']
-        self.size_check(size, yes_to_all, output)
+        self.size_check(size, output)
         session_info['object_ids'] = object_ids
         return session_info
 
@@ -134,7 +134,7 @@ class DownloadDispatcher(object):
             self.pdc_client.session = object_ids
             return_code = self.pdc_client.download(urls, pdc_access, pdc_path, staging, pdc_transport_parallel,
                                                    region=pdc_region)
-            self.check_code('Pdc', return_code)
+            self.check_code('Aws', return_code)
             self.move_files(staging, output)
 
         if 'gdc' in object_ids and object_ids['gdc']:
@@ -151,14 +151,9 @@ class DownloadDispatcher(object):
             self.logger.error("%s client exited with a nonzero error code %s.", client, code)
             raise click.ClickException("Please check client output for error messages")
 
-    def size_check(self, size, override, output):
+    def size_check(self, size, output):
         free = psutil.disk_usage(output)[2]
-        if free*0.8 <= size and not override:
-            if not click.confirm("Ok to download {0}s of files?  ".format(''.join(convert_size(size))) +
-                                 "There is {}s of free space in {}".format(''.join(convert_size(free)), output)):
-                self.logger.info("User aborted download")
-                raise click.Abort
-        elif free <= size:
+        if free <= size:
             self.logger.error("Not enough space detected for download of %s. %s of space in %s",
                               ''.join(convert_size(size)), ''.join(convert_size(free)), output)
 

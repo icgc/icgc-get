@@ -58,7 +58,7 @@ class PdcDownloadClient(DownloadClient):
             else:
                 raise SubprocessError(result, "AWS failed with code {}".format(result))
 
-    def print_version(self, path, access=None):
+    def print_version(self, path):
         call_args = [path, '--version']
         self._run_command(call_args, self.version_parser)
 
@@ -66,6 +66,6 @@ class PdcDownloadClient(DownloadClient):
         self.logger.info(output)
 
     def version_parser(self, output):
-        version = re.findall(r"aws-icgcget/[0-9.]+", output)
+        version = re.findall(r"aws-cli/[0-9.]+", output)
         if version:
-            self.logger.info("AWS CLI Version: %s", version[0][8:])
+            self.logger.info(" AWS CLI Version:             %s", version[0][8:])

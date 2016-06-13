@@ -30,13 +30,13 @@ def call_api(request, api_url, headers=None, head=False):
             resp = requests.get(request, headers=headers)
     except requests.exceptions.ConnectionError as ex:
         logger.debug(ex.message)
-        raise ApiError(request, ex.message + "  Unable to connect to the icgc api at {}".format(api_url))
+        raise ApiError(request, ex.message.message)
     except requests.exceptions.Timeout as ex:
         logger.debug(ex.message)
-        raise ApiError(request, ex.message)
+        raise ApiError(request, ex.message.message)
     except requests.exceptions.RequestException as ex:
         logger.error(ex.message)
-        raise ApiError(request, ex.message)
+        raise ApiError(request, ex.message.message)
     if resp.status_code != 200:
         raise ApiError(request, "API request failed due to {} error.".format(resp.reason),
                        code=resp.status_code)
@@ -48,7 +48,7 @@ class IcgcPortalClient(object):
         self.logger = logging.getLogger('__log__')
 
     def get_manifest_id(self, manifest_id, api_url, repos=None):
-        fields = 'fields=id,size,content,repoFileId'
+        fields = '&fields=id,size,content,repoFileId&format=json'
         if repos:
             request = (api_url + 'manifests/' + manifest_id + '?repos=' + ','.join(repos) +
                        '&unique=true&' + fields)
@@ -58,13 +58,13 @@ class IcgcPortalClient(object):
             entity_set = call_api(request, api_url)
         except ApiError as ex:
             if ex.code == 404:
-                self.logger.error("Manifest {} not found in database. ".format(manifest_id) +
+                self.logger.error("Manifest {} not found on server. ".format(manifest_id) +
                                   " Please check your manifest id")
-            raise ApiError(ex.request_string, '', ex.code)
+            raise ApiError(ex.request_string, ex.message, ex.code)
         return entity_set
 
     def get_manifest(self, file_ids, api_url, repos=None):
-        fields = '&fields=id,size,content,repoFileId'
+        fields = '&fields=id,size,content,repoFileId&format=json'
         if repos:
             request = (api_url + 'manifests' + self.filters(file_ids) + '&repos=' + ','.join(repos) + '&unique=true&' +
                        fields)

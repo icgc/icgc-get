@@ -27,7 +27,7 @@ class DownloadClient(object):
         return
 
     @abc.abstractmethod
-    def print_version(self, path, access=None):
+    def print_version(self, path):
         return
 
     @abc.abstractmethod

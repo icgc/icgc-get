@@ -31,7 +31,8 @@ repos:
  - aws-virginia
 
 portal:
-  url: https://dev.dcc.icgc.org/
+  url: https://dcc.icgc.org/
+
 # IGCC Storage
 icgc:
   access:
@@ -58,6 +59,14 @@ ega:
   transport:
     parallel: '1'
   udt: false
+
+# PDC
+pdc:
+  access:
+  path: /usr/local/bin/aws
+  region: us-west-1
+  transport:
+    parallel: '1'
 
 # CGHub
 cghub:

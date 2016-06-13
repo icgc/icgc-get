@@ -92,16 +92,16 @@ class EgaDownloadClient(DownloadClient):
                 return False
             if "EGAD00001000023" in data_sets and "EGAD00010000562" in data_sets:
                 return True
-
         return False
 
-    def print_version(self, path, access=None):
-        self._run_command(['java', '-jar', path, '-pf', access], self.version_parser)
+    def print_version(self, path):
+        self._run_command(['java', '-jar', path, '-p', 'demo@test.org', '123pass'], self.version_parser)
 
     def version_parser(self, response):
         version = re.findall(r"Version: [0-9.]+", response)
         if version:
-            self.logger.info("EGA Client %s", version[0])
+            version = version[0][9:]
+            self.logger.info(" EGA Client Version:          %s", version)
 
     def download_parser(self, response):
         filename = re.findall(r'/[^/]+.cip  \(', response)

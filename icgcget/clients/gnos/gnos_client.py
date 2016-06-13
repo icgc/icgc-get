@@ -48,13 +48,14 @@ class GnosDownloadClient(DownloadClient):
         else:
             raise SubprocessError(result, "Genetorrent failed with code {}".format(result))
 
-    def print_version(self, path, access=None):
+    def print_version(self, path):
         self._run_command([path, '--version'], self.version_parser)
 
     def version_parser(self, response):
-        version = re.findall(r"elease [0-9.]+", response)
+        version = re.findall(r"release [0-9.]+", response)
         if version:
-            self.logger.info("Gtdownload R%s", version[0])
+            version = version[0][8:]
+            self.logger.info(" Gtdownload Version:          %s", version)
 
     def download_parser(self, response):
         self.logger.info(response)

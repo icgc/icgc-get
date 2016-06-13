@@ -53,13 +53,14 @@ class GdcDownloadClient(DownloadClient):
             else:
                 raise ex
 
-    def print_version(self, path, access=None):
-        self._run_command([path, '-v'], self.version_parser)
+    def print_version(self, path):
+        self._run_command([path, '--version'], self.version_parser)
 
     def version_parser(self, response):
         version = re.findall(r"v[0-9.]+", response)
         if version:
-            self.logger.info("GDC Client Version %s", version[0])
+            version = version[0][1:]
+            self.logger.info(" GDC Client Version:          %s", version)
 
     def download_parser(self, response):
         file_id = re.findall(r'v------ \w{8}-\w{4}-\w{4}-\w{4}-\w{12} ------v', response)
