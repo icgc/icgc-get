@@ -65,3 +65,10 @@ cghub:
   path: /icgc/genetorrent/bin/gtdownload
   transport:
     parallel: '8'
+
+#PDC
+pdc:
+  access:
+  path: /local/bin/aws
+  region: us-west-2
+  

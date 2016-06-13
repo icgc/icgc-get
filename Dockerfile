@@ -93,7 +93,7 @@ RUN mkdir -p /icgc/icgc-storage-client && \
 
 RUN mkdir -p /icgc/gdc-data-transfer-tool && \
     cd /icgc/gdc-data-transfer-tool && \
-    wget -qO- https://gdc.nci.nih.gov/files/public/file/gdc-clientv07ubuntu1404x64_1.zip -O temp.zip ; \
+    wget -qO- https://gdc.nci.nih.gov/files/public/file/gdc-client_v1.0.1_Ubuntu14.04_x64_0.zip -O temp.zip ; \
     unzip temp.zip -d /icgc/gdc-data-transfer-tool ; \
     rm temp.zip && \
     cd /icgc
@@ -111,5 +111,15 @@ RUN mkdir -p /icgc/aws-command-line-client && \
 #
 
 WORKDIR /icgc
+
+#
+# Set path defaults as environmental variables
+#
+
+ENV ICGCGET_ICGC_PATH = /icgc/icgc-storage-client/bin/icgc-storage-client
+ENV ICGCGET_GDC_PATH = /icgc/gdc-data-transfer-tool/gdc-client
+ENV ICGCGET_EGA_PATH = /icgc/ega-download-demo/EgaDemoClient.jar
+ENV ICGCGET_CGHUB_PATH = /icgc/genetorrent/bin/gtdownload
+EVN ICGCGET_PDC_PATH = /local/bin/aws
 
 ENTRYPOINT ["icgc-get"]

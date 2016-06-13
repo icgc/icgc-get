@@ -89,23 +89,23 @@ def cli(ctx, config, logfile):
               required=True)
 @click.option('--cghub-access', type=click.STRING)
 @click.option('--cghub-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
-@click.option('--cghub-transport-parallel', type=click.STRING)
+@click.option('--cghub-transport-parallel', type=click.STRING, default='8')
 @click.option('--ega-access', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
 @click.option('--ega-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
-@click.option('--ega-transport-parallel', type=click.STRING)
-@click.option('--ega-udt', type=click.BOOL)
+@click.option('--ega-transport-parallel', type=click.STRING, default='1')
+@click.option('--ega-udt', type=click.BOOL, default=False)
 @click.option('--gdc-access', type=click.STRING)
 @click.option('--gdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
-@click.option('--gdc-transport-parallel', type=click.STRING)
-@click.option('--gdc-udt', type=click.BOOL)
+@click.option('--gdc-transport-parallel', type=click.STRING, default='8')
+@click.option('--gdc-udt', type=click.BOOL, default=False)
 @click.option('--icgc-access', type=click.STRING)
 @click.option('--icgc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
-@click.option('--icgc-transport-file-from', type=click.STRING)
-@click.option('--icgc-transport-parallel', type=click.STRING)
+@click.option('--icgc-transport-file-from', type=click.STRING, default='remote')
+@click.option('--icgc-transport-parallel', type=click.STRING, default='8')
 @click.option('--pdc-access', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
 @click.option('--pdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
-@click.option('--pdc-region', type=click.STRING)
-@click.option('--pdc-transport-parallel', type=click.STRING)
+@click.option('--pdc-region', type=click.STRING, default='us-east-1')
+@click.option('--pdc-transport-parallel', type=click.STRING, default='8')
 @click.option('--yes-to-all', '-y', is_flag=True, default=False, help="Bypass all confirmation prompts")
 @click.pass_context
 def download(ctx, file_ids, repos, manifest, output,
@@ -190,7 +190,7 @@ def report(ctx, repos, file_ids, manifest, output, table_format, data_type, over
 @click.option('--icgc-access', type=click.STRING)
 @click.option('--pdc-access', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
 @click.option('--pdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
-@click.option('--pdc-region', type=click.STRING)
+@click.option('--pdc-region', type=click.STRING, default='us-west-2')
 @click.pass_context
 def check(ctx, repos, file_ids, manifest, output,
           cghub_access, cghub_path, ega_access, gdc_access, icgc_access, pdc_access, pdc_path, pdc_region):
@@ -206,14 +206,46 @@ def check(ctx, repos, file_ids, manifest, output,
 
 
 @cli.command()
+@click.option('--repos', '-r', type=click.Choice(REPOS), multiple=True, prompt=True)
+@click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True),
+              prompt=True)
+@click.option('--cghub-access', type=click.STRING, prompt=True, hide_input=True)
+@click.option('--cghub-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True), prompt=True)
+@click.option('--ega-access', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True),
+              prompt=True)
+@click.option('--ega-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True), prompt=True)
+@click.option('--gdc-access', type=click.STRING, prompt=True, hide_input=True)
+@click.option('--gdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True), prompt=True)
+@click.option('--icgc-access', type=click.STRING, prompt=True, hide_input=True)
+@click.option('--icgc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True), prompt=True)
+@click.option('--pdc-access', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True),
+              prompt=True)
+@click.option('--pdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True), prompt=True)
+@click.option('--pdc-region', type=click.STRING, prompt=True)
+def configure(repos, output, cghub_access, cghub_path, ega_access, ega_path, 
+              gdc_access, gdc_path, icgc_access, icgc_path, pdc_access, pdc_path, pdc_region):
+	os.environ['ICGCGET_OUTPUT'] = output
+	os.environ['ICGCGET_CGHUB_ACCESS'] = cghub_access
+	os.environ['ICGCGET_CGHUB_PATH'] = cghub_path
+	os.environ['ICGCGET_EGA_ACCESS'] = ega_access
+	os.environ['ICGCGET_EGA_PATH'] = ega_path
+	os.environ['ICGCGET_GDC_ACCESS'] = gdc_access
+	os.environ['ICGCGET_GDC_PATH'] = gdc_path
+	os.environ['ICGCGET_ICGC_ACCESS'] = icgc_access
+	os.environ['ICGCGET_ICGC_PATH'] = icgc_path
+	os.environ['ICGCGET_PDC_ACCESS'] = pdc_access
+	os.environ['ICGCGET_PDC_PATH'] = pdc_path
+	os.environ['ICGCGET_PDC_REGION'] = pdc_region
+
+
+@cli.command()
 @click.option('--cghub-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--ega-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
-@click.option('--ega-access', type=click.STRING)
 @click.option('--gdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--icgc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--pdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 def version(cghub_path, ega_access, ega_path, gdc_path, icgc_path, pdc_path):
-    versions_command(cghub_path, ega_access, ega_path, gdc_path, icgc_path, pdc_path, VERSION)
+    versions_command(cghub_path, ega_path, gdc_path, icgc_path, pdc_path, VERSION)
 
 
 def main():
