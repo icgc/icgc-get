@@ -84,7 +84,7 @@ ENV PATH=$PATH:/icgc/genetorrent/bin
 
 RUN mkdir -p /icgc/icgc-storage-client && \
     cd /icgc/icgc-storage-client && \
-    wget -qO- https://seqwaremaven.oicr.on.ca/artifactory/dcc-release/org/icgc/dcc/icgc-storage-client/[RELEASE]/icgc-storage-client-[RELEASE]-dist.tar.gz | \
+    wget -qO- https://artifacts.oicr.on.ca/artifactory/dcc-release/org/icgc/dcc/icgc-storage-client/[RELEASE]/icgc-storage-client-[RELEASE]-dist.tar.gz | \
     tar xvz --strip-components 1
 
 #
@@ -120,6 +120,6 @@ ENV ICGCGET_ICGC_PATH = /icgc/icgc-storage-client/bin/icgc-storage-client
 ENV ICGCGET_GDC_PATH = /icgc/gdc-data-transfer-tool/gdc-client
 ENV ICGCGET_EGA_PATH = /icgc/ega-download-demo/EgaDemoClient.jar
 ENV ICGCGET_CGHUB_PATH = /icgc/genetorrent/bin/gtdownload
-EVN ICGCGET_PDC_PATH = /local/bin/aws
+ENV ICGCGET_PDC_PATH = /local/bin/aws
 
 ENTRYPOINT ["icgc-get"]
