@@ -17,7 +17,9 @@
 #
 import os
 import collections
-import yaml
+
+import datetime
+
 
 
 def flatten_dict(dictionary, parent_key='', sep='_'):
@@ -39,40 +41,11 @@ def convert_size(num, suffix='B'):
     return ["%.2f" % num, "%s%s" % ('Yi', suffix)]
 
 
-def get_api_url(context_map):
-    if os.getenv("ICGCGET_API_URL"):
-        api_url = os.getenv("ICGCGET_API_URL")
-    else:
-        api_url = context_map["portal_url"] + 'api/v1/'
-    return api_url
-
-
 def normalize_keys(obj):
     if isinstance(obj, dict):
         return obj
     else:
         return {k.replace('.', '_'): normalize_keys(v) for k, v in obj.items()}
-
-
-def config_parse(filename):
-    config = {}
-    try:
-        config_text = open(filename, 'r')
-    except IOError:
-
-        print "Config file {} not found".format(filename)
-        return config
-    try:
-        config_temp = yaml.safe_load(config_text)
-        config_download = flatten_dict(normalize_keys(config_temp))
-        config = {'download': config_download, 'status': config_download, 'version': config_download,
-                  'check': config_download, 'logfile': config_temp['logfile']}
-    except yaml.YAMLError:
-
-        print "Could not read config file {}".format(filename)
-        return {}
-
-    return config
 
 
 def donor_addition(donor_list, donor, data_type):
@@ -91,20 +64,23 @@ def increment_types(typename, count_dict, size):
     count_dict["total"] += size
     count_dict[typename] += size
 
-    return dict
+    return count_dict
 
 
-def build_table(table, repo, sizes, counts, donors, downloads):
+def build_table(table, repo, sizes, counts, donors, downloads, output):
     for data_type in sizes:
         file_size = convert_size(sizes[data_type])
         if data_type == 'total':
             name = repo
         else:
             name = repo + ": " + data_type
-        if data_type not in downloads:
-            downloads[data_type] = 0
-        table.append([name, file_size[0], file_size[1], counts[data_type], len(donors[data_type]),
-                      downloads[data_type]])
+        if output:
+            if data_type not in downloads:
+                downloads[data_type] = 0
+            table.append([name, file_size[0], file_size[1], counts[data_type], len(donors[data_type]),
+                          downloads[data_type]])
+        else:
+            table.append([name, file_size[0], file_size[1], counts[data_type], len(donors[data_type])])
     return table
 
 
@@ -116,7 +92,8 @@ def calculate_size(manifest_json):
         object_ids[repo] = {}
         for file_info in repo_info["files"]:
             object_ids[repo][file_info['id']] = {'uuid': file_info["repoFileId"], 'state': "Not started",
-                                                 'filename': 'None', 'index_filename': 'None', 'fileUrl': 'None',
-                                                 'size': file_info['size']}
+                                                 'filename': 'None', 'index_filename': 'None',
+                                                 'fileUrl': 'None', 'size': file_info['size']}
             size += file_info["size"]
-    return size, object_ids
+    session_info = {'pid': os.getpid(), 'start_time': datetime.datetime.now(), 'object_ids': object_ids}
+    return size, session_info

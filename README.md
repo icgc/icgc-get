@@ -38,13 +38,12 @@ To make working with the container easier, it is recommend to add a bash alias t
 `icgc-get`.
 
 ```shell
-alias icgc-get="docker run -it --rm -v $MOUNT_DIR:/icgc/mnt icgc/icgc-get --config /icgc/mnt/config.yaml"
+alias icgc-get="docker run -it --rm -u $(id -u):$(id -g) -v $MOUNT_DIR:/icgc/mnt icgc/icgc-get --config /icgc/mnt/config.yaml"
 ```
 
-
-replacing `$MOUNT_DIR` with the path to your mounted directory. This directory will be populated by the script with
+replacing `$MOUNT_DIR` with the path to your mounted directory. By default, this directory will be populated by the script with
 process logs and downloaded files. You will also need to save a configuration file in this directory if you wish
-to pass a customized config file to the container.
+to pass a customized config file to the container. The files will be written with ownership set to the current user (`/usr/bin/id -u`) and group (`/usr/bin/id -g`).
 
 
 ## Configuration
@@ -53,7 +52,7 @@ configurable options and the defaults for using these options in a docker contai
 In addition to editing the config file most configuration options can either be overwritten 
 through the command line or environmental variables. Environmental variables are in all caps, 
 have underscores as separators, and are prefixed by ICGCGET_. Command line options have dashes 
-as separators and are prefixed by two dashes.  Config file options have periods as separators.  The 
+as separators and are prefixed by two dashes.  Config file options a colon, followed by a newline and two spaces as separators.  The 
 only exception to this rule is the ICGC api path: it cannot be set via the command line.
 
 To specify which config file to use either pass an absolute path to the config file to the 
