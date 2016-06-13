@@ -232,7 +232,7 @@ def configure(repos, output, cghub_access, cghub_path, ega_access, ega_path,
                      'pdc': {'path': pdc_path, 'access': pdc_access, 'region': pdc_region}} 
 	config_file = file(output + 'config.yaml', 'w')
 	yaml.dump(conf_yaml, config_file)
-
+	os.environ['ICGCGET_CONFIG'] = output + 'config.yaml'
 
 @cli.command()
 @click.option('--cghub-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
