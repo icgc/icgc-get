@@ -112,4 +112,4 @@ class AccessCheckDispatcher(object):
             if repository == "cghub":
                 self.cghub_ids.append(entity["dataBundle"]["dataBundleId"])
             if repository == "pdc":
-                self.pdc_urls.append('s3' + copy['repoBaseUrl'][5:] + copy["repoDataPath"])
+                self.pdc_urls.append('s3://' + copy["repoDataPath"])

@@ -64,7 +64,8 @@ class DownloadDispatcher(object):
             file_copies = entity['fileCopies']
             for copy in file_copies:
                 if copy['repoCode'] == repo:
-                    if copy["fileName"] in os.listdir(output):
+                    if copy["fileName"] in os.listdir(output) or copy['repoDataPath'].split('/')[1] in \
+                            os.listdir(output):
                         object_ids[repo].pop(entity['id'])
                         self.logger.warning("File %s found in download directory, skipping", entity['id'])
                         break
@@ -72,8 +73,8 @@ class DownloadDispatcher(object):
                     if "fileName" in copy["indexFile"]:
                         object_ids[repo][entity["id"]]['index_filename'] = copy["indexFile"]["fileName"]
                     if repo == 'pdc':
-                        object_ids[repo][entity['id']]['fileUrl'] = 's3' + copy['repoBaseUrl'][5:] + \
-                                                                    copy['repoDataPath']
+                        object_ids[repo][entity['id']]['fileUrl'] = 's3://' + copy['repoDataPath']
+
         self.size_check(size, output)
         session_info['object_ids'] = object_ids
         return session_info
@@ -151,7 +152,6 @@ class DownloadDispatcher(object):
         if code != 0:
             self.logger.error("%s client exited with a nonzero error code %s.", client, code)
             raise click.ClickException("Please check client output for error messages")
-
 
     def size_check(self, size, output):
         free = psutil.disk_usage(output)[2]

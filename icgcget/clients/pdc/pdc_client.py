@@ -31,6 +31,7 @@ class PdcDownloadClient(DownloadClient):
 
     def download(self, data_paths, access, tool_path, output, processes, udt=None, file_from=None, repo=None,
                  region=None):
+        code = 0
         access_file = open(access)
         key = access_file.readline()
         secret_key = access_file.readline()
@@ -38,8 +39,13 @@ class PdcDownloadClient(DownloadClient):
         os.environ['AWS_SECRET_ACCESS_KEY'] = secret_key.rstrip()
         os.environ['AWS_DEFAULT_REGION'] = region
         for data_path in data_paths:
-            call_args = [tool_path, 's3', 'cp', data_path, output + '/']
-            self._run_command(call_args, self.download_parser)
+            call_args = [tool_path, 's3', '--endpoint-url=https://bionimbus-objstore.opensciencedatacloud.org/', 'cp',
+                         data_path, output + '/']
+            code = self._run_command(call_args, self.download_parser)
+            if code != 0:
+                return code
+            self.session_update(data_path, 'pdc')
+        return code
 
     def access_check(self, access, data_paths=None, path=None, repo=None, output=None, api_url=None, region=None):
         access_file = open(access)
@@ -49,10 +55,13 @@ class PdcDownloadClient(DownloadClient):
         os.environ['AWS_SECRET_ACCESS_KEY'] = secret_key.rstrip()
         os.environ['AWS_DEFAULT_REGION'] = region
         for data_path in data_paths:
-            call_args = [path, 's3', 'cp', data_path, output + '/', '--dryrun']
+            call_args = [path, 's3', '--endpoint-url=https://bionimbus-objstore.opensciencedatacloud.org/', 'cp',
+                         data_path, output + '/', '--dryrun']
             result = self._run_test_command(call_args, "(403)", "(404)")
             if result == 3:
                 return False
+            elif result == 0:
+                return True
             elif result == 2:
                 raise SubprocessError(result, "Path to AWS client did not lead to expected application")
             else:

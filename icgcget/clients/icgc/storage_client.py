@@ -45,7 +45,7 @@ class StorageClient(DownloadClient):
 
     def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, region=None):
         request = api_url + 'settings/tokens/' + access
-        resp = call_api(request, api_url)
+        resp = call_api(request)
         match = repo + ".download"
         return match in resp["scope"]
 

@@ -21,13 +21,13 @@ import requests
 from icgcget.clients.errors import ApiError
 
 
-def call_api(request, api_url, headers=None, head=False):
+def call_api(request, headers=None, head=False, verify=True):
     logger = logging.getLogger("__log__")
     try:
         if head:
-            resp = requests.head(request, headers=headers)
+            resp = requests.head(request, headers=headers, verify=verify)
         else:
-            resp = requests.get(request, headers=headers)
+            resp = requests.get(request, headers=headers, verify=verify)
     except requests.exceptions.ConnectionError as ex:
         logger.debug(ex.message)
         raise ApiError(request, ex.message.message)
@@ -70,7 +70,7 @@ class IcgcPortalClient(object):
                        fields)
         else:
             request = api_url + 'manifests' + self.filters(file_ids) + fields
-        entity_set = call_api(request, api_url)
+        entity_set = call_api(request)
         return entity_set
 
     def get_metadata_bulk(self, file_ids, api_url):
@@ -79,7 +79,7 @@ class IcgcPortalClient(object):
         while pages_available:
             request = (api_url + 'repository/files' + self.filters(file_ids) +
                        '"&&from=1&size=10&sort=id&order=desc')
-            resp = call_api(request, api_url)
+            resp = call_api(request)
             entity_set.extend(resp["hits"])
             pages = resp["pagination"]["pages"]
             page = resp["pagination"]["page"]

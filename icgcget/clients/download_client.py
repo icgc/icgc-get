@@ -64,11 +64,12 @@ class DownloadClient(object):
 
     def session_update(self, file_name, repo):
         for file_object in self.session[repo].values():
-            if file_object['index_filename'] == file_name or file_object['filename'] == file_name:
+            if file_object['index_filename'] == file_name or file_object['filename'] == file_name or \
+                            file_object['fileUrl'] == file_name:
                 file_object['state'] = 'Running'
             elif file_object['state'] == 'Running':  # only one file at a time can be downloaded.
                 file_object['state'] = 'Finished'
-        pickle.dump(self.session, open(self.path, 'w'))
+        pickle.dump(self.session, open(self.path, 'w', 0777))
 
     def _run_test_command(self, args, forbidden, not_found, env=None):
         if None in args:
@@ -77,16 +78,24 @@ class DownloadClient(object):
         try:
             subprocess32.check_output(args, stderr=subprocess.STDOUT, env=env, timeout=2)
         except subprocess32.CalledProcessError as ex:
-            self.logger.info(ex.output)
-            return ex.returncode
+            code = self.parse_test_ex(ex, forbidden, not_found)
+            if code == 0:
+                return ex.returncode
+            else:
+                return code
         except OSError:
             return 2
         except subprocess32.TimeoutExpired as ex:
-            invalid_login = re.findall(forbidden, ex.output)
-            not_found = re.findall(not_found, ex.output)
-            if invalid_login:
-                return 3
-            elif not_found:
-                return 404
-            else:
-                return 0
+            code = self.parse_test_ex(ex, forbidden, not_found)
+            return code
+
+    @staticmethod
+    def parse_test_ex(ex, forbidden, not_found):
+        invalid_login = re.findall(forbidden, ex.output)
+        not_found = re.findall(not_found, ex.output)
+        if invalid_login:
+            return 3
+        elif not_found:
+            return 404
+        else:
+            return 0

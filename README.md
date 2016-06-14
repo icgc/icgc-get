@@ -38,7 +38,7 @@ To make working with the container easier, it is recommend to add a bash alias t
 `icgc-get`.
 
 ```shell
-alias icgc-get="docker run -it --rm -u $(id -u):$(id -g) -v $MOUNT_DIR:/icgc/mnt icgc/icgc-get --config /icgc/mnt/config.yaml"
+alias icgc-get="docker run -it --rm -v $MOUNT_DIR:/icgc/mnt icgc/icgc-get --config /icgc/mnt/config.yaml"
 ```
 
 replacing `$MOUNT_DIR` with the path to your mounted directory. By default, this directory will be populated by the script with
@@ -149,28 +149,14 @@ Then execute the command as normal:
 icgc-get download FI378424 -r  collaboratory
 ```
 
-### `status` command
-
-For very large downloads, it may be useful to check the progress of the download process.
-The status command can be run in another terminal while ICGC get is downloading files to 
-provide an update on their progress.  The only argument it takes is `--output`, which must point to
-the same output directory as the download in progress points to.
-
-```shell
-icgc-get status
-```
-
-Sample output
-```shell
-
-```
-
 ### `report` command
 
-Another useful subcommand is `status`.  This takes the same primary inputs as `download`,
+Another useful subcommand is `report`.  This takes the same primary inputs as `download`,
 but instead of downloading the specified files, it will provide a list of all files that are
 about to be downloaded, including their size, data type, name and the repository they are hosted on. 
-By default the command outputs a table, but by using the `-t` flag it can be converted into tsv format.
+By default the command outputs a table, but the output can be altered to json via `-f json` or tsv
+via `-f tsv`.  Should you find file by file output too granular for a particularly large download, 
+the tag `-t summary` can be used to switch to a summarized version of the table.
 
 ```shell
 icgc-get report FI99996 FI99990 FI250134 -r collaboratory -r cghub
@@ -190,15 +176,9 @@ Sample output:
 ╘══════════╧════════╧════════╧═══════════════╧═══════════════╧═══════════════╛
 ```
 
-### `summary` command
-
-The `summary` command is a companion to `report` It will also provide a summary of the download by 
-repository and data type, showing how many files and the total size of the files for each category.  
-It is primarily used if the number of files is too large for a single `report` to be easily human readable.
-Like `report`, its output can be converted to tsv format with the flag `t`.
 
 ```shell
-icgc-get summary FI99996 FI99990 FI250134 -r collaboratory -r cghub
+icgc-get report FI99996 FI99990 FI250134 -r collaboratory -r cghub -t summary
 ```
 
 Sample output:
