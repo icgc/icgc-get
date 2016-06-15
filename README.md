@@ -113,13 +113,12 @@ about access can be found at https://gdc-docs.nci.nih.gov/Data_Transfer_Tool/Use
 ### CGHub
 [CGHub](https://cghub.ucsc.edu/) access should be provided as an absolute path to a cghub.key file.
 Information about how to acquire a cghub key file can be found 
-https://cghub.ucsc.edu/access/get_access.html.
+https://cghub.ucsc.edu/keyfile/keyfile.html.
 
 ### PDC
 
 [PDC](https://bionimbus-pdc.opensciencedatacloud.org) access should be provided as an absolute path to a text file containing your aws key on the first line and your aws secret key on the second line.
-Support for the PDC can be reached at https://bionimbus-pdc.opensciencedatacloud.org
-It is also necessary to specify your aws region under `aws.region` See http://docs.aws.amazon.com/general/latest/gr/rande.html to determine your region.
+Support for the PDC can be reached at https://bionimbus-pdc.opensciencedatacloud.org.
 
 ## Commands
 

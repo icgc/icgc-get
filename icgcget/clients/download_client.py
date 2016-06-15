@@ -19,11 +19,12 @@ class DownloadClient(object):
 
     @abc.abstractmethod
     def download(self, manifest, access, tool_path, output, processes, udt=None, file_from=None, repo=None,
-                 region=None):
+                 password=None):
         return
 
     @abc.abstractmethod
-    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, region=None):
+    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, verify=None,
+                     password=None):
         return
 
     @abc.abstractmethod
@@ -63,12 +64,14 @@ class DownloadClient(object):
         return return_code
 
     def session_update(self, file_name, repo):
-        for file_object in self.session[repo].values():
+        for name, file_object in self.session['object_ids'][repo].iteritems():
             if file_object['index_filename'] == file_name or file_object['filename'] == file_name or \
                             file_object['fileUrl'] == file_name:
                 file_object['state'] = 'Running'
+                self.session['object_ids'][repo][name] = file_object
             elif file_object['state'] == 'Running':  # only one file at a time can be downloaded.
                 file_object['state'] = 'Finished'
+                self.session['object_ids'][repo][name] = file_object
         pickle.dump(self.session, open(self.path, 'w', 0777))
 
     def _run_test_command(self, args, forbidden, not_found, env=None):

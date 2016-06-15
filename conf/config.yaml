@@ -20,7 +20,7 @@
 
 # Common
 
-logfile: /icgc/mnt/logs/logfile.log
+logfile: /icgc/mnt/logfile.log
 output: /icgc/mnt/downloads
 repos:
  - cghub
@@ -52,16 +52,17 @@ gdc:
 
 # EGA
 ega:
-  access:
+  username:
+  password:
   path: /icgc/ega-download-demo/EgaDemoClient.jar
-
   transport:
     parallel: '1'
   udt: false
 
 # PDC
 pdc:
-  access:
+  key:
+  secret:
   path: /usr/local/bin/aws
   region: us-west-2
   transport:
@@ -69,8 +70,7 @@ pdc:
 
 # CGHub
 cghub:
-  access: https://cghub.ucsc.edu/software/downloads/cghub_public.key
+  access:
   path: /icgc/genetorrent/bin/gtdownload
   transport:
     parallel: '8'
-

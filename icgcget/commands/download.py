@@ -42,8 +42,8 @@ class DownloadDispatcher(object):
         self.pdc_client = PdcDownloadClient(pickle_path)
         self.icgc_client = StorageClient(pickle_path)
 
-    def download_manifest(self, repos, file_ids, manifest, output, api_url):
-        portal = portal_client.IcgcPortalClient()
+    def download_manifest(self, repos, file_ids, manifest, output, api_url, verify):
+        portal = portal_client.IcgcPortalClient(verify)
         manifest_json = self.get_manifest(manifest, file_ids, api_url, repos, portal)
         size, session_info = calculate_size(manifest_json)
         object_ids = session_info['object_ids']
@@ -64,8 +64,7 @@ class DownloadDispatcher(object):
             file_copies = entity['fileCopies']
             for copy in file_copies:
                 if copy['repoCode'] == repo:
-                    if copy["fileName"] in os.listdir(output) or copy['repoDataPath'].split('/')[1] in \
-                            os.listdir(output):
+                    if copy["fileName"] in os.listdir(output):
                         object_ids[repo].pop(entity['id'])
                         self.logger.warning("File %s found in download directory, skipping", entity['id'])
                         break
@@ -74,21 +73,24 @@ class DownloadDispatcher(object):
                         object_ids[repo][entity["id"]]['index_filename'] = copy["indexFile"]["fileName"]
                     if repo == 'pdc':
                         object_ids[repo][entity['id']]['fileUrl'] = 's3://' + copy['repoDataPath']
-
+                        if copy['repoDataPath'].split('/')[1] in os.listdir(output):
+                            object_ids[repo].pop(entity['id'])
+                            self.logger.warning("File %s found in download directory, skipping", entity['id'])
+                            break
         self.size_check(size, output)
         session_info['object_ids'] = object_ids
         return session_info
 
-    def download(self, object_ids, staging, output,
+    def download(self, session, staging, output,
                  cghub_access, cghub_path, cghub_transport_parallel,
-                 ega_access, ega_path, ega_transport_parallel, ega_udt,
+                 ega_username, ega_password, ega_path, ega_transport_parallel, ega_udt,
                  gdc_access, gdc_path, gdc_transport_parallel, gdc_udt,
                  icgc_access, icgc_path, icgc_transport_file_from, icgc_transport_parallel,
-                 pdc_access, pdc_path, pdc_region, pdc_transport_parallel):
-
+                 pdc_key, pdc_secret_key, pdc_path, pdc_transport_parallel):
+        object_ids = session['object_ids']
         if 'cghub' in object_ids and object_ids['cghub']:
             check_access(self, cghub_access, 'cghub', cghub_path)
-            self.gt_client.session = object_ids
+            self.gt_client.session = session
             uuids = self.get_uuids(object_ids['cghub'])
             return_code = self.gt_client.download(uuids, cghub_access, cghub_path, staging, cghub_transport_parallel)
             object_ids = self.icgc_client.session
@@ -97,7 +99,7 @@ class DownloadDispatcher(object):
 
         if 'aws-virginia' in object_ids and object_ids['aws-virginia']:
             check_access(self, icgc_access, 'icgc', icgc_path)
-            self.icgc_client.session = object_ids
+            self.icgc_client.session = session
             uuids = self.get_uuids(object_ids['aws-virginia'])
             return_code = self.icgc_client.download(uuids, icgc_access, icgc_path, staging, icgc_transport_parallel,
                                                     file_from=icgc_transport_file_from, repo='aws')
@@ -106,21 +108,21 @@ class DownloadDispatcher(object):
             self.move_files(staging, output)
 
         if 'ega' in object_ids and object_ids['ega']:
-            check_access(self, ega_access, 'ega', ega_path)
+            check_access(self, ega_username, 'ega', ega_path, ega_password)
             if ega_transport_parallel != '1':
                 self.logger.warning("Parallel streams on the ega client may cause reliability issues and failed " +
                                     "downloads.  This option is not recommended.")
-            self.ega_client.session = object_ids
+            self.ega_client.session = session
             uuids = self.get_uuids(object_ids['ega'])
-            return_code = self.ega_client.download(uuids, ega_access, ega_path, staging, ega_transport_parallel,
-                                                   ega_udt)
+            return_code = self.ega_client.download(uuids, ega_username, ega_path, staging, ega_transport_parallel,
+                                                   ega_udt, password=ega_password)
             object_ids = self.icgc_client.session
             self.check_code('Ega', return_code)
             self.move_files(staging, output)
 
         if 'collaboratory' in object_ids and object_ids['collaboratory']:
             check_access(self, icgc_access, 'icgc', icgc_path)
-            self.icgc_client.session = object_ids
+            self.icgc_client.session = session
             uuids = self.get_uuids(object_ids['collaboratory'])
             return_code = self.icgc_client.download(uuids, icgc_access, icgc_path, staging, icgc_transport_parallel,
                                                     file_from=icgc_transport_file_from, repo='collab')
@@ -129,20 +131,20 @@ class DownloadDispatcher(object):
             self.move_files(staging, output)
 
         if 'pdc' in object_ids and object_ids['pdc']:
-            check_access(self, pdc_access, 'pdc', pdc_path)
+            check_access(self, pdc_key, 'pdc', pdc_path, pdc_secret_key)
             urls = []
             for object_id in object_ids['pdc']:
                 urls.append(object_ids['pdc'][object_id]['fileUrl'])
-            self.pdc_client.session = object_ids
-            return_code = self.pdc_client.download(urls, pdc_access, pdc_path, staging, pdc_transport_parallel,
-                                                   region=pdc_region)
+            self.pdc_client.session = session
+            return_code = self.pdc_client.download(urls, pdc_key, pdc_path, staging, pdc_transport_parallel,
+                                                   pdc_secret_key)
             self.check_code('Aws', return_code)
             self.move_files(staging, output)
 
         if 'gdc' in object_ids and object_ids['gdc']:
             check_access(self, gdc_access, 'gdc', gdc_path)
             uuids = self.get_uuids(object_ids['gdc'])
-            self.gdc_client.session = object_ids
+            self.gdc_client.session = session
             return_code = self.gdc_client.download(uuids, gdc_access, gdc_path, staging, gdc_transport_parallel,
                                                    gdc_udt)
             self.check_code('Gdc', return_code)
@@ -168,7 +170,7 @@ class DownloadDispatcher(object):
 
     def get_manifest(self, manifest, file_ids, api_url, repos, portal):
         if manifest:
-            manifest_json = get_manifest_json(self, file_ids, api_url, repos)
+            manifest_json = get_manifest_json(self, file_ids, api_url, repos, portal)
         else:
             manifest_json = api_error_catch(self, portal.get_manifest, file_ids, api_url, repos)
 

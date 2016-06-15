@@ -37,13 +37,11 @@ class EgaDownloadClient(DownloadClient):
         self.repo = 'ega'
 
     def download(self, object_ids, access, tool_path, output, parallel, udt=None, file_from=None, repo=None,
-                 region=None):
-
+                 password=None):
         key = ''.join(SystemRandom().choice(ascii_uppercase + digits) for _ in range(4))
         label = object_ids[0] + '_download_request'
-        args = ['java', '-jar', tool_path, '-pf', access, '-nt', parallel]
+        args = ['java', '-jar', tool_path, '-p', access, password, '-nt', parallel]
         for object_id in object_ids:
-
             request_call_args = args
             if object_id[3] == 'D':
                 request_call_args.append('-rfd')
@@ -65,19 +63,17 @@ class EgaDownloadClient(DownloadClient):
         for cip_file in os.listdir(output):  # File names cannot be dynamically predicted from dataset names
             if fnmatch.fnmatch(cip_file, '*.cip'):  # Tool attempts to decrypt all encrypted files in download directory
                 decrypt_call_args.append(output + '/' + cip_file)
-
         decrypt_call_args.extend(['-dck', key])
         rc_decrypt = self._run_command(decrypt_call_args, self.download_parser)
         if rc_decrypt != 0:
             return rc_decrypt
         return 0
 
-    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, region=None):
+    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, verify=None,
+                     password=None):
         base_url = "https://ega.ebi.ac.uk/ega/rest/access/v2/"
-        access_file = open(access)
-        username = access_file.readline()
-        password = access_file.readline()
-        login_request = base_url + 'users/' + quote(username.rstrip()) + "?pass=" + quote(password.rstrip())
+
+        login_request = base_url + 'users/' + quote(access) + "?pass=" + quote(access)
         try:
             resp = call_api(login_request, base_url)
         except HTTPError:  # invalid return code

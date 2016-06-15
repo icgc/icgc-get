@@ -41,28 +41,30 @@ def filter_manifest_ids(self, manifest_json, repos):
     return fi_ids
 
 
-def get_entities(self, object_ids, api_url):
+def get_entities(self, object_ids, api_url, verify):
     file_ids = []
     for repo in object_ids:
         file_ids.extend(object_ids[repo].keys())
-    portal = portal_client.IcgcPortalClient()
+    portal = portal_client.IcgcPortalClient(verify)
     entities = api_error_catch(self, portal.get_metadata_bulk, file_ids, api_url)
     return entities
 
 
-def get_manifest_json(self, file_ids, api_url, repos):
+def get_manifest_json(self, file_ids, api_url, repos, portal):
     if len(file_ids) > 1:
         self.logger.warning("For download from manifest files, multiple manifest id arguments is not supported")
         raise click.BadArgumentUsage("Multiple manifest files specified.")
-    portal = portal_client.IcgcPortalClient()
     manifest_json = api_error_catch(self, portal.get_manifest_id, file_ids[0], api_url, repos)
     return manifest_json
 
 
-def check_access(self, access, name, path="Default"):
+def check_access(self, access, name, path="Default", password="Default", secret_key="Default"):
     if access is None:
         self.logger.error("No credentials provided for the {} repository".format(name))
         raise click.BadParameter("Please provide credentials for {}".format(name))
+    if password is None:
+        self.logger.error("No password provided for the {} repository".format(name))
+        raise click.BadParameter("Please provide a password to the {} download client".format(name))
     if path is None:
         self.logger.error("Path to {} download client not provided.".format(name))
         raise click.BadParameter("Please provide a path to the {} download client".format(name))
@@ -145,10 +147,10 @@ def validate_ids(ids, manifest):
             if not re.findall(r'FI\d*', fi_id):
                 if re.match(r'\w{8}-\w{4}-\w{4}-\w{4}-\w{12}', fi_id):
                     raise click.BadArgumentUsage(message="Bad FI ID: passed argument {}".format(fi_id) +
-                                                         "is in uuid format.  If you intended to use a manifest," +
-                                                         "add the -m tag.")
+                                                 "is in uuid format.  If you intended to use a manifest," +
+                                                 "add the -m tag.")
                 raise click.BadArgumentUsage(message="Bad FI ID: passed argument {}".format(fi_id) +
-                                                     "isn't in FI00000 format")
+                                             "isn't in FI00000 format")
 
 
 def match_repositories(self, repos, copies):

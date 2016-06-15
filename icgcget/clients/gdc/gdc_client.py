@@ -29,23 +29,24 @@ class GdcDownloadClient(DownloadClient):
         super(GdcDownloadClient, self) .__init__(pickle_path)
         self.repo = 'gdc'
 
-    def download(self, uuids, access, tool_path, output, processes, udt=None, file_from=None, repo=None, region=None):
+    def download(self, uuids, access, tool_path, output, processes, udt=None, file_from=None, repo=None, password=None):
         call_args = [tool_path, 'download']
         call_args.extend(uuids)
         call_args.extend(['--dir', output, '-n', processes])
         if access is not None:  # Enables download of unsecured gdc data
-            call_args.extend(['-t', access])
+            call_args.extend(['--token', access])
         if udt:
             call_args.append('--udt')
         code = self._run_command(call_args, self.download_parser)
         return code
 
-    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, region=None):
+    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, verify=None,
+                     password=None):
         base_url = 'https://gdc-api.nci.nih.gov/data/'
         request = base_url + ','.join(uuids)
         header = {'X-auth-Token': access}
         try:
-            call_api(request, base_url, header, head=True)
+            call_api(request, header, head=True)
             return True
         except ApiError as ex:
             if ex.code == 403:

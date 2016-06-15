@@ -28,7 +28,7 @@ class StorageClient(DownloadClient):
     def __init__(self, pickle_path=None):
         super(StorageClient, self) .__init__(pickle_path)
 
-    def download(self, uuids, access, tool_path, output, processes, udt=None, file_from=None, repo=None, region=None):
+    def download(self, uuids, access, tool_path, output, processes, udt=None, file_from=None, repo=None, password=None):
         os.environ['ACCESSTOKEN'] = access
         os.environ['TRANSPORT_PARALLEL'] = processes
         if file_from is not None:
@@ -43,9 +43,10 @@ class StorageClient(DownloadClient):
         code = self._run_command(call_args, parser=self.download_parser)
         return code
 
-    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, region=None):
+    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, verify=False,
+                     password=None):
         request = api_url + 'settings/tokens/' + access
-        resp = call_api(request)
+        resp = call_api(request, verify)
         match = repo + ".download"
         return match in resp["scope"]
 

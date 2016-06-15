@@ -44,8 +44,9 @@ def call_api(request, headers=None, head=False, verify=True):
 
 
 class IcgcPortalClient(object):
-    def __init__(self):
+    def __init__(self, verify):
         self.logger = logging.getLogger('__log__')
+        self.verify = verify
 
     def get_manifest_id(self, manifest_id, api_url, repos=None):
         fields = '&fields=id,size,content,repoFileId&format=json'
@@ -55,7 +56,7 @@ class IcgcPortalClient(object):
         else:
             request = api_url + 'manifests/' + manifest_id + '?' + fields
         try:
-            entity_set = call_api(request, api_url)
+            entity_set = call_api(request, verify=self.verify)
         except ApiError as ex:
             if ex.code == 404:
                 self.logger.error("Manifest {} not found on server. ".format(manifest_id) +
@@ -70,7 +71,7 @@ class IcgcPortalClient(object):
                        fields)
         else:
             request = api_url + 'manifests' + self.filters(file_ids) + fields
-        entity_set = call_api(request)
+        entity_set = call_api(request, verify=self.verify)
         return entity_set
 
     def get_metadata_bulk(self, file_ids, api_url):
@@ -79,7 +80,7 @@ class IcgcPortalClient(object):
         while pages_available:
             request = (api_url + 'repository/files' + self.filters(file_ids) +
                        '"&&from=1&size=10&sort=id&order=desc')
-            resp = call_api(request)
+            resp = call_api(request, verify=self.verify)
             entity_set.extend(resp["hits"])
             pages = resp["pagination"]["pages"]
             page = resp["pagination"]["page"]

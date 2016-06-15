@@ -28,7 +28,7 @@ class StatusScreenDispatcher(object):
     def __init__(self):
         self.logger = logging.getLogger("__log__")
 
-    def summary_table(self, object_ids, output, api_url, table_format):
+    def summary_table(self, object_ids, output, api_url, table_format, verify):
         repos = object_ids.keys()
         repo_counts = {}
         repo_sizes = {}
@@ -52,7 +52,7 @@ class StatusScreenDispatcher(object):
             repo_counts[repository] = {"total": 0}
             repo_donors[repository] = {"total": []}
             repo_download_count[repository] = {"total": 0}
-        entities = get_entities(self, object_ids, api_url)
+        entities = get_entities(self, object_ids, api_url, verify)
 
         for entity in entities:
             state = False
@@ -81,11 +81,11 @@ class StatusScreenDispatcher(object):
                                     output)
         self.print_table(headers, summary_table, table_format)
 
-    def file_table(self, object_ids, output, api_url, table_format):
+    def file_table(self, object_ids, output, api_url, table_format, verify):
         repos = object_ids.keys()
         headers = ["", "Size", "Unit", "File Format", "Data Type", "Repo", "Donor", "File Name", "Downloaded"]
         file_table = []
-        entities = get_entities(self, object_ids, api_url)
+        entities = get_entities(self, object_ids, api_url, verify)
         for entity in entities:
             size = entity["fileCopies"][0]["fileSize"]
             repository, copy = match_repositories(self, repos, entity)

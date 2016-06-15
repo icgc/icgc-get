@@ -85,7 +85,8 @@ ENV PATH=$PATH:/icgc/genetorrent/bin
 RUN mkdir -p /icgc/icgc-storage-client && \
     cd /icgc/icgc-storage-client && \
     wget -qO- https://artifacts.oicr.on.ca/artifactory/dcc-release/org/icgc/dcc/icgc-storage-client/[RELEASE]/icgc-storage-client-[RELEASE]-dist.tar.gz | \
-    tar xvz --strip-components 1
+    tar xvz --strip-components 1 && \
+    mkdir -p /icgc/icgc-storage-client/logs
 
 #
 # Install latest version of gdc download tool
@@ -116,10 +117,10 @@ WORKDIR /icgc
 # Set path defaults as environmental variables
 #
 
-ENV ICGCGET_ICGC_PATH = /icgc/icgc-storage-client/bin/icgc-storage-client
-ENV ICGCGET_GDC_PATH = /icgc/gdc-data-transfer-tool/gdc-client
-ENV ICGCGET_EGA_PATH = /icgc/ega-download-demo/EgaDemoClient.jar
-ENV ICGCGET_CGHUB_PATH = /icgc/genetorrent/bin/gtdownload
-ENV ICGCGET_PDC_PATH = /local/bin/aws
+ENV ICGCGET_ICGC_PATH=/icgc/icgc-storage-client/bin/icgc-storage-client
+ENV ICGCGET_GDC_PATH=/icgc/gdc-data-transfer-tool/gdc-client
+ENV ICGCGET_EGA_PATH=/icgc/ega-download-demo/EgaDemoClient.jar
+ENV ICGCGET_CGHUB_PATH=/icgc/genetorrent/bin/gtdownload
+ENV ICGCGET_PDC_PATH=/usr/local/bin/aws
 
 ENTRYPOINT ["icgc-get"]

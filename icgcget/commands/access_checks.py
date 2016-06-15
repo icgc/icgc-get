@@ -36,8 +36,8 @@ class AccessCheckDispatcher(object):
         self.gdc_ids = []
         self.pdc_urls = []
 
-    def access_checks(self, repo_list, file_ids, manifest, cghub_access, cghub_path, ega_access, gdc_access,
-                      icgc_access, pdc_access, pdc_path, pdc_region, output, api_url):
+    def access_checks(self, repo_list, file_ids, manifest, cghub_access, cghub_path, ega_username, ega_password,
+                      gdc_access, icgc_access, pdc_key, pdc_path, pdc_secret_key, output, api_url, verify):
 
         gdc_client = GdcDownloadClient()
         ega_client = EgaDownloadClient()
@@ -46,19 +46,19 @@ class AccessCheckDispatcher(object):
         pdc_client = PdcDownloadClient()
 
         if 'gdc' in repo_list or 'cghub' in repo_list or 'pdc' in repo_list:
-            self.entity_search(manifest, file_ids, api_url, repo_list)
+            self.entity_search(manifest, file_ids, api_url, repo_list, verify)
 
         if "collaboratory" in repo_list:
             check_access(self, icgc_access, "icgc")
-            self.access_response(icgc_client.access_check(icgc_access, repo="collab", api_url=api_url),
+            self.access_response(icgc_client.access_check(icgc_access, repo="collab", api_url=api_url, verify=verify),
                                  "Collaboratory.")
         if "aws-virginia" in repo_list:
             check_access(self, icgc_access, "icgc")
-            self.access_response(icgc_client.access_check(icgc_access, repo="aws", api_url=api_url),
+            self.access_response(icgc_client.access_check(icgc_access, repo="aws", api_url=api_url, verify=verify),
                                  "Amazon Web Server.")
         if 'ega' in repo_list:
-            check_access(self, ega_access, 'ega')
-            self.access_response(ega_client.access_check(ega_access), "EGA.")
+            check_access(self, ega_username, 'ega', password=ega_password)
+            self.access_response(ega_client.access_check(ega_username, password=ega_password), "EGA.")
 
         if 'gdc' in repo_list and self.id_check('gdc', self.gdc_ids):
 
@@ -68,7 +68,6 @@ class AccessCheckDispatcher(object):
 
         if 'cghub' in repo_list and self.id_check('cghub', self.cghub_ids):
             check_access(self, cghub_access, 'cghub', cghub_path)
-
             try:
                 self.access_response(gt_client.access_check(cghub_access, self.cghub_ids, cghub_path, output=output),
                                      "CGHub files.")
@@ -77,10 +76,10 @@ class AccessCheckDispatcher(object):
                 raise click.Abort
 
         if 'pdc' in repo_list and self.id_check('pdc', self.pdc_urls):
-            check_access(self, pdc_access, 'pdc', pdc_path)
+            check_access(self, pdc_key, 'pdc', pdc_path, pdc_secret_key)
             try:
-                self.access_response(pdc_client.access_check(pdc_access, self.pdc_urls, pdc_path, output=output,
-                                                             region=pdc_region), "PDC files.")
+                self.access_response(pdc_client.access_check(pdc_key, self.pdc_urls, pdc_path, output=output,
+                                                             password=pdc_secret_key), "PDC files.")
             except SubprocessError as ex:
                 self.logger.error(ex.message)
                 raise click.Abort
@@ -99,10 +98,10 @@ class AccessCheckDispatcher(object):
         else:
             return True
 
-    def entity_search(self, manifest, file_ids, api_url, repo_list):
-        portal = IcgcPortalClient()
+    def entity_search(self, manifest, file_ids, api_url, repo_list, verify):
+        portal = IcgcPortalClient(verify)
         if manifest:
-            manifest_json = get_manifest_json(self, file_ids, api_url, repo_list)
+            manifest_json = get_manifest_json(self, file_ids, api_url, repo_list, portal)
             file_ids = filter_manifest_ids(self, manifest_json, repo_list)
         entities = api_error_catch(self, portal.get_metadata_bulk, file_ids, api_url)
         for entity in entities:
