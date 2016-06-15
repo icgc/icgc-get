@@ -76,7 +76,7 @@ class AccessCheckDispatcher(object):
                 raise click.Abort
 
         if 'pdc' in repo_list and self.id_check('pdc', self.pdc_urls):
-            check_access(self, pdc_key, 'pdc', pdc_path, pdc_secret_key)
+            check_access(self, pdc_key, 'pdc', pdc_path, secret_key=pdc_secret_key)
             try:
                 self.access_response(pdc_client.access_check(pdc_key, self.pdc_urls, pdc_path, output=output,
                                                              password=pdc_secret_key), "PDC files.")

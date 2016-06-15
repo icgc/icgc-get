@@ -131,7 +131,7 @@ class DownloadDispatcher(object):
             self.move_files(staging, output)
 
         if 'pdc' in object_ids and object_ids['pdc']:
-            check_access(self, pdc_key, 'pdc', pdc_path, pdc_secret_key)
+            check_access(self, pdc_key, 'pdc', pdc_path, secret_key=pdc_secret_key)
             urls = []
             for object_id in object_ids['pdc']:
                 urls.append(object_ids['pdc'][object_id]['fileUrl'])

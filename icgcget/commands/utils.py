@@ -65,6 +65,9 @@ def check_access(self, access, name, path="Default", password="Default", secret_
     if password is None:
         self.logger.error("No password provided for the {} repository".format(name))
         raise click.BadParameter("Please provide a password to the {} download client".format(name))
+    if secret_key is None:
+        self.logger.error("No secret key provided for the {} repository".format(name))
+        raise click.BadParameter("Please provide a secret key for {}".format(name))
     if path is None:
         self.logger.error("Path to {} download client not provided.".format(name))
         raise click.BadParameter("Please provide a path to the {} download client".format(name))

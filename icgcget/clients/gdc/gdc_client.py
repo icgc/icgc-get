@@ -17,7 +17,7 @@
 #
 
 import re
-
+import tempfile
 from icgcget.clients.errors import ApiError
 from icgcget.clients.download_client import DownloadClient
 from icgcget.clients.portal_client import call_api
@@ -33,8 +33,12 @@ class GdcDownloadClient(DownloadClient):
         call_args = [tool_path, 'download']
         call_args.extend(uuids)
         call_args.extend(['--dir', output, '-n', processes])
+
         if access is not None:  # Enables download of unsecured gdc data
-            call_args.extend(['--token', access])
+            access_file = tempfile.NamedTemporaryFile()
+            access_file.file.write(access)
+            access_file.file.seek(0)
+            call_args.extend(['--token', access_file.name])
         if udt:
             call_args.append('--udt')
         code = self._run_command(call_args, self.download_parser)

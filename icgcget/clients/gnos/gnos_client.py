@@ -17,6 +17,7 @@
 #
 
 import re
+import tempfile
 from icgcget.clients.download_client import DownloadClient
 from icgcget.clients.errors import SubprocessError
 
@@ -28,7 +29,10 @@ class GnosDownloadClient(DownloadClient):
         self.repo = 'cghub'
 
     def download(self, uuids, access, tool_path, output, processes, udt=None, file_from=None, repo=None, password=None):
-        call_args = [tool_path, '-vv', '-c', access, '-d']
+        access_file = tempfile.NamedTemporaryFile()
+        access_file.file.write(access)
+        access_file.file.seek(0)
+        call_args = [tool_path, '-vv', '-c', access_file.name, '-d']
         call_args.extend(uuids)
         call_args.extend(['-p', output])
         code = self._run_command(call_args, self.download_parser)
@@ -36,7 +40,9 @@ class GnosDownloadClient(DownloadClient):
 
     def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, verify=None,
                      password=None):
-        call_args = [path, '-vv', '-c', access, '-d']
+        access_file = tempfile.NamedTemporaryFile()
+        access_file.file.write(access)
+        call_args = [path, '-vv', '-c', access_file.name, '-d']
         call_args.extend(uuids)
         call_args.extend(['-p', output])
         result = self._run_test_command(call_args, "403 Forbidden", "404 Not Found")
