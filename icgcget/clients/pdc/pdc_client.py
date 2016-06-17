@@ -29,14 +29,11 @@ class PdcDownloadClient(DownloadClient):
         super(PdcDownloadClient, self).__init__(pickle_path)
         self.repo = 'pdc'
 
-    def download(self, data_paths, access, tool_path, output, processes, udt=None, file_from=None, repo=None,
-                 password=None):
+    def download(self, data_paths, key, tool_path, output, processes, udt=None, file_from=None, repo=None,
+                 secret_key=None):
         code = 0
-        access_file = open(access)
-        key = access_file.readline()
-        secret_key = access_file.readline()
-        os.environ['AWS_ACCESS_KEY_ID'] = key.rstrip()
-        os.environ['AWS_SECRET_ACCESS_KEY'] = secret_key.rstrip()
+        os.environ['AWS_ACCESS_KEY_ID'] = key
+        os.environ['AWS_SECRET_ACCESS_KEY'] = secret_key
         for data_path in data_paths:
             call_args = [tool_path, 's3', '--endpoint-url=https://bionimbus-objstore.opensciencedatacloud.org/', 'cp',
                          data_path, output + '/']
@@ -46,13 +43,10 @@ class PdcDownloadClient(DownloadClient):
             self.session_update(data_path, 'pdc')
         return code
 
-    def access_check(self, access, data_paths=None, path=None, repo=None, output=None, api_url=None, verify=None,
-                     password=None):
-        access_file = open(access)
-        key = access_file.readline()
-        secret_key = access_file.readline()
-        os.environ['AWS_ACCESS_KEY_ID'] = key.rstrip()
-        os.environ['AWS_SECRET_ACCESS_KEY'] = secret_key.rstrip()
+    def access_check(self, key, data_paths=None, path=None, repo=None, output=None, api_url=None, verify=None,
+                     secret_key=None):
+        os.environ['AWS_ACCESS_KEY_ID'] = key
+        os.environ['AWS_SECRET_ACCESS_KEY'] = secret_key
         for data_path in data_paths:
             call_args = [path, 's3', '--endpoint-url=https://bionimbus-objstore.opensciencedatacloud.org/', 'cp',
                          data_path, output + '/', '--dryrun']

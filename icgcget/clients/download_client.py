@@ -23,8 +23,7 @@ class DownloadClient(object):
         return
 
     @abc.abstractmethod
-    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, verify=None,
-                     password=None):
+    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None):
         return
 
     @abc.abstractmethod

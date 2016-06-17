@@ -20,12 +20,12 @@ import logging
 import os
 import pickle
 import click
-import yaml
 from commands.versions import versions_command
 from commands.reports import StatusScreenDispatcher
 from commands.download import DownloadDispatcher
 from commands.access_checks import AccessCheckDispatcher
 from commands.utils import compare_ids, config_parse, validate_ids
+from commands.configure import ConfigureDispatcher
 
 DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgcget', force_posix=True), 'config.yaml')
 REPOS = ['collaboratory', 'aws-virginia', 'ega', 'gdc', 'cghub', 'pdc']
@@ -204,9 +204,6 @@ def check(ctx, repos, ids, manifest, output, cghub_access, cghub_path, ega_usern
           icgc_access, pdc_key, pdc_secret, pdc_path, no_ssl_verify):
     if not repos:
         raise click.BadOptionUsage("Please specify repositories to check access to")
-    if not ids:
-        if 'gdc' in repos or 'cghub' in repos or 'pdc' in repos:
-            raise click.BadOptionUsage("Access checks on Gdc, cghub, and pdc require a manifest or file ids to process")
     api_url = get_api_url(ctx.default_map)
     dispatch = AccessCheckDispatcher()
     dispatch.access_checks(repos, ids, manifest, cghub_access, cghub_path, ega_username, ega_password, gdc_access,
@@ -214,31 +211,10 @@ def check(ctx, repos, ids, manifest, output, cghub_access, cghub_path, ega_usern
 
 
 @cli.command()
-@click.option('--repos', '-r', type=click.Choice(REPOS), multiple=True, prompt=True)
-@click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True), prompt=True)
-@click.option('--cghub-access', type=click.STRING, prompt=True, hide_input=True)
-@click.option('--cghub-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True), prompt=True)
-@click.option('--ega-username', type=click.STRING, prompt=True)
-@click.option('--ega-password', type=click.STRING, prompt=True)
-@click.option('--ega-path', type=click.STRING, prompt=True)
-@click.option('--gdc-access', type=click.STRING, prompt=True, hide_input=True)
-@click.option('--gdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True), prompt=True)
-@click.option('--icgc-access', type=click.STRING, prompt=True, hide_input=True)
-@click.option('--icgc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True), prompt=True)
-@click.option('--pdc-key', type=click.STRING, prompt=True)
-@click.option('--pdc-secret-key', type=click.STRING, prompt=True)
-@click.option('--pdc-path', type=click.Path(exists=True, dir_okay=False, resolve_path=True), prompt=True)
-def configure(repos, output, cghub_access, cghub_path, ega_username, ega_password, ega_path, gdc_access, gdc_path,
-              icgc_access, icgc_path, pdc_key, pdc_secret_key, pdc_path):
-    conf_yaml = {'output': output, 'repos': repos,
-                 'icgc': {'path': icgc_path, 'access': icgc_access},
-                 'cghub': {'path': cghub_path, 'access': cghub_access},
-                 'ega': {'path': ega_path, 'username': ega_username, 'password': ega_password},
-                 'gdc': {'path': gdc_path, 'access': gdc_access},
-                 'pdc': {'path': pdc_path, 'key': pdc_key, 'secret': pdc_secret_key}}
-    config_file = file(output + 'config.yaml', 'w')
-    yaml.dump(conf_yaml, config_file)
-    os.environ['ICGCGET_CONFIG'] = output + 'config.yaml'
+@click.option('--config-destination', '-d', type=click.Path(), default=DEFAULT_CONFIG_FILE)
+def configure(config_destination):
+    dispatch = ConfigureDispatcher(config_destination, DEFAULT_CONFIG_FILE)
+    dispatch.configure(config_destination)
 
 
 @cli.command()

@@ -25,8 +25,9 @@ from icgcget.clients.portal_client import call_api
 
 class StorageClient(DownloadClient):
 
-    def __init__(self, pickle_path=None):
+    def __init__(self, pickle_path=None, verify=True):
         super(StorageClient, self) .__init__(pickle_path)
+        self.verify = verify
 
     def download(self, uuids, access, tool_path, output, processes, udt=None, file_from=None, repo=None, password=None):
         os.environ['ACCESSTOKEN'] = access
@@ -43,10 +44,9 @@ class StorageClient(DownloadClient):
         code = self._run_command(call_args, parser=self.download_parser)
         return code
 
-    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, verify=False,
-                     password=None):
+    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None):
         request = api_url + 'settings/tokens/' + access
-        resp = call_api(request, verify)
+        resp = call_api(request, verify=self.verify)
         match = repo + ".download"
         return match in resp["scope"]
 

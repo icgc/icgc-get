@@ -20,51 +20,6 @@ import collections
 import datetime
 
 
-def flatten_dict(dictionary, parent_key='', sep='_'):
-    items = []
-    for key, value in dictionary.items():
-        new_key = parent_key + sep + key if parent_key else key
-        if isinstance(value, collections.MutableMapping):
-            items.extend(flatten_dict(value, new_key, sep=sep).items())
-        else:
-            items.append((new_key, value))
-    return dict(items)
-
-
-def convert_size(num, suffix='B'):
-    for unit in ['', 'K', 'M', 'G', 'T']:
-        if abs(num) < 1024.0:
-            return ["%3.2f" % num, "%s%s" % (unit, suffix)]
-        num /= 1024.0
-    return ["%.2f" % num, "%s%s" % ('Yi', suffix)]
-
-
-def normalize_keys(obj):
-    if isinstance(obj, dict):
-        return obj
-    else:
-        return {k.replace('.', '_'): normalize_keys(v) for k, v in obj.items()}
-
-
-def donor_addition(donor_list, donor, data_type):
-    if data_type not in donor_list:
-        donor_list[data_type] = []
-    if donor not in donor_list['total']:
-        donor_list['total'].append(donor)
-    if donor not in donor_list[data_type]:
-        donor_list[data_type].append(donor)
-    return donor_list
-
-
-def increment_types(typename, count_dict, size):
-    if typename not in count_dict:
-        count_dict[typename] = 0
-    count_dict["total"] += size
-    count_dict[typename] += size
-
-    return count_dict
-
-
 def build_table(table, repo, sizes, counts, donors, downloads, output):
     for data_type in sizes:
         file_size = convert_size(sizes[data_type])
@@ -95,3 +50,48 @@ def calculate_size(manifest_json):
             size += file_info["size"]
     session_info = {'pid': os.getpid(), 'start_time': datetime.datetime.now(), 'object_ids': object_ids}
     return size, session_info
+
+
+def convert_size(num, suffix='B'):
+    for unit in ['', 'K', 'M', 'G', 'T']:
+        if abs(num) < 1024.0:
+            return ["%3.2f" % num, "%s%s" % (unit, suffix)]
+        num /= 1024.0
+    return ["%.2f" % num, "%s%s" % ('Yi', suffix)]
+
+
+def donor_addition(donor_list, donor, data_type):
+    if data_type not in donor_list:
+        donor_list[data_type] = []
+    if donor not in donor_list['total']:
+        donor_list['total'].append(donor)
+    if donor not in donor_list[data_type]:
+        donor_list[data_type].append(donor)
+    return donor_list
+
+
+def flatten_dict(dictionary, parent_key='', sep='_'):
+    items = []
+    for key, value in dictionary.items():
+        new_key = parent_key + sep + key if parent_key else key
+        if isinstance(value, collections.MutableMapping):
+            items.extend(flatten_dict(value, new_key, sep=sep).items())
+        else:
+            items.append((new_key, value))
+    return dict(items)
+
+
+def increment_types(typename, count_dict, size):
+    if typename not in count_dict:
+        count_dict[typename] = 0
+    count_dict["total"] += size
+    count_dict[typename] += size
+
+    return count_dict
+
+
+def normalize_keys(obj):
+    if isinstance(obj, dict):
+        return obj
+    else:
+        return {k.replace('.', '_'): normalize_keys(v) for k, v in obj.items()}

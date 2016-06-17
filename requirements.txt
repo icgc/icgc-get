@@ -19,6 +19,7 @@
 # Main dependencies
 requests[security] >= 2.9.1
 click >= 6.6
+certifi >= 2016.2.28
 PyYaml >= 3.11
 logging >= 0.4.9.6
 psutil >= 4.1.0

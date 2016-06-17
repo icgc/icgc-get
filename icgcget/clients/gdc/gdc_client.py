@@ -25,9 +25,10 @@ from icgcget.clients.portal_client import call_api
 
 class GdcDownloadClient(DownloadClient):
 
-    def __init__(self, pickle_path=None):
+    def __init__(self, pickle_path=None, verify=True):
         super(GdcDownloadClient, self) .__init__(pickle_path)
         self.repo = 'gdc'
+        self.verify = verify
 
     def download(self, uuids, access, tool_path, output, processes, udt=None, file_from=None, repo=None, password=None):
         call_args = [tool_path, 'download']
@@ -44,13 +45,12 @@ class GdcDownloadClient(DownloadClient):
         code = self._run_command(call_args, self.download_parser)
         return code
 
-    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, verify=None,
-                     password=None):
+    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None):
         base_url = 'https://gdc-api.nci.nih.gov/data/'
         request = base_url + ','.join(uuids)
         header = {'X-auth-Token': access}
         try:
-            call_api(request, header, head=True)
+            call_api(request, header, head=True, verify=self.verify)
             return True
         except ApiError as ex:
             if ex.code == 403:

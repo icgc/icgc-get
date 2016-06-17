@@ -5,7 +5,7 @@
 #/___/\____/\____/\____/   \____/\___/\__/
 # Banner @ http://goo.gl/VCY0tD
 
-FROM       ubuntu:14.04
+FROM       ubuntu:16.04
 MAINTAINER ICGC <dcc-support@icgc.org>
 
 ENV EGA_VERSION 2.2.2
@@ -19,7 +19,7 @@ RUN \
   apt-get update && \
   apt-get -y upgrade && \
   apt-get install -y libfuse-dev fuse curl wget software-properties-common && \
-  apt-get install libicu52 && \
+  apt-get install libicu55 && \
 # Required for Genetorrent and Icgc
   apt-get install unzip
 # Required to download EGA
@@ -56,7 +56,8 @@ COPY /conf/ /icgc/conf
 
 RUN cd /icgc/icgcget && \
     pip install -r requirements.txt && \
-    python setup.py install
+    python setup.py install && \
+    mkdir /root/.icgcget
 
 #
 # Download and install latest EGA download client version

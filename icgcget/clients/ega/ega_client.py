@@ -32,9 +32,10 @@ from icgcget.clients.portal_client import call_api
 
 class EgaDownloadClient(DownloadClient):
 
-    def __init__(self, pickle_path=None):
+    def __init__(self, pickle_path=None, verify=True):
         super(EgaDownloadClient, self) .__init__(pickle_path)
         self.repo = 'ega'
+        self.verify = verify
 
     def download(self, object_ids, access, tool_path, output, parallel, udt=None, file_from=None, repo=None,
                  password=None):
@@ -69,20 +70,19 @@ class EgaDownloadClient(DownloadClient):
             return rc_decrypt
         return 0
 
-    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, verify=None,
-                     password=None):
+    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None):
         base_url = "https://ega.ebi.ac.uk/ega/rest/access/v2/"
 
-        login_request = base_url + 'users/' + quote(access) + "?pass=" + quote(access)
+        login_request = base_url + 'users/' + quote(access) + "?pass=" + quote(password)
         try:
-            resp = call_api(login_request, base_url)
+            resp = call_api(login_request, verify=self.verify)
         except HTTPError:  # invalid return code
             return False
         if resp["header"]["userMessage"] == "OK":
             session_id = resp["response"]["result"][1]
             dataset_request = base_url + "datasets?session=" + session_id
             try:
-                dataset_response = call_api(dataset_request, base_url)
+                dataset_response = call_api(dataset_request, verify=self.verify)
                 data_sets = dataset_response["response"]["result"]
             except HTTPError:
                 return False

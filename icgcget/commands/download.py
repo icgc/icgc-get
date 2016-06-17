@@ -137,7 +137,7 @@ class DownloadDispatcher(object):
                 urls.append(object_ids['pdc'][object_id]['fileUrl'])
             self.pdc_client.session = session
             return_code = self.pdc_client.download(urls, pdc_key, pdc_path, staging, pdc_transport_parallel,
-                                                   pdc_secret_key)
+                                                   secret_key=pdc_secret_key)
             self.check_code('Aws', return_code)
             self.move_files(staging, output)
 
