@@ -25,40 +25,43 @@ from icgcget.clients.download_client import DownloadClient
 
 class PdcDownloadClient(DownloadClient):
 
-    def __init__(self, pickle_path=None):
-        super(PdcDownloadClient, self).__init__(pickle_path)
+    def __init__(self, json_path=None):
+        super(PdcDownloadClient, self).__init__(json_path)
         self.repo = 'pdc'
+        self.url = '--endpoint-url=https://bionimbus-objstore.opensciencedatacloud.org/'
 
-    def download(self, data_paths, access, tool_path, output, processes, udt=None, file_from=None, repo=None,
-                 region=None):
-        access_file = open(access)
-        key = access_file.readline()
-        secret_key = access_file.readline()
-        os.environ['AWS_ACCESS_KEY_ID'] = key.rstrip()
-        os.environ['AWS_SECRET_ACCESS_KEY'] = secret_key.rstrip()
-        os.environ['AWS_DEFAULT_REGION'] = region
+    def download(self, data_paths, key, tool_path, output, processes, udt=None, file_from=None, repo=None,
+                 secret_key=None):
+        code = 0
+        env_dict = dict(os.environ)
+        env_dict['AWS_ACCESS_KEY_ID'] = key
+        env_dict['AWS_SECRET_ACCESS_KEY'] = secret_key
         for data_path in data_paths:
-            call_args = [tool_path, 's3', 'cp', data_path, output + '/']
-            self._run_command(call_args, self.download_parser)
+            call_args = [tool_path, 's3', '--endpoint-url=https://bionimbus-objstore.opensciencedatacloud.org/', 'cp',
+                         data_path, output + '/']
+            code = self._run_command(call_args, self.download_parser, env_dict)
+            if code != 0:
+                return code
+            self.session_update(data_path, 'pdc')
+        return code
 
-    def access_check(self, access, data_paths=None, path=None, repo=None, output=None, api_url=None, region=None):
-        access_file = open(access)
-        key = access_file.readline()
-        secret_key = access_file.readline()
-        os.environ['AWS_ACCESS_KEY_ID'] = key.rstrip()
-        os.environ['AWS_SECRET_ACCESS_KEY'] = secret_key.rstrip()
-        os.environ['AWS_DEFAULT_REGION'] = region
+    def access_check(self, key, data_paths=None, path=None, repo=None, output=None, api_url=None, secret_key=None):
+        env_dict = dict(os.environ)
+        env_dict['AWS_ACCESS_KEY_ID'] = key
+        env_dict['AWS_SECRET_ACCESS_KEY'] = secret_key
         for data_path in data_paths:
-            call_args = [path, 's3', 'cp', data_path, output + '/', '--dryrun']
-            result = self._run_test_command(call_args, "(403)", "(404)")
+            call_args = [path, 's3', self.url, 'cp', data_path, output + '/', '--dryrun']
+            result = self._run_test_command(call_args, "(403)", "(404)", env_dict, timeout=4)
             if result == 3:
                 return False
+            elif result == 0:
+                return True
             elif result == 2:
                 raise SubprocessError(result, "Path to AWS client did not lead to expected application")
             else:
                 raise SubprocessError(result, "AWS failed with code {}".format(result))
 
-    def print_version(self, path, access=None):
+    def print_version(self, path):
         call_args = [path, '--version']
         self._run_command(call_args, self.version_parser)
 
@@ -66,6 +69,6 @@ class PdcDownloadClient(DownloadClient):
         self.logger.info(output)
 
     def version_parser(self, output):
-        version = re.findall(r"aws-icgcget/[0-9.]+", output)
+        version = re.findall(r"aws-cli/[0-9.]+", output)
         if version:
-            self.logger.info("AWS CLI Version: %s", version[0][8:])
+            self.logger.info(" AWS CLI Version:             %s", version[0][8:])

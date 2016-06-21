@@ -17,52 +17,6 @@
 #
 import os
 import collections
-import datetime
-
-
-def flatten_dict(dictionary, parent_key='', sep='_'):
-    items = []
-    for key, value in dictionary.items():
-        new_key = parent_key + sep + key if parent_key else key
-        if isinstance(value, collections.MutableMapping):
-            items.extend(flatten_dict(value, new_key, sep=sep).items())
-        else:
-            items.append((new_key, value))
-    return dict(items)
-
-
-def convert_size(num, suffix='B'):
-    for unit in ['', 'K', 'M', 'G', 'T']:
-        if abs(num) < 1024.0:
-            return ["%3.2f" % num, "%s%s" % (unit, suffix)]
-        num /= 1024.0
-    return ["%.2f" % num, "%s%s" % ('Yi', suffix)]
-
-
-def normalize_keys(obj):
-    if isinstance(obj, dict):
-        return obj
-    else:
-        return {k.replace('.', '_'): normalize_keys(v) for k, v in obj.items()}
-
-
-def donor_addition(donor_list, donor, data_type):
-    if data_type not in donor_list:
-        donor_list[data_type] = []
-    if donor not in donor_list['total']:
-        donor_list['total'].append(donor)
-    if donor not in donor_list[data_type]:
-        donor_list[data_type].append(donor)
-    return donor_list
-
-
-def increment_types(typename, count_dict, size):
-    if typename not in count_dict:
-        count_dict[typename] = 0
-    count_dict["total"] += size
-    count_dict[typename] += size
-
-    return count_dict
 
 
 def build_table(table, repo, sizes, counts, donors, downloads, output):
@@ -82,7 +36,7 @@ def build_table(table, repo, sizes, counts, donors, downloads, output):
     return table
 
 
-def calculate_size(manifest_json):
+def calculate_size(manifest_json, session_info):
     size = 0
     object_ids = {}
     for repo_info in manifest_json["entries"]:
@@ -93,5 +47,60 @@ def calculate_size(manifest_json):
                                                  'filename': 'None', 'index_filename': 'None',
                                                  'fileUrl': 'None', 'size': file_info['size']}
             size += file_info["size"]
-    session_info = {'pid': os.getpid(), 'start_time': datetime.datetime.now(), 'object_ids': object_ids}
+    session_info['object_ids'] = object_ids
     return size, session_info
+
+
+def convert_size(num, suffix='B'):
+    for unit in ['', 'K', 'M', 'G', 'T']:
+        if abs(num) < 1024.0:
+            return ["%3.2f" % num, "%s%s" % (unit, suffix)]
+        num /= 1024.0
+    return ["%.2f" % num, "%s%s" % ('Yi', suffix)]
+
+
+def donor_addition(donor_list, donor, data_type):
+    if data_type not in donor_list:
+        donor_list[data_type] = []
+    if donor not in donor_list['total']:
+        donor_list['total'].append(donor)
+    if donor not in donor_list[data_type]:
+        donor_list[data_type].append(donor)
+    return donor_list
+
+
+def flatten_dict(dictionary, parent_key='', sep='_'):
+    items = []
+    for key, value in dictionary.items():
+        new_key = parent_key + sep + key if parent_key else key
+        if isinstance(value, collections.MutableMapping):
+            items.extend(flatten_dict(value, new_key, sep=sep).items())
+        else:
+            items.append((new_key, value))
+    return dict(items)
+
+
+def increment_types(typename, count_dict, size):
+    if typename not in count_dict:
+        count_dict[typename] = 0
+    count_dict["total"] += size
+    count_dict[typename] += size
+
+    return count_dict
+
+
+def normalize_keys(obj):
+    if isinstance(obj, dict):
+        return obj
+    else:
+        return {k.replace('.', '_'): normalize_keys(v) for k, v in obj.items()}
+
+
+def search_recursive(filename, output):
+    if not output:
+        return False
+    for root, dirs, files in os.walk(output, topdown=False):
+        for name in files:
+            if name == filename:
+                return True
+    return False

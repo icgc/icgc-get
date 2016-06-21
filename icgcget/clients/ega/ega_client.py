@@ -32,18 +32,17 @@ from icgcget.clients.portal_client import call_api
 
 class EgaDownloadClient(DownloadClient):
 
-    def __init__(self, pickle_path=None):
-        super(EgaDownloadClient, self) .__init__(pickle_path)
+    def __init__(self, json_path=None, verify=True):
+        super(EgaDownloadClient, self) .__init__(json_path)
         self.repo = 'ega'
+        self.verify = verify
 
     def download(self, object_ids, access, tool_path, output, parallel, udt=None, file_from=None, repo=None,
-                 region=None):
-
+                 password=None):
         key = ''.join(SystemRandom().choice(ascii_uppercase + digits) for _ in range(4))
         label = object_ids[0] + '_download_request'
-        args = ['java', '-jar', tool_path, '-pf', access, '-nt', parallel]
+        args = ['java', '-jar', tool_path, '-p', access, password, '-nt', parallel]
         for object_id in object_ids:
-
             request_call_args = args
             if object_id[3] == 'D':
                 request_call_args.append('-rfd')
@@ -65,43 +64,41 @@ class EgaDownloadClient(DownloadClient):
         for cip_file in os.listdir(output):  # File names cannot be dynamically predicted from dataset names
             if fnmatch.fnmatch(cip_file, '*.cip'):  # Tool attempts to decrypt all encrypted files in download directory
                 decrypt_call_args.append(output + '/' + cip_file)
-
         decrypt_call_args.extend(['-dck', key])
         rc_decrypt = self._run_command(decrypt_call_args, self.download_parser)
         if rc_decrypt != 0:
             return rc_decrypt
         return 0
 
-    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, region=None):
+    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None):
         base_url = "https://ega.ebi.ac.uk/ega/rest/access/v2/"
-        access_file = open(access)
-        username = access_file.readline()
-        password = access_file.readline()
-        login_request = base_url + 'users/' + quote(username.rstrip()) + "?pass=" + quote(password.rstrip())
+
+        login_request = base_url + 'users/' + quote(access) + "?pass=" + quote(password)
         try:
-            resp = call_api(login_request, base_url)
+            resp = call_api(login_request, verify=self.verify)
         except HTTPError:  # invalid return code
             return False
         if resp["header"]["userMessage"] == "OK":
             session_id = resp["response"]["result"][1]
             dataset_request = base_url + "datasets?session=" + session_id
             try:
-                dataset_response = call_api(dataset_request, base_url)
+                dataset_response = call_api(dataset_request, verify=self.verify)
                 data_sets = dataset_response["response"]["result"]
             except HTTPError:
                 return False
             if "EGAD00001000023" in data_sets and "EGAD00010000562" in data_sets:
                 return True
-
         return False
 
-    def print_version(self, path, access=None):
-        self._run_command(['java', '-jar', path, '-pf', access], self.version_parser)
+    def print_version(self, path):
+        # Tool automatically shows version on invocation with demo credentials
+        self._run_command(['java', '-jar', path, '-p', 'demo@test.org', '123pass'], self.version_parser)
 
     def version_parser(self, response):
         version = re.findall(r"Version: [0-9.]+", response)
         if version:
-            self.logger.info("EGA Client %s", version[0])
+            version = version[0][9:]
+            self.logger.info(" EGA Client Version:          %s", version)
 
     def download_parser(self, response):
         filename = re.findall(r'/[^/]+.cip  \(', response)
