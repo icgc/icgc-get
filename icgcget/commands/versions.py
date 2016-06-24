@@ -15,26 +15,30 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
+import os
 import logging
-
-import icgcget.clients.ega.ega_client as ega_client
-import icgcget.clients.gdc.gdc_client as gdc_client
-import icgcget.clients.icgc.storage_client as storage_client
-import icgcget.clients.pdc.pdc_client as pdc_client
-import icgcget.clients.gnos.gnos_client as gnos_client
+from icgcget.clients.ega.ega_client import EgaDownloadClient
+from icgcget.clients.gdc.gdc_client import GdcDownloadClient
+from icgcget.clients.icgc.storage_client import StorageClient
+from icgcget.clients.pdc.pdc_client import PdcDownloadClient
+from icgcget.clients.gnos.gnos_client import GnosDownloadClient
 
 
 def versions_command(cghub_path, ega_path, gdc_path, icgc_path, pdc_path, version_num):
     logger = logging.getLogger("__log__")
     logger.warning("ICGC-Get Version: %s", version_num)
-    if pdc_path:
-        pdc_client.PdcDownloadClient().print_version(pdc_path)
-    if ega_path:
-        ega_client.EgaDownloadClient().print_version(ega_path, ega_access)
-    if gdc_path:
-        gdc_client.GdcDownloadClient().print_version(gdc_path)
-    if cghub_path:
-        gnos_client.GnosDownloadClient().print_version(cghub_path)
-    if icgc_path:
-        storage_client.StorageClient().print_version(icgc_path)
+    logger.warning("Clients:")
+    check_version_path(PdcDownloadClient(), "PDC", pdc_path)
+    check_version_path(EgaDownloadClient(), "EGA", ega_path)
+    check_version_path(GdcDownloadClient(), "GDC", gdc_path)
+    check_version_path(GnosDownloadClient(), "CGHub", cghub_path)
+    check_version_path(StorageClient(), "ICGC", icgc_path)
+
+
+def check_version_path(client, name, path):
+    logger = logging.getLogger("__log__")
+    if path:
+        if os.path.isfile(path):
+            client.print_version(path)
+        else:
+            logger.warning(" Path %s to %s client could not be resolved.", path, name)

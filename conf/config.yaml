@@ -20,7 +20,7 @@
 
 # Common
 
-logfile: /icgc/mnt/logs/logfile.log
+logfile: /icgc/mnt/logfile.log
 output: /icgc/mnt/downloads
 repos:
  - cghub
@@ -31,20 +31,20 @@ repos:
  - aws-virginia
 
 portal:
-  url: https://dev.dcc.icgc.org/
+  url: https://dcc.icgc.org/
+
 # IGCC Storage
 icgc:
-  access:
+  token:
   path: /icgc/icgc-storage-client/bin/icgc-storage-client
   transport:
     file.from: remote
     memory: '1'  # All numerical values must be explicity declared as strings
     parallel: '6'
 
-
 # GDC
 gdc:
-  access:
+  token:
   path: /icgc/gdc-data-transfer-tool/gdc-client
   transport:
     parallel: '6'
@@ -52,23 +52,24 @@ gdc:
 
 # EGA
 ega:
-  access:
+  username:
+  password:
   path: /icgc/ega-download-demo/EgaDemoClient.jar
-
   transport:
     parallel: '1'
   udt: false
 
+# PDC
+pdc:
+  key:
+  secret:
+  path: /usr/local/bin/aws
+  transport:
+    parallel: '1'
+
 # CGHub
 cghub:
-  access: https://cghub.ucsc.edu/software/downloads/cghub_public.key
+  key:
   path: /icgc/genetorrent/bin/gtdownload
   transport:
     parallel: '8'
-
-#PDC
-pdc:
-  access:
-  path: /local/bin/aws
-  region: us-west-2
-  

@@ -25,12 +25,14 @@ from icgcget.clients.portal_client import call_api
 
 class StorageClient(DownloadClient):
 
-    def __init__(self, pickle_path=None):
-        super(StorageClient, self) .__init__(pickle_path)
+    def __init__(self, json_path=None, verify=True):
+        super(StorageClient, self) .__init__(json_path)
+        self.verify = verify
 
-    def download(self, uuids, access, tool_path, output, processes, udt=None, file_from=None, repo=None, region=None):
-        os.environ['ACCESSTOKEN'] = access
-        os.environ['TRANSPORT_PARALLEL'] = processes
+    def download(self, uuids, access, tool_path, output, processes, udt=None, file_from=None, repo=None, password=None):
+        env_dict = dict(os.environ)
+        env_dict['ACCESSTOKEN'] = access
+        env_dict['TRANSPORT_PARALLEL'] = processes
         if file_from is not None:
             os.environ['TRANSPORT_FILEFROM'] = file_from
         call_args = [tool_path, '--profile', repo, 'download', '--object-id']
@@ -40,22 +42,22 @@ class StorageClient(DownloadClient):
             self.repo = 'collaboratory'
         elif repo == 'aws':
             self.repo = 'aws-virginia'
-        code = self._run_command(call_args, parser=self.download_parser)
+        code = self._run_command(call_args, parser=self.download_parser, env=env_dict)
         return code
 
-    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, region=None):
+    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None):
         request = api_url + 'settings/tokens/' + access
-        resp = call_api(request, api_url)
+        resp = call_api(request, verify=self.verify)
         match = repo + ".download"
         return match in resp["scope"]
 
-    def print_version(self, path, access=None):
+    def print_version(self, path):
         self._run_command([path, 'version'], self.version_parser)
 
     def version_parser(self, response):
         version = re.findall(r"Version: [0-9.]+", response)
         if version:
-            self.logger.info("ICGC Storage Client %s", version[0])
+            self.logger.info(" ICGC Storage Client %s", version[0])
 
     def download_parser(self, response):
         filename = re.findall(r"\(\w{8}-\w{4}-\w{4}-\w{4}-\w{12}.+", response)

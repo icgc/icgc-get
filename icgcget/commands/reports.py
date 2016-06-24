@@ -17,19 +17,18 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import os
 import logging
 from collections import OrderedDict
 from tabulate import tabulate
 from icgcget.commands.utils import match_repositories, get_entities
-from icgcget.clients.utils import convert_size, donor_addition, increment_types, build_table
+from icgcget.clients.utils import convert_size, donor_addition, increment_types, build_table, search_recursive
 
 
 class StatusScreenDispatcher(object):
     def __init__(self):
         self.logger = logging.getLogger("__log__")
 
-    def summary_table(self, object_ids, output, api_url, table_format):
+    def summary_table(self, object_ids, output, api_url, table_format, verify):
         repos = object_ids.keys()
 
         repo_counts = {}
@@ -55,14 +54,14 @@ class StatusScreenDispatcher(object):
             repo_counts[repository] = {"total": 0}
             repo_donors[repository] = {"total": []}
             repo_download_count[repository] = {"total": 0}
-        entities = get_entities(self, object_ids, api_url)
+        entities = get_entities(self, object_ids, api_url, verify)
+
         for entity in entities:
             state = False
             size = entity["fileCopies"][0]["fileSize"]
             repository, copy = match_repositories(self, repos, entity)
             data_type = entity["dataCategorization"]["dataType"]
-            if output:
-                state = copy["fileName"] in os.listdir(output)
+            state = search_recursive(copy["fileName"], output)
             type_sizes = increment_types(data_type, type_sizes, size)
             type_counts = increment_types(data_type, type_counts, 1)
             repo_sizes[repository] = increment_types(data_type, repo_sizes[repository], size)
@@ -83,23 +82,22 @@ class StatusScreenDispatcher(object):
                                     output)
         self.print_table(headers, summary_table, table_format)
 
-    def file_table(self, object_ids, output, api_url, table_format):
+    def file_table(self, object_ids, output, api_url, table_format, verify):
         repos = object_ids.keys()
         headers = ["", "Size", "Unit", "File Format", "Data Type", "Repo", "Donor", "File Name", "Downloaded"]
         file_table = []
-        entities = get_entities(self, object_ids, api_url)
+        entities = get_entities(self, object_ids, api_url, verify)
         for entity in entities:
             size = entity["fileCopies"][0]["fileSize"]
             repository, copy = match_repositories(self, repos, entity)
             data_type = entity["dataCategorization"]["dataType"]
-            if copy["fileName"] in os.listdir(output):
+            if search_recursive(copy["fileName"], output):
                 state = "Yes"
             else:
                 state = "No"
             file_size = convert_size(size)
             file_table.append([entity["id"], file_size[0], file_size[1], copy["fileFormat"],
-                               data_type, repository, entity["donor"], copy["fileName"], state])
-
+                               data_type, repository, entity["donors"][0]['donorId'], copy["fileName"], state])
         self.print_table(headers, file_table, table_format)
 
     def print_table(self, headers, file_table, table_format):
