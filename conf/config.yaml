@@ -30,9 +30,6 @@ repos:
  - gdc
  - aws-virginia
 
-portal:
-  url: https://dcc.icgc.org/
-
 # IGCC Storage
 icgc:
   token:

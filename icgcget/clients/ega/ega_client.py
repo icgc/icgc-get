@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2016 The Ontario Institute for Cancer Research. All rights reserved.
 #
@@ -32,38 +33,52 @@ from icgcget.clients.portal_client import call_api
 
 class EgaDownloadClient(DownloadClient):
 
-    def __init__(self, json_path=None, verify=True):
-        super(EgaDownloadClient, self) .__init__(json_path)
+    def __init__(self, json_path=None, docker=False, verify=True, container_version=''):
+        super(EgaDownloadClient, self) .__init__(json_path, docker, container_version=container_version)
         self.repo = 'ega'
         self.verify = verify
+        self.label = ''
+        self.skip = False
 
-    def download(self, object_ids, access, tool_path, output, parallel, udt=None, file_from=None, repo=None,
+    def download(self, object_ids, access, tool_path, staging, parallel, udt=None, file_from=None, repo=None,
                  password=None):
         key = ''.join(SystemRandom().choice(ascii_uppercase + digits) for _ in range(4))
-        label = object_ids[0] + '_download_request'
+        self.label = object_ids[0] + '_download_request'
         args = ['java', '-jar', tool_path, '-p', access, password, '-nt', parallel]
-        for object_id in object_ids:
-            request_call_args = args
-            if object_id[3] == 'D':
-                request_call_args.append('-rfd')
-            else:
-                request_call_args.append('-rf')
-            request_call_args.extend([object_id, '-re', key, '-label', label])
-            rc_request = self._run_command(request_call_args, self.download_parser)
-            if rc_request != 0:
-                return rc_request
+        if self.docker:
+            args = self.prepend_docker_args(args, staging)
+        # Get a list of outstanding requests, to see if the current request has already been made
+        request_list_args = args
+        request_list_args.append('-lr')
+        code = self._run_command(request_list_args, self.requests_parser)
+        if code != 0:
+            return code
+        # If the request hasn't already been made, make a download request
+        if not self.skip:
+            for object_id in object_ids:
+                request_call_args = args
+                if object_id[3] == 'D':
+                    request_call_args.append('-rfd')
+                else:
+                    request_call_args.append('-rf')
+                request_call_args.extend([object_id, '-re', key, '-label', self.label])
+                rc_request = self._run_command(request_call_args, self.download_parser)
+                if rc_request != 0:
+                    return rc_request
+        # Now that request exists in some form, download the files
         download_call_args = args
-        download_call_args.extend(['-dr', label, '-path', output])
+        download_call_args.extend(['-dr', self.label, '-path', staging])
         if udt:
             download_call_args.append('-udt')
         rc_download = self._run_command(download_call_args, self.download_parser)
         if rc_download != 0:
             return rc_download
+        # Decrypt downloaded files
         decrypt_call_args = args
         decrypt_call_args.append('-dc')
-        for cip_file in os.listdir(output):  # File names cannot be dynamically predicted from dataset names
+        for cip_file in os.listdir(staging):  # File names cannot be dynamically predicted from dataset names
             if fnmatch.fnmatch(cip_file, '*.cip'):  # Tool attempts to decrypt all encrypted files in download directory
-                decrypt_call_args.append(output + '/' + cip_file)
+                decrypt_call_args.append(staging + '/' + cip_file)
         decrypt_call_args.extend(['-dck', key])
         rc_decrypt = self._run_command(decrypt_call_args, self.download_parser)
         if rc_decrypt != 0:
@@ -92,7 +107,10 @@ class EgaDownloadClient(DownloadClient):
 
     def print_version(self, path):
         # Tool automatically shows version on invocation with demo credentials
-        self._run_command(['java', '-jar', path, '-p', 'demo@test.org', '123pass'], self.version_parser)
+        call_args = ['java', '-jar', path, '-p', 'demo@test.org', '123pass']
+        if self.docker:
+            call_args = self.prepend_docker_args(call_args)
+        self._run_command(call_args, self.version_parser)
 
     def version_parser(self, response):
         version = re.findall(r"Version: [0-9.]+", response)
@@ -105,4 +123,13 @@ class EgaDownloadClient(DownloadClient):
         if filename:
             filename = filename[0][1:-7]
             self.session_update(filename, 'ega')
+        self.logger.info(response.strip())
+
+    def requests_parser(self, response):
         self.logger.info(response)
+        logout = re.findall(r'dataset', response)
+        request = re.findall(r'EGA[A-Z][0-9]+_download_request', response)
+        if request and request[0] == self.label:
+            self.skip = True
+        if logout:
+            self.skip = False

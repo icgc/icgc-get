@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2016 The Ontario Institute for Cancer Research. All rights reserved.
 #
@@ -25,13 +27,14 @@ def call_api(request, headers=None, head=False, verify=True):
     logger = logging.getLogger("__log__")
     try:
         if head:
+            logger.debug(request)
             resp = requests.head(request, headers=headers, verify=verify)
         else:
             resp = requests.get(request, headers=headers, verify=verify)
     except (requests.exceptions.ConnectionError, requests.exceptions.Timeout,
             requests.exceptions.RequestException) as ex:
-        logger.debug(ex.message)
-        raise ApiError(request, ex.message.message)
+        logger.debug(ex.message.message)
+        raise ApiError(request, ex.message.reason.message)
     if resp.status_code != 200:
         raise ApiError(request, "API request failed due to {} error.".format(resp.reason),
                        code=resp.status_code)
@@ -54,7 +57,7 @@ class IcgcPortalClient(object):
             entity_set = call_api(request, verify=self.verify)
         except ApiError as ex:
             if ex.code == 404:
-                self.logger.error("Manifest {} not found on server. ".format(manifest_id) +
+                self.logger.error("Manifest '{}' not found on server. ".format(manifest_id) +
                                   " Please check your manifest id")
             raise ApiError(ex.request_string, ex.message, ex.code)
         return entity_set

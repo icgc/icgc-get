@@ -1,0 +1,63 @@
+<ResultSet date="2016-19-04 16:59:31">
+  <Hits>2</Hits>
+  <Result id="1">
+    <analysis_id>fcfc5e01-19a3-45de-ab4b-5440f49c6340</analysis_id>
+    <state>live</state>
+    <reason/>
+    <last_modified>2016-02-25T18:55:52Z</last_modified>
+    <upload_date>2013-01-04T18:31:08Z</upload_date>
+    <published_date>2013-01-04T18:43:18Z</published_date>
+    <center_name>BI</center_name>
+    <study>Homo sapiens Other_Sequencing_Multiisolate</study>
+    <aliquot_id>25c5951b-e68c-43b9-a97f-fdc915aee55d</aliquot_id>
+    <files>
+      <file>
+        <filename>C836.MDA-MB-436.1.bam</filename>
+        <filesize>7976248741</filesize>
+        <checksum type="MD5">e02b566d4fea91e8edeb5e85187644b4</checksum>
+      </file><file>
+        <filename>C836.MDA-MB-436.1.bam.bai</filename>
+        <filesize>5191968</filesize>
+        <checksum type="MD5">17186253105d01ea20c10f1d10af948a</checksum>
+      </file>
+    </files>
+    <refassem_short_name></refassem_short_name>
+    <analysis_detail_uri>https://cghub.ucsc.edu/cghub/metadata/analysisDetail/fcfc5e01-19a3-45de-ab4b-5440f49c6340</analysis_detail_uri>
+    <analysis_submission_uri>https://cghub.ucsc.edu/cghub/metadata/analysisSubmission/fcfc5e01-19a3-45de-ab4b-5440f49c6340</analysis_submission_uri>
+    <analysis_data_uri>https://cghub.ucsc.edu/cghub/data/analysis/download/fcfc5e01-19a3-45de-ab4b-5440f49c6340</analysis_data_uri>
+  </Result>
+  <Result id="2">
+    <analysis_id>f135768c-ffdf-4743-bb62-226131776b83</analysis_id>
+    <state>live</state>
+    <reason/>
+    <last_modified>2016-02-25T18:24:28Z</last_modified>
+    <upload_date>2013-01-04T15:58:21Z</upload_date>
+    <published_date>2013-01-04T16:11:18Z</published_date>
+    <center_name>BI</center_name>
+    <study>Homo sapiens Other_Sequencing_Multiisolate</study>
+    <aliquot_id>fb621fe7-9693-4428-a6b3-7e353242216e</aliquot_id>
+    <files>
+      <file>
+        <filename>C836.NCC-StC-K140.1.bam</filename>
+        <filesize>7864608923</filesize>
+        <checksum type="MD5">b9b5ecc8e1828c0cca23b7a4118019d6</checksum>
+      </file><file>
+        <filename>C836.NCC-StC-K140.1.bam.bai</filename>
+        <filesize>5130472</filesize>
+        <checksum type="MD5">9e174b5e71f509d510336fe0a64e9a1d</checksum>
+      </file>
+    </files>
+    <refassem_short_name></refassem_short_name>
+    <analysis_detail_uri>https://cghub.ucsc.edu/cghub/metadata/analysisDetail/f135768c-ffdf-4743-bb62-226131776b83</analysis_detail_uri>
+    <analysis_submission_uri>https://cghub.ucsc.edu/cghub/metadata/analysisSubmission/f135768c-ffdf-4743-bb62-226131776b83</analysis_submission_uri>
+    <analysis_data_uri>https://cghub.ucsc.edu/cghub/data/analysis/download/f135768c-ffdf-4743-bb62-226131776b83</analysis_data_uri>
+  </Result>
+  <ResultSummary>
+    <downloadable_file_count>2</downloadable_file_count>
+    <downloadable_file_size units="GB">14.76</downloadable_file_size>
+    <state_count>
+      <live>2</live>
+    </state_count>
+  </ResultSummary>
+</ResultSet>
+
