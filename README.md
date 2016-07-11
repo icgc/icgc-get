@@ -14,14 +14,9 @@ streamline this process is highly desirable. This is the problem the `icgc-get` 
 
 ## Installation
 
-To install ICGC get on your local machine , first download the ICGC get package.
-Then navigate to the `icgc-get` directory and run the command:
+To install ICGC get on your local machine , first download the ICGC get package, then unzip the executable.
 
-```shell
-python setup.py install
-```
-
-Once the installation is complete, ICGC get can be invoked with the command `icgc-get`
+Once the installation is complete, ICGC get can be invoked with the path to the `icgc-get` executable.
 
 If you do not have any of download clients installed locally, ICGC get is capable of running them through Docker. 
 Running any of the clients through a Docker container will prevent issues from arising related to conflicting 
