@@ -37,7 +37,7 @@ class GnosDownloadClient(DownloadClient):
         access_file = self.get_access_file(access, staging)
         call_args = self.make_call_args(tool_path, staging, access_file, uuids)
         code = self._run_command(call_args, self.download_parser)
-        if self.docker:
+        if self.docker and self.log_dir:
             shutil.move(staging + self.log_name, self.log_dir + self.log_name)
         return code
 
@@ -45,7 +45,7 @@ class GnosDownloadClient(DownloadClient):
         access_file = self.get_access_file(access, output)
         call_args = self.make_call_args(path, output, access_file, uuids)
         result = self._run_test_command(call_args, "403 Forbidden", "404 Not Found")
-        if self.docker:
+        if self.docker and self.log_dir:
             shutil.move(output + '/gnos_log', self.log_dir + '/gnos_log')
         if result == 0:
             return True
@@ -74,15 +74,20 @@ class GnosDownloadClient(DownloadClient):
 
     def make_call_args(self, tool_path, staging, access_file, uuids):
         log_name = '/gnos_log.log'
-        logfile = self.log_dir + log_name
+        if self.log_dir:
+            logfile = self.log_dir + log_name
         if self.docker:
             access_path = self.docker_mnt + '/' + os.path.basename(access_file.name)
             # Client needs to be run using sh to be able to download files in docker container.
             call_args = ['/bin/sh', '-c', tool_path + ' -vv' + ' -d ' + ' '.join(uuids) + ' -c ' + access_path +
-                         ' -p ' + self.docker_mnt + ' -l ' + self.docker_mnt + log_name]
+                         ' -p ' + self.docker_mnt]
+            if self.log_dir:
+                call_args[2] += ' -l ' + self.docker_mnt + log_name
             call_args = self.prepend_docker_args(call_args, staging)
         else:
             call_args = [tool_path, '-vv', '-d']
             call_args.extend(uuids)
-            call_args.extend(['-c', access_file.name, '-p', staging, '-l', logfile])
+            call_args.extend(['-c', access_file.name, '-p', staging])
+            if self.log_dir:
+                call_args.extend(['-l', logfile])
         return call_args

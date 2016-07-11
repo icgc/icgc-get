@@ -86,19 +86,23 @@ def get_container_tag(context_map):
 def cli(ctx, config, docker, logfile, verbose):
     if ctx.invoked_subcommand != 'configure':
         config_file = config_parse(config, DEFAULT_CONFIG_FILE, docker, DOCKER_PATHS)
+        ctx.obj = {'docker': '', 'logfile': None}
         if config != DEFAULT_CONFIG_FILE and not config_file:
             raise click.Abort()
         if docker is not None:
-            ctx.obj = docker
+            ctx.obj['docker'] = docker
         elif 'docker' in config_file:
-            ctx.obj = config_file['docker']
+            ctx.obj['docker'] = config_file['docker']
         else:
-            ctx.obj = True
+            ctx.obj['docker'] = True
         if logfile is not None:
             logger = logger_setup(logfile, verbose)
+            ctx.obj['logfile'] = logfile
         elif 'logfile' in config_file:
             logger = logger_setup(config_file['logfile'], verbose)
+            ctx.obj['logfile'] = config_file['logfile']
         else:
+            ctx.obj['logfile'] = None
             logger = logger_setup(None, verbose)
         ctx.default_map = config_file
         logger.debug(__version__ + ' ' + ctx.invoked_subcommand)
@@ -152,7 +156,7 @@ def download(ctx, ids, repos, manifest, output,
     json_path = staging + '/state.json'
 
     old_download_session = load_json(json_path)
-    dispatch = DownloadDispatcher(json_path, ctx.obj, ctx.default_map['logfile'], tag)
+    dispatch = DownloadDispatcher(json_path, ctx.obj['docker'], ctx.obj['logfile'], tag)
     if old_download_session and ids == old_download_session['command']:
         download_session = old_download_session
     else:
@@ -238,7 +242,7 @@ def check(ctx, repos, ids, manifest, output, cghub_key, cghub_path, ega_username
     if ('gdc' in repos or 'ega' in repos or 'pdc' in repos) and ids:
         download_session = download_dispatch.download_manifest(repos, ids, manifest, output, API_URL, no_ssl_verify)
     dispatch.access_checks(repos, download_session['file_data'], cghub_key, cghub_path, ega_username, ega_password,
-                           gdc_token, icgc_token, pdc_key, pdc_secret, pdc_path, output, ctx.obj, API_URL,
+                           gdc_token, icgc_token, pdc_key, pdc_secret, pdc_path, output, ctx.obj['docker'], API_URL,
                            no_ssl_verify)
 
 
@@ -264,7 +268,7 @@ def version(ctx, cghub_path, ega_path, gdc_path, icgc_path, pdc_path):
     logger = logging.getLogger('__log__')
     logger.debug(str(ctx.params))
     tag = get_container_tag(ctx)
-    versions_command(cghub_path, ega_path, gdc_path, icgc_path, pdc_path, ctx.obj, tag)
+    versions_command(cghub_path, ega_path, gdc_path, icgc_path, pdc_path, ctx.obj['docker'], tag)
 
 
 def main():

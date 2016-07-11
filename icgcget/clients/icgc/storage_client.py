@@ -36,7 +36,9 @@ class StorageClient(DownloadClient):
     def download(self, uuids, access, tool_path, staging, processes, udt=None, file_from=None, repo=None,
                  password=None):
         env_dict = dict(os.environ)
-        log_file = self.log_dir + '/icgc_log.log'
+        if self.log_dir:
+            log_file = self.log_dir + '/icgc_log.log'
+        log_staging = staging + '/icgc_log.log'
         if file_from is not None:
             os.environ['TRANSPORT_FILEFROM'] = file_from
         call_args = [tool_path, '--profile', repo, 'download', '--object-id']
@@ -50,15 +52,18 @@ class StorageClient(DownloadClient):
             envvars = {'ACCESSTOKEN': access, 'TRANSPORT_PARALLEL': processes}
             call_args = self.prepend_docker_args(call_args, staging, envvars)
         else:
-            log_conf_path = os.path.abspath(os.path.join(os.path.dirname(tool_path), '../conf/logback.xml'))
-            self.edit_logback(log_conf_path, log_file)
+            if self.log_dir:
+                log_conf_path = os.path.abspath(os.path.join(os.path.dirname(tool_path), '../conf/logback.xml'))
+                self.edit_logback(log_conf_path, log_file)
             env_dict['ACCESSTOKEN'] = access
             env_dict['TRANSPORT_PARALLEL'] = processes
 
             call_args.extend(['--output-dir', staging])
         code = self._run_command(call_args, parser=self.download_parser, env=env_dict)
-        if self.docker:
-            shutil.move(staging + '/icgc_log.log', self.log_dir + '/icgc_log.log')
+        if self.docker and self.log_dir:
+            shutil.move(log_staging, log_file)
+        elif self.docker:
+            os.remove(log_staging)
         return code
 
     def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None):

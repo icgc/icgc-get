@@ -37,12 +37,12 @@ class DownloadClient(object):
         self.logger = logging.getLogger('__log__')
         self.jobs = []
         self.session = {}
-        self.log_dir = log_dir
         self.path = json_path
         self.docker = docker
         self.repo = ''
         self.docker_mnt = '/icgc/mnt'
         self.docker_version = 'icgc/icgc-get:' + container_version
+        self.log_dir = log_dir
 
     @abc.abstractmethod
     def download(self, manifest, access, tool_path, staging, processes, udt=None, file_from=None, repo=None,
