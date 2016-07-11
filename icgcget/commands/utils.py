@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2016 The Ontario Institute for Cancer Research. All rights reserved.
 #
@@ -19,12 +20,11 @@
 import re
 import json
 import os
-import psutil
 import logging
+import psutil
 import click
 import yaml
 from icgcget.clients import errors
-from icgcget.clients import portal_client
 from icgcget.clients.utils import normalize_keys, flatten_dict
 
 
@@ -32,11 +32,12 @@ def api_error_catch(self, func, *args):
     try:
         return func(*args)
     except errors.ApiError as ex:
-        self.logger.error(ex.message)
+        messages = ex.message.split(': ')
+        self.logger.error(messages[1] + ': ' + messages[2])
         raise click.Abort
 
 
-def check_access(self, access, name, path="Default", password="Default", secret_key="Default", udt=True):
+def check_access(self, access, name, docker=False, path="Default", password="Default", secret_key="Default", udt=True):
     if access is None:
         self.logger.error("No credentials provided for the {} repository".format(name))
         raise click.BadParameter("Please provide credentials for {}".format(name))
@@ -51,8 +52,8 @@ def check_access(self, access, name, path="Default", password="Default", secret_
     if path is None:
         self.logger.error("Path to {} download client not provided.".format(name))
         raise click.BadParameter("Please provide a path to the {} download client".format(name))
-    if not os.path.isfile(path):
-        self.logger.error("Path to {} download client cannot be resolved.".format(name))
+    if not os.path.isfile(path) and not docker and path != 'Default':
+        self.logger.error("Path '{0}' to {1} download client cannot be resolved.".format(path, name))
         raise click.BadParameter("Please provide a complete path to the {} download client".format(name))
 
 
@@ -82,32 +83,39 @@ def config_errors(message, default):
         raise click.Abort()
 
 
-def config_parse(filename, default_filename, empty_ok=False):
+def config_parse(filename, default_filename, docker=False, docker_paths=None, empty_ok=False):
     default = filename == default_filename
     try:
-        config_text = open(filename, 'r')
+        config_file = open(filename, 'r')
     except IOError as ex:
-        config_text = config_errors("Config file {0} not found: {1}".format(filename, ex.strerror), default)
+        config_errors("Config file '{0}' not found: {1}".format(filename, ex.strerror), default)
+        if docker:
+            return {'download': docker_paths, 'report': docker_paths, 'version': docker_paths, 'check': docker_paths}
+        else:
+            return {}
     try:
         yaml.SafeLoader.add_constructor("tag:yaml.org,2002:python/unicode", constructor)
-        config_temp = yaml.safe_load(config_text)
+        config_temp = yaml.safe_load(config_file)
         if config_temp:
-            config_download = flatten_dict(normalize_keys(config_temp))
-            config = {'download': config_download, 'report': config_download, 'version': config_download,
-                      'check': config_download}
+            config = flatten_dict(normalize_keys(config_temp))
+            if (docker or ('docker' in config and config['docker'])) and docker_paths:
+                config.update(docker_paths)
+            config = {'download': config, 'report': config, 'version': config, 'check': config}
             if 'logfile' in config_temp:
                 config['logfile'] = config_temp['logfile']
+            if 'docker' in config_temp:
+                config['docker'] = config_temp['docker']
         elif empty_ok:
             return {}
         else:
-            config = config_errors("Config file {} is an empty file.".format(filename), default)
+            config = config_errors("Config file '{}' is an empty file.".format(filename), default)
     except yaml.YAMLError:
-        config = config_errors("Failed to parse config file {}.  Config must be in YAML format.".format(filename),
+        config = config_errors("Failed to parse config file '{}'.  Config must be in YAML format.".format(filename),
                                default)
     return config
 
 
-def constructor(loader, node):
+def constructor(node):
     return node.value
 
 
@@ -128,15 +136,6 @@ def filter_manifest_ids(self, manifest_json, repos):
     return fi_ids
 
 
-def get_entities(self, object_ids, api_url, verify):
-    file_ids = []
-    for repo in object_ids:
-        file_ids.extend(object_ids[repo].keys())
-    portal = portal_client.IcgcPortalClient(verify)
-    entities = api_error_catch(self, portal.get_metadata_bulk, file_ids, api_url)
-    return entities
-
-
 def get_manifest_json(self, file_ids, api_url, repos, portal):
     if len(file_ids) > 1:
         self.logger.warning("For download from manifest files, multiple manifest id arguments is not supported")
@@ -146,14 +145,15 @@ def get_manifest_json(self, file_ids, api_url, repos, portal):
 
 
 def load_json(json_path, abort=True):
+    logger = logging.getLogger('__log__')
     if os.path.isfile(json_path):
         try:
-            old_session_info = json.load(open(json_path, 'r+'))
-            if abort and psutil.pid_exists(old_session_info['pid']):
-                raise click.Abort("Download currently in progress")
-            return old_session_info
+            old_download_session = json.load(open(json_path, 'r+'))
+            if abort and psutil.pid_exists(old_download_session['pid']):
+                logger.warning("Download currently in progress")
+                raise click.Abort()
+            return old_download_session
         except ValueError:
-            logger = logging.getLogger('__log__')
             logger.warning("Corrupted download state found.  Cleaning...")
             os.remove(json_path)
     return None
@@ -164,8 +164,8 @@ def match_repositories(self, repos, copies):
         for copy in copies["fileCopies"]:
             if repository == copy["repoCode"]:
                 return repository, copy
-    self.logger.error("File %s not found on repositories %s", copies["id"], repos)
-    raise click.Abort
+    self.logger.error("File %s not found on repositories: %s", copies["id"], ' '.join(repos))
+    return None, None
 
 
 def override_prompt(override):
@@ -180,13 +180,24 @@ def override_prompt(override):
 def validate_ids(ids, manifest):
     if manifest:
         if not re.match(r'\w{8}-\w{4}-\w{4}-\w{4}-\w{12}', ids[0]):
-            raise click.BadArgumentUsage(message="Bad Manifest ID: passed argument {} isn't in uuid format".format(ids))
+            raise click.BadArgumentUsage(message="Bad Manifest ID: passed argument" +
+                                                 "'{}' isn't in uuid format".format(ids[0]))
     else:
         for fi_id in ids:
             if not re.findall(r'FI\d*', fi_id):
                 if re.match(r'\w{8}-\w{4}-\w{4}-\w{4}-\w{12}', fi_id):
-                    raise click.BadArgumentUsage(message="Bad FI ID: passed argument {}".format(fi_id) +
+                    raise click.BadArgumentUsage(message="Bad FI ID: passed argument '{}'".format(fi_id) +
                                                  "is in UUID format.  If you intended to use a manifest," +
                                                  "add the -m tag.")
-                raise click.BadArgumentUsage(message="Bad FI ID: passed argument {}".format(fi_id) +
-                                             "isn't in FI00000 format")
+                raise click.BadArgumentUsage(message="Bad FI ID: passed argument '{}'".format(fi_id) +
+                                             " isn't in FI00000 format")
+
+
+def filter_repos(repos):
+    if not repos or repos.count(None) == len(repos):
+        raise click.BadOptionUsage("Must include prioritized repositories")
+    new_repos = []
+    for repo in repos:
+        if repo:
+            new_repos.append(repo)
+    return new_repos

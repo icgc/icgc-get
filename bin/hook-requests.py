@@ -17,18 +17,7 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+from PyInstaller.utils.hooks import collect_data_files
 
-
-class SubprocessError(Exception):
-    def __init__(self, code, message):
-        Exception.__init__(self, message)
-        self.message = message
-        self.code = code
-
-
-class ApiError(Exception):
-    def __init__(self, request_string, message, code=None):
-        Exception.__init__(self, message)
-        self.request_string = request_string
-        self.message = message
-        self.code = code
+# Get the cacert.pem
+datas = collect_data_files('requests')

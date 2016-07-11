@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2016 The Ontario Institute for Cancer Research. All rights reserved.
 #
@@ -17,7 +19,8 @@
 #
 
 import re
-import tempfile
+import os
+import shutil
 from icgcget.clients.errors import ApiError
 from icgcget.clients.download_client import DownloadClient
 from icgcget.clients.portal_client import call_api
@@ -25,24 +28,31 @@ from icgcget.clients.portal_client import call_api
 
 class GdcDownloadClient(DownloadClient):
 
-    def __init__(self, json_path=None, verify=True):
-        super(GdcDownloadClient, self) .__init__(json_path)
+    def __init__(self, json_path=None, docker=False, verify=True, log_dir=None, container_version=''):
+        super(GdcDownloadClient, self).__init__(json_path, docker, log_dir, container_version=container_version)
         self.repo = 'gdc'
         self.verify = verify
 
-    def download(self, uuids, access, tool_path, output, processes, udt=None, file_from=None, repo=None, password=None):
+    def download(self, uuids, access, tool_path, staging, processes, udt=None, file_from=None, repo=None,
+                 password=None):
         call_args = [tool_path, 'download']
         call_args.extend(uuids)
-        call_args.extend(['--dir', output, '-n', processes])
-
-        if access is not None:  # Enables download of unsecured gdc data
-            access_file = tempfile.NamedTemporaryFile()
-            access_file.file.write(access)
-            access_file.file.seek(0)
-            call_args.extend(['--token', access_file.name])
+        access_file = self.get_access_file(access, staging)
+        log_name = '/gdc_log.log'
+        logfile = self.log_dir + log_name
+        if self.docker:
+            access_path = self.docker_mnt + '/' + os.path.basename(access_file.name)
+            call_args.extend(['--dir', self.docker_mnt, '-n', processes, '--token', access_path, '--log-file',
+                              self.docker_mnt + log_name])
+            call_args = self.prepend_docker_args(call_args, staging)
+        else:
+            call_args.extend(['--dir', staging, '-n', processes, '--token', access_file.name, '--log-file',
+                              logfile])
         if udt:
             call_args.append('--udt')
         code = self._run_command(call_args, self.download_parser)
+        if self.docker:
+            shutil.move(staging + log_name, logfile)
         return code
 
     def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None):
@@ -59,7 +69,7 @@ class GdcDownloadClient(DownloadClient):
                 raise ex
 
     def print_version(self, path):
-        self._run_command([path, '--version'], self.version_parser)
+        super(GdcDownloadClient, self).print_version(path)
 
     def version_parser(self, response):
         version = re.findall(r"v[0-9.]+", response)
@@ -72,4 +82,4 @@ class GdcDownloadClient(DownloadClient):
         if file_id:
             file_id = file_id[8:-8]
             self.session_update(file_id, 'gdc')
-        self.logger.info(response)
+        self.logger.info(response.strip())

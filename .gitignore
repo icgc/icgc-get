@@ -8,11 +8,9 @@ dist/
 .tox
 
 # IDE
-*.iml
 .idea/
 
 # Development
-config_dev.yaml
 passfile.txt
 
 # Mac
