@@ -138,7 +138,7 @@ def filter_manifest_ids(self, manifest_json, repos):
 
 def get_manifest_json(self, file_ids, api_url, repos, portal):
     if len(file_ids) > 1:
-        self.logger.warning("For download from manifest files, multiple manifest id arguments is not supported")
+        self.logger.error("For download from manifest files, multiple manifest id arguments is not supported")
         raise click.BadArgumentUsage("Multiple manifest files specified.")
     manifest_json = api_error_catch(self, portal.get_manifest_id, file_ids[0], api_url, repos)
     return manifest_json
@@ -150,11 +150,11 @@ def load_json(json_path, abort=True):
         try:
             old_download_session = json.load(open(json_path, 'r+'))
             if abort and psutil.pid_exists(old_download_session['pid']):
-                logger.warning("Download currently in progress")
+                logger.error("Download currently in progress")
                 raise click.Abort()
             return old_download_session
         except ValueError:
-            logger.warning("Corrupted download state found.  Cleaning...")
+            logger.info("Corrupted download state found.  Cleaning...")
             os.remove(json_path)
     return None
 

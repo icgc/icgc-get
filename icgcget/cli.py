@@ -32,6 +32,7 @@ from icgcget.commands.reports import StatusScreenDispatcher
 from icgcget.commands.utils import compare_ids, config_parse, validate_ids, load_json, filter_repos
 from icgcget.commands.versions import versions_command
 from icgcget.params import RepoParam, LogfileParam
+from icgcget.log_filters import MaxLevelFilter
 from icgcget.version import __version__, __container_version__
 
 DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgc-get', force_posix=True), 'config.yaml')
@@ -58,12 +59,17 @@ def logger_setup(logfile, verbose):
             if not ex.errno == 2:
                 print "Unable to write to logfile '{}'".format(logfile)
 
-    stream_handler = logging.StreamHandler()
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    lower_than_warning = MaxLevelFilter(logging.WARNING)
+    stdout_handler.addFilter(lower_than_warning)
     if verbose:
-        stream_handler.setLevel(logging.DEBUG)
+        stdout_handler.setLevel(logging.DEBUG)
     else:
-        stream_handler.setLevel(logging.INFO)
-    logger.addHandler(stream_handler)
+        stdout_handler.setLevel(logging.INFO)
+    logger.addHandler(stdout_handler)
+    stderr_handler = logging.StreamHandler(sys.stderr)
+    stderr_handler.setLevel(logging.WARNING)
+    logger.addHandler(stderr_handler)
     return logger
 
 

@@ -68,7 +68,7 @@ class DownloadDispatcher(object):
             if copy['repoCode'] == repo:
                 if unique and search_recursive(copy["fileName"], output):
                     file_data[repo].pop(entity['id'])
-                    self.logger.warning("File %s found in download directory, skipping", entity['id'])
+                    self.logger.info("File %s found in download directory, skipping", entity['id'])
                     continue
                 temp_file = {'fileName': copy["fileName"], 'dataType': entity["dataCategorization"]["dataType"],
                              'donors': entity["donors"], 'fileFormat': copy['fileFormat']}
@@ -79,7 +79,7 @@ class DownloadDispatcher(object):
                     file_data[repo][entity['id']]['fileUrl'] = 's3://' + copy['repoDataPath']
                     if unique and search_recursive(copy['repoDataPath'].split('/')[1], output):
                         file_data[repo].pop(entity['id'])
-                        self.logger.warning("File %s found in download directory, skipping", entity['id'])
+                        self.logger.info("File %s found in download directory, skipping", entity['id'])
                         continue
                 file_data[repo][entity["id"]].update(temp_file)
                 self.logger.debug('File %s added to file data under repo %s', entity['id'], repo)
@@ -189,7 +189,7 @@ class DownloadDispatcher(object):
                 try:
                     shutil.move(os.path.join(staging, staged_file), output)
                 except shutil.Error:
-                    self.logger.warning('File %s already present in download directory', staged_file)
+                    self.logger.info('File %s already present in download directory', staged_file)
                     os.remove(os.path.join(staging, staged_file))
 
     def cleanup(self, name, return_code, staging, output, client):
