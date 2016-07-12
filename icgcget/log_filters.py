@@ -27,4 +27,3 @@ class MaxLevelFilter(Filter):
 
     def filter(self, record):
         return record.levelno < self.level
-

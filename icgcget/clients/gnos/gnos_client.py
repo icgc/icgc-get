@@ -52,9 +52,9 @@ class GnosDownloadClient(DownloadClient):
         elif result == 3:
             return False
         elif result == 2:
-            raise SubprocessError(result, "Path to gentorrent client did not lead to expected application")
+            raise SubprocessError(result, "Path to Gentorrent client did not lead to expected application")
         else:
-            raise SubprocessError(result, "Genetorrent failed with code %s".format(result))
+            raise SubprocessError(result, "Genetorrent failed with code {}".format(result))
 
     def print_version(self, path):
         super(GnosDownloadClient, self).print_version(path)

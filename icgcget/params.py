@@ -17,9 +17,10 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-import click
+
 import os
 import tempfile
+import click
 REPOS = {'collaboratory': {'code': 'collaboratory', 'name': 'collab'},
          'aws-virginia': {'code': 'aws-virginia', 'name': 'aws'},
          'ega': {'code': 'ega', 'name': 'european genome association'},
