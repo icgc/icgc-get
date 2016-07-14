@@ -16,7 +16,10 @@ streamline this process is highly desirable. This is the problem the `icgc-get` 
 
 To install ICGC get on your local machine , first download the ICGC get package, then unzip the executable.
 
-Once the installation is complete, ICGC get can be invoked with the path to the `icgc-get` executable.
+Once the installation is complete, ICGC get can be invoked with the path to the `icgc-get` executable.  To make the
+executable callable from anywhere, you need to either move the executable to a folder on your `PATH` or add the folder you downloaded
+the executable to to the `PATH`.  You can find out what directories are on your path with `echo $PATH` on Mac and linux or `path` on windows.  You can
+add folders to your path with `export PATH=$PATH:/folder` on Mac and Linux or `set PATH=%PATH%;/folder` on Windows
 
 ICGC get is capable of interfacing with the [ICGC storage client,](http://docs.icgc.org/cloud/guide/#installation) Genetorrent, 
 [the GDC data transfer tool,](https://gdc.nci.nih.gov/access-data/gdc-data-transfer-tool) [the EGA download client](https://www.ebi.ac.uk/ega/about/your_EGA_account/download_streaming_client#download)
