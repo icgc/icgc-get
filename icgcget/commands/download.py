@@ -51,7 +51,7 @@ class DownloadDispatcher(object):
         portal = portal_client.IcgcPortalClient(verify)
         manifest_json = self.get_manifest(manifest, file_ids, api_url, repos, portal)
         download_session = {'pid': os.getpid(), 'start_time': datetime.datetime.utcnow().isoformat(),
-                            'command': file_ids}
+                            'subprocess': [], 'command': file_ids}
         size, download_session = calculate_size(manifest_json, download_session)
         file_data = download_session['file_data']
         if manifest:
@@ -91,19 +91,19 @@ class DownloadDispatcher(object):
         return download_session
 
     def download(self, session, staging, output,
-                 cghub_key, cghub_path, cghub_transport_parallel,
+                 gnos_key, gnos_path, gnos_transport_parallel,
                  ega_username, ega_password, ega_path, ega_transport_parallel, ega_udt,
                  gdc_token, gdc_path, gdc_transport_parallel, gdc_udt,
                  icgc_token, icgc_path, icgc_transport_file_from, icgc_transport_parallel,
                  pdc_key, pdc_secret_key, pdc_path, pdc_transport_parallel):
         file_data = session['file_data']
 
-        if 'cghub' in file_data and file_data['cghub']:
-            check_access(self, cghub_key, 'cghub', self.gt_client.docker, cghub_path)
+        if 'gnos' in file_data and file_data['gnos']:
+            check_access(self, gnos_key, 'gnos', self.gt_client.docker, gnos_path)
             self.gt_client.session = session
-            uuids = self.get_uuids(file_data['cghub'])
-            return_code = self.gt_client.download(uuids, cghub_key, cghub_path, staging, cghub_transport_parallel)
-            session = self.cleanup('CGHub', return_code, staging, output, self.gt_client)
+            uuids = self.get_uuids(file_data['gnos'])
+            return_code = self.gt_client.download(uuids, gnos_key, gnos_path, staging, gnos_transport_parallel)
+            session = self.cleanup('gnos', return_code, staging, output, self.gt_client)
 
         if 'aws-virginia' in file_data and file_data['aws-virginia']:
             check_access(self, icgc_token, 'icgc', self.icgc_client.docker, icgc_path)
@@ -148,8 +148,8 @@ class DownloadDispatcher(object):
             self.gdc_client.session = session
             return_code = self.gdc_client.download(uuids, gdc_token, gdc_path, staging, gdc_transport_parallel,
                                                    gdc_udt)
-            self.check_code('Gdc', return_code)
-        self.move_files(staging, output)
+            session = self.cleanup('GDC files', return_code, staging, output, self.gdc_client)
+        return session
 
     def check_code(self, client, code):
         if code == 127:

@@ -39,7 +39,7 @@ DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgc-get', force_posix=Tru
 API_URL = "https://staging.dcc.icgc.org/api/v1/"
 DOCKER_PATHS = {'icgc_path': '/icgc/icgc-storage-client/bin/icgc-storage-client',
                 'ega_path': '/icgc/ega-download-demo/EgaDemoClient.jar',
-                'cghub_path': '/icgc/genetorrent/bin/gtdownload', 'pdc_path': '/usr/local/bin/aws',
+                'gnos_path': '/icgc/genetorrent/bin/gtdownload', 'pdc_path': '/usr/local/bin/aws',
                 'gdc_path': '/icgc/gdc-data-transfer-tool/gdc-client'}
 
 
@@ -120,9 +120,9 @@ def cli(ctx, config, docker, logfile, verbose):
 @click.option('--manifest', '-m', is_flag=True, default=False)
 @click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True),
               required=True, envvar='ICGCGET_OUTPUT')
-@click.option('--cghub-key', type=click.STRING, envvar='ICGCGET_CGHUB_KEY')
-@click.option('--cghub-path', envvar='ICGCGET_CGHUB_PATH')
-@click.option('--cghub-transport-parallel', type=click.STRING, default='8', envvar='ICGCGET_CGHUB_TRANSPORT_PARALLEL')
+@click.option('--gnos-key', type=click.STRING, envvar='ICGCGET_GNOS_KEY')
+@click.option('--gnos-path', envvar='ICGCGET_GNOS_PATH')
+@click.option('--gnos-transport-parallel', type=click.STRING, default='8', envvar='ICGCGET_GNOS_TRANSPORT_PARALLEL')
 @click.option('--ega-username', type=click.STRING, envvar='ICGCGET_EGA_USERNAME')
 @click.option('--ega-password', type=click.STRING, envvar='ICGCGET_EGA_PASSWORD')
 @click.option('--ega-path', envvar='ICGCGET_EGA_PATH')
@@ -133,7 +133,7 @@ def cli(ctx, config, docker, logfile, verbose):
 @click.option('--gdc-transport-parallel', type=click.STRING, default='8')
 @click.option('--gdc-udt', default=False, envvar='ICGCGET_GDC_UDT')
 @click.option('--icgc-token', type=click.STRING, envvar='ICGCGET_ICGC_TOKEN')
-@click.option('--icgc-path', envvar='ICGCGET_CGHUB_ACCESS')
+@click.option('--icgc-path', envvar='ICGCGET_gnos_ACCESS')
 @click.option('--icgc-transport-file-from', type=click.STRING, default='remote',
               envvar='ICGCGET_ICGC_TRANSPORT_FILE_FROM')
 @click.option('--icgc-transport-parallel', type=click.STRING, default='8', envvar='ICGCGET_PDC_TRANSPORT_PARALLEL')
@@ -145,7 +145,7 @@ def cli(ctx, config, docker, logfile, verbose):
 @click.option('--no-ssl-verify', is_flag=True, default=True, help="Do not verify ssl certificates")
 @click.pass_context
 def download(ctx, ids, repos, manifest, output,
-             cghub_key, cghub_path, cghub_transport_parallel,
+             gnos_key, gnos_path, gnos_transport_parallel,
              ega_username, ega_password, ega_path, ega_transport_parallel, ega_udt,
              gdc_token, gdc_path, gdc_transport_parallel, gdc_udt,
              icgc_token, icgc_path, icgc_transport_file_from, icgc_transport_parallel,
@@ -172,12 +172,19 @@ def download(ctx, ids, repos, manifest, output,
         download_session['file_data'] = compare_ids(download_session['file_data'], old_download_session['file_data'],
                                                     override)
     json.dump(download_session, open(json_path, 'w', 0777))
-    dispatch.download(download_session, staging, output,
-                      cghub_key, cghub_path, cghub_transport_parallel,
-                      ega_username, ega_password, ega_path, ega_transport_parallel, ega_udt,
-                      gdc_token, gdc_path, gdc_transport_parallel, gdc_udt,
-                      icgc_token, icgc_path, icgc_transport_file_from, icgc_transport_parallel,
-                      pdc_key, pdc_secret, pdc_path, pdc_transport_parallel)
+    download_session = dispatch.download(download_session, staging, output,
+                                         gnos_key, gnos_path, gnos_transport_parallel,
+                                         ega_username, ega_password, ega_path, ega_transport_parallel, ega_udt,
+                                         gdc_token, gdc_path, gdc_transport_parallel, gdc_udt,
+                                         icgc_token, icgc_path, icgc_transport_file_from, icgc_transport_parallel,
+                                         pdc_key, pdc_secret, pdc_path, pdc_transport_parallel)
+    for pid in download_session['subprocess']:
+        try:
+            os.kill(int(pid), 0)
+            raise Exception("""wasn't able to kill the process
+                              HINT:use signal.SIGKILL or signal.SIGABORT""")
+        except OSError:
+            continue
     os.remove(json_path)
 
 
@@ -225,8 +232,8 @@ def report(ctx, repos, ids, manifest, output, table_format, data_type, no_ssl_ve
 @click.option('--manifest', '-m', is_flag=True, default=False)
 @click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True),
               envvar='ICGCGET_OUTPUT')
-@click.option('--cghub-key', type=click.STRING, envvar='ICGCGET_CGHUB_KEY')
-@click.option('--cghub-path', envvar='ICGCGET_CGHUB_PATH')
+@click.option('--gnos-key', type=click.STRING, envvar='ICGCGET_GNOS_KEY')
+@click.option('--gnos-path', type=click.STRING, envvar='ICGCGET_GNOS_PATH')
 @click.option('--ega-username', type=click.STRING, envvar='ICGCGET_EGA_USERNAME')
 @click.option('--ega-password', type=click.STRING, envvar='ICGCGET_EGA_PASSWORD')
 @click.option('--gdc-token', type=click.STRING, envvar='ICGCGET_GDC_TOKEN')
@@ -236,7 +243,7 @@ def report(ctx, repos, ids, manifest, output, table_format, data_type, no_ssl_ve
 @click.option('--pdc-path', envvar='ICGCGET_PDC_ACCESS')
 @click.option('--no-ssl-verify', is_flag=True, default=True, help="Do not verify ssl certificates")
 @click.pass_context
-def check(ctx, repos, ids, manifest, output, cghub_key, cghub_path, ega_username, ega_password, gdc_token,
+def check(ctx, repos, ids, manifest, output, gnos_key, gnos_path, ega_username, ega_password, gdc_token,
           icgc_token, pdc_key, pdc_secret, pdc_path, no_ssl_verify):
     logger = logging.getLogger('__log__')
     logger.debug(str(ctx.params))
@@ -247,7 +254,7 @@ def check(ctx, repos, ids, manifest, output, cghub_key, cghub_path, ega_username
     download_session = {'file_data': {}}
     if ('gdc' in repos or 'ega' in repos or 'pdc' in repos) and ids:
         download_session = download_dispatch.download_manifest(repos, ids, manifest, output, API_URL, no_ssl_verify)
-    dispatch.access_checks(repos, download_session['file_data'], cghub_key, cghub_path, ega_username, ega_password,
+    dispatch.access_checks(repos, download_session['file_data'], gnos_key, gnos_path, ega_username, ega_password,
                            gdc_token, icgc_token, pdc_key, pdc_secret, pdc_path, output, ctx.obj['docker'], API_URL,
                            no_ssl_verify)
 
@@ -264,17 +271,17 @@ def configure(config):
 
 
 @cli.command()
-@click.option('--cghub-path', envvar='ICGCGET_CGHUB_PATH')
+@click.option('--gnos-path', envvar='ICGCGET_GNOS_PATH')
 @click.option('--ega-path', envvar='ICGCGET_EGA_PATH')
 @click.option('--gdc-path', envvar='ICGCGET_GDC_PATH')
 @click.option('--icgc-path', envvar='ICGCGET_ICGC_PATH')
 @click.option('--pdc-path', envvar='ICGCGET_PDC_PATH')
 @click.pass_context
-def version(ctx, cghub_path, ega_path, gdc_path, icgc_path, pdc_path):
+def version(ctx, gnos_path, ega_path, gdc_path, icgc_path, pdc_path):
     logger = logging.getLogger('__log__')
     logger.debug(str(ctx.params))
     tag = get_container_tag(ctx)
-    versions_command(cghub_path, ega_path, gdc_path, icgc_path, pdc_path, ctx.obj['docker'], tag)
+    versions_command(gnos_path, ega_path, gdc_path, icgc_path, pdc_path, ctx.obj['docker'], tag)
 
 
 def main():

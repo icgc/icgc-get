@@ -71,11 +71,11 @@ class AccessCheckDispatcher(object):
             gdc_result = api_error_catch(self, gdc_client.access_check, gdc_token, self.gdc_ids)
             self.access_response(gdc_result, "GDC files specified.")
 
-        if 'cghub' in repo_list and self.id_check('cghub', self.cghub_ids):
-            check_access(self, cghub_key, 'cghub', gt_client.docker, cghub_path)
+        if 'gnos' in repo_list and self.id_check('gnos', self.cghub_ids):
+            check_access(self, cghub_key, 'gnos', gt_client.docker, cghub_path)
             try:
                 self.access_response(gt_client.access_check(cghub_key, self.cghub_ids, cghub_path,
-                                                            output=output), "CGHub files.")
+                                                            output=output), "GNOS files.")
             except SubprocessError as ex:
                 self.logger.error(ex.message)
                 raise click.Abort

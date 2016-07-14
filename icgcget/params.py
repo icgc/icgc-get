@@ -25,7 +25,7 @@ REPOS = {'collaboratory': {'code': 'collaboratory', 'name': 'collab'},
          'aws-virginia': {'code': 'aws-virginia', 'name': 'aws'},
          'ega': {'code': 'ega', 'name': 'european genome association'},
          'gdc': {'code': 'gdc', 'name': 'genomic data commons'},
-         'cghub': {'code': 'cghub', 'name': 'cancer genomic hub'},
+         'gnos': {'code': 'gnos', 'name': 'gnos'},
          'pdc': {'code': 'pdc', 'name': 'bionimbus protected data commons'}}
 
 

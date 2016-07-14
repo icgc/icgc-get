@@ -24,6 +24,7 @@ import logging
 import psutil
 import click
 import yaml
+import signal
 from icgcget.clients import errors
 from icgcget.clients.utils import normalize_keys, flatten_dict
 
@@ -32,8 +33,7 @@ def api_error_catch(self, func, *args):
     try:
         return func(*args)
     except errors.ApiError as ex:
-        messages = ex.message.split(': ')
-        self.logger.error(messages[1] + ': ' + messages[2])
+        self.logger.error(ex.message)
         raise click.Abort
 
 
@@ -69,7 +69,6 @@ def compare_ids(current_session, old_session, override):
                 if old_session[repo][fi_id]['state'] != "Finished":
                     updated_session[repo][fi_id] = current_session[repo][fi_id]
             else:
-
                 if override_prompt(override):
                     return current_session
     return updated_session
@@ -152,6 +151,9 @@ def load_json(json_path, abort=True):
             if abort and psutil.pid_exists(old_download_session['pid']):
                 logger.error("Download currently in progress")
                 raise click.Abort()
+            for pid in old_download_session['subprocess']:
+                if psutil.pid_exists(pid) and abort:
+                    os.kill(pid, signal.SIGKILL)
             return old_download_session
         except ValueError:
             logger.info("Corrupted download state found.  Cleaning...")

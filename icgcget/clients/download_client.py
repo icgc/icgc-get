@@ -78,6 +78,9 @@ class DownloadClient(object):
         env['PATH'] = '/usr/local/bin:' + env['PATH']  # virtalenv compatibility
         try:
             process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
+            if self.session:
+                self.session['subprocess'].append(process.pid)
+                json.dump(self.session, open(self.path, 'w', 0777))
         except subprocess.CalledProcessError as ex:
             self.logger.warning(ex.output)
             return ex.returncode
@@ -139,7 +142,7 @@ class DownloadClient(object):
             return 0
 
     def prepend_docker_args(self, args, mnt=None, envvars=None):
-        docker_args = ['docker', 'run', '-t', '--rm']
+        docker_args = ['docker', 'run', '-t', '-d']
         if not envvars:
             envvars = {}
         for name, value in envvars.iteritems():

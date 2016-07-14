@@ -50,7 +50,7 @@ class ConfigureDispatcher(object):
         message = "Enter a location for the process logs to be stored.  Must be in an existing directory.  Optional."
         logfile = self.prompt('logfile', 'logfile', message, input_type=LogfileParam())
         message = "Enter which repositories you want to download from.\n" + \
-                  "Valid repositories are: aws-virginia cghub collaboratory ega gdc pdc"
+                  "Valid repositories are: aws-virginia gnos collaboratory ega gdc pdc"
         repos = self.prompt('repos', 'repos', message, input_type=ReposParam())
         message = "Enter true or false if you wish to use a docker container to download and run all download clients"
         docker = self.prompt('docker', 'docker', message, input_type=click.BOOL)
@@ -63,13 +63,13 @@ class ConfigureDispatcher(object):
             conf_yaml["icgc"] = {'token': icgc_access}
             if icgc_path:
                 conf_yaml['icgc']['path'] = icgc_path
-        if "cghub" in repos:
-            cghub_path = self.prompt('CGHub path', 'cghub_path', "Enter the path to your local genetorrent binaries",
-                                     input_type=click.Path(exists=True, dir_okay=False, resolve_path=True), skip=docker)
-            cghub_access = self.prompt('CGHub key', 'cghub_key', "Enter a valid CGHub access key")
-            conf_yaml["cghub"] = {'key': cghub_access}
-            if cghub_path:
-                conf_yaml['cghub']['path'] = cghub_path
+        if "gnos" in repos:
+            gnos_path = self.prompt('gnos path', 'gnos_path', "Enter the path to your local genetorrent binaries",
+                                    input_type=click.Path(exists=True, dir_okay=False, resolve_path=True), skip=docker)
+            gnos_access = self.prompt('gnos key', 'gnos_key', "Enter a valid gnos access key")
+            conf_yaml["gnos"] = {'key': gnos_access}
+            if gnos_path:
+                conf_yaml['gnos']['path'] = gnos_path
         if "ega" in repos:
             ega_path = self.prompt('EGA path', 'ega_path', "Enter the path to your local EGA download client jar file",
                                    input_type=click.Path(exists=True, dir_okay=False, resolve_path=True), skip=docker)
@@ -116,4 +116,6 @@ class ConfigureDispatcher(object):
             return default
         print '\n' + info
         value = click.prompt(value_string, default=default, hide_input=hide, type=input_type, show_default=not hide)
+        if value_name == 'repos' and value == default:  # Default params do not get filtered through input_type.convert
+            value = default.split(' ')
         return value

@@ -70,7 +70,7 @@ class GnosDownloadClient(DownloadClient):
         filename = re.findall(r'filename=*', response)
         if filename:
             filename = filename[9:]
-            self.session_update(filename, 'cghub')
+            self.session_update(filename, 'gnos')
 
     def make_call_args(self, tool_path, staging, access_file, uuids):
         if self.docker:
