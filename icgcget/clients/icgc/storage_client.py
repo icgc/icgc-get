@@ -60,9 +60,9 @@ class StorageClient(DownloadClient):
 
             call_args.extend(['--output-dir', staging])
         code = self._run_command(call_args, parser=self.download_parser, env=env_dict)
-        if self.docker and self.log_dir:
+        if self.docker and os.path.isfile(log_staging) and self.log_dir:
             shutil.move(log_staging, log_file)
-        elif self.docker:
+        elif self.docker and os.path.isfile(log_staging):
             os.remove(log_staging)
         return code
 

@@ -142,7 +142,7 @@ class DownloadClient(object):
             return 0
 
     def prepend_docker_args(self, args, mnt=None, envvars=None):
-        docker_args = ['docker', 'run', '-t', '-d']
+        docker_args = ['docker', 'run', '-t', '--rm']
         if not envvars:
             envvars = {}
         for name, value in envvars.iteritems():

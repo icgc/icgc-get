@@ -36,7 +36,7 @@ from icgcget.log_filters import MaxLevelFilter
 from icgcget.version import __version__, __container_version__
 
 DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgc-get', force_posix=True), 'config.yaml')
-API_URL = "https://staging.dcc.icgc.org/api/v1/"
+API_URL = "https://dcc.icgc.org/api/v1/"
 DOCKER_PATHS = {'icgc_path': '/icgc/icgc-storage-client/bin/icgc-storage-client',
                 'ega_path': '/icgc/ega-download-demo/EgaDemoClient.jar',
                 'gnos_path': '/icgc/genetorrent/bin/gtdownload', 'pdc_path': '/usr/local/bin/aws',

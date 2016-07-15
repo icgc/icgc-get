@@ -165,6 +165,7 @@ class DownloadDispatcher(object):
             if free <= size:
                 self.logger.error("Not enough space detected for download of %s. %s of space in %s",
                                   ''.join(convert_size(size)), ''.join(convert_size(free)), output)
+                click.Abort()
 
     @staticmethod
     def get_uuids(file_data):

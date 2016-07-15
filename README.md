@@ -26,7 +26,8 @@ ICGC get is capable of interfacing with the [ICGC storage client,](http://docs.i
 and [the Amazon Web Service command line interface.](http://docs.aws.amazon.com/cli/latest/userguide/installing.html)  If you do not have any of download clients installed locally, ICGC get is capable of running them through
 the ICGC get Docker container. Running any of the clients through the Docker container will prevent issues from arising related to conflicting 
 software requirements for the data download clients.  To enable this functionality, first [install 
-Docker.](https://www.docker.com/products/overview)
+Docker.](https://www.docker.com/products/overview).  Please make sure to create a [Docker group](https://docs.docker.com/v1.11/engine/installation/linux/ubuntulinux/#create-a-docker-group)
+when running on a Linux machine 
 
 **This tool requires one or more download clients or docker to be installed to function**
 
