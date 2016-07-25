@@ -30,13 +30,13 @@ from icgcget.version import __version__
 
 def versions_command(gnos_path, ega_path, gdc_path, icgc_path, pdc_path, docker, container_version):
     logger = logging.getLogger("__log__")
-    logger.warning("ICGC-Get Version: %s", __version__)
-    logger.warning("Clients:")
+    logger.info("ICGC-Get Version: %s", __version__)
+    logger.info("Clients:")
     check_version_path(PdcDownloadClient(docker=docker, container_version=container_version), "PDC", pdc_path)
     check_version_path(EgaDownloadClient(docker=docker, container_version=container_version), "EGA", ega_path)
     check_version_path(GdcDownloadClient(docker=docker, container_version=container_version), "GDC", gdc_path)
     check_version_path(GnosDownloadClient(docker=docker, container_version=container_version), "GNOS", gnos_path)
-    check_version_path(StorageClient(docker=docker), "ICGC", icgc_path)
+    check_version_path(StorageClient(docker=docker, container_version=container_version), "ICGC", icgc_path)
 
 
 def check_version_path(client, name, path):

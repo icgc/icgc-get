@@ -47,32 +47,31 @@ RUN mkdir -p /icgc/ega-download-demo && \
     apt-get install -y unzip curl wget && \
     cd /icgc/ega-download-demo && \
     wget -qO- https://www.ebi.ac.uk/ega/sites/ebi.ac.uk.ega/files/documents/EgaDemoClient_$EGA_VERSION.zip -O temp.zip ; \
-    unzip temp.zip -d /icgc/ega-download-demo; rm temp.zip && \
+    unzip temp.zip -d /icgc/ega-download-demo
 
 #
 # Install GeneTorrent and add to PATH
 #
 
-    mkdir -p /icgc/genetorrent && \
+RUN mkdir -p /icgc/genetorrent && \
     cd /icgc/genetorrent && \
-    wget -qO- https://cghub.ucsc.edu/software/downloads/GeneTorrent/$GT_VERSION/GeneTorrent-download-$GT_VERSION-$GT_VERSION_LONG-Ubuntu14.04.x86_64.tar.gz | \
-    tar xvz --strip-components 1 && \
+    wget -qO- https://annai.egnyte.com/dd/LWTWQGXeAi/ -O genetorrent
 
 # 
 # Install latest version of storage client distribution
 #
 
-    mkdir -p /icgc/icgc-storage-client && \
+RUN mkdir -p /icgc/icgc-storage-client && \
     cd /icgc/icgc-storage-client && \
     wget -qO- https://artifacts.oicr.on.ca/artifactory/dcc-release/org/icgc/dcc/icgc-storage-client/[RELEASE]/icgc-storage-client-[RELEASE]-dist.tar.gz | \
     tar xvz --strip-components 1 && \
-    mkdir -p /icgc/icgc-storage-client/logs && \
+    mkdir -p /icgc/icgc-storage-client/logs
 
 #
 # Install latest version of gdc download tool
 #
 
-    mkdir -p /icgc/gdc-data-transfer-tool && \
+RUN mkdir -p /icgc/gdc-data-transfer-tool && \
     cd /icgc/gdc-data-transfer-tool && \
     wget -qO- https://gdc.nci.nih.gov/files/public/file/$GDC_VERSION.zip -O temp.zip ; \
     unzip temp.zip -d /icgc/gdc-data-transfer-tool ; \

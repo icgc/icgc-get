@@ -85,7 +85,7 @@ class StorageClient(DownloadClient):
 
     def version_parser(self, response):
         response = re.sub(r"\x1b[^m]*m", '', response)  # Strip ANSI colour codes
-        version = re.findall(r"Version: 1.0.18", response)
+        version = re.findall(r"Version: [0-9.]+", response)
         if version:
             self.logger.info(" ICGC Storage Client %s", version[0])
 

@@ -60,42 +60,46 @@ class ConfigureDispatcher(object):
             icgc_path = self.prompt('ICGC path', 'icgc_path', message,
                                     input_type=click.Path(exists=True, dir_okay=False, resolve_path=True), skip=docker)
             icgc_access = self.prompt('ICGC token', 'icgc_token', "Enter a valid ICGC access token")
-            conf_yaml["icgc"] = {'token': icgc_access}
             if icgc_path:
-                conf_yaml['icgc']['path'] = icgc_path
+                conf_yaml['icgc'] = {'token': icgc_access, 'path': icgc_path}
+            else:
+                conf_yaml["icgc"] = {'token': icgc_access}
         if "gnos" in repos:
             gnos_path = self.prompt('gnos path', 'gnos_path', "Enter the path to your local genetorrent binaries",
                                     input_type=click.Path(exists=True, dir_okay=False, resolve_path=True), skip=docker)
             gnos_access = self.prompt('gnos key', 'gnos_key', "Enter a valid gnos access key")
-            conf_yaml["gnos"] = {'key': gnos_access}
             if gnos_path:
-                conf_yaml['gnos']['path'] = gnos_path
+                conf_yaml['gnos'] = {'key': gnos_access, 'path': gnos_path}
+            else:
+                conf_yaml["gnos"] = {'key': gnos_access}
         if "ega" in repos:
             ega_path = self.prompt('EGA path', 'ega_path', "Enter the path to your local EGA download client jar file",
                                    input_type=click.Path(exists=True, dir_okay=False, resolve_path=True), skip=docker)
             ega_username = self.prompt('EGA username', 'ega_username', "Enter your EGA username")
             ega_password = self.prompt('EGA password', 'ega_password', "Enter your EGA password")
-            conf_yaml["ega"] = {'username': ega_username, 'password': ega_password}
             if ega_path:
-                conf_yaml['ega']['path'] = ega_path
+                conf_yaml['ega'] = {'username': ega_username, 'password': ega_password, 'path': ega_path}
+            else:
+                conf_yaml["ega"] = {'username': ega_username, 'password': ega_password}
         if "gdc" in repos:
             message = "Enter the path to your local GDC download client installation"
             gdc_path = self.prompt('GDC path', 'gdc_path', message,
                                    input_type=click.Path(exists=True, dir_okay=False, resolve_path=True), skip=docker)
             gdc_access = self.prompt('GDC token', 'gdc_token', "Enter a valid GDC access token")
-            conf_yaml["gdc"] = {'token': gdc_access}
             if gdc_path:
-                conf_yaml['gdc']['path'] = gdc_path
+                conf_yaml['gdc'] = {'token': gdc_access, 'path': gdc_path}
+            else:
+                conf_yaml["gdc"] = {'token': gdc_access}
         if "pdc" in repos:
             message = "Enter the path to your local AWS-cli installation to access the PDC repository"
             pdc_path = self.prompt('AWS path', 'pdc_path', message,
                                    input_type=click.Path(exists=True, dir_okay=False, resolve_path=True), skip=docker)
             pdc_key = self.prompt('PDC key', 'pdc_key', "Enter your PDC s3 key")
             pdc_secret_key = self.prompt('PDC secret key', 'pdc_secret', "Enter your PDC s3 secret key", hide=True)
-            conf_yaml['pdc'] = {'key': pdc_key, 'secret': pdc_secret_key}
             if pdc_path:
-                conf_yaml['pdc']['path'] = pdc_path
-
+                conf_yaml['pdc'] = {'key': pdc_key, 'secret': pdc_secret_key, 'path': pdc_path}
+            else:
+                conf_yaml['pdc'] = {'key': pdc_key, 'secret': pdc_secret_key}
         config_file = open(config_destination, 'w')
         yaml.safe_dump(conf_yaml, config_file, encoding=None, default_flow_style=False)
         os.environ['ICGCGET_CONFIG'] = config_destination
@@ -109,7 +113,7 @@ class ConfigureDispatcher(object):
                 default = self.old_config[value_name]
         else:
             if value_name == 'logfile':
-                default = self.default_dir + '/logfile.log'
+                default = self.default_dir + '/icgc_get.log'
             else:
                 default = ''
         if skip:

@@ -80,7 +80,7 @@ class PdcDownloadClient(DownloadClient):
         super(PdcDownloadClient, self).print_version(path)
 
     def download_parser(self, output):
-        self.logger.info(output)
+        self.logger.info(output.strip())
 
     def version_parser(self, output):
         version = re.findall(r"aws-cli/[0-9.]+", output)

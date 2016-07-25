@@ -192,6 +192,10 @@ class DownloadDispatcher(object):
                 except shutil.Error:
                     self.logger.info('File %s already present in download directory', staged_file)
                     os.remove(os.path.join(staging, staged_file))
+                except OSError as ex:
+                    if ex.errno == 13:
+                        self.logger.error('Insufficient permissions to move files')
+                        os.remove(os.path.join(staging, staged_file))
 
     def cleanup(self, name, return_code, staging, output, client):
         self.check_code(name, return_code)
