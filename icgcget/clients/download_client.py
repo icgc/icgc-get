@@ -25,6 +25,8 @@ import tempfile
 import shutil
 import os
 import re
+import getpass
+import pwd
 import subprocess32
 
 
@@ -77,7 +79,7 @@ class DownloadClient(object):
             env = dict(os.environ)
         env['PATH'] = '/usr/local/bin:' + env['PATH']  # virtalenv compatibility
         try:
-            process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
+            process = subprocess.Popen(args,  stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
             if self.session:
                 self.session['subprocess'].append(process.pid)
                 json.dump(self.session, open(self.path, 'w', 0777))
@@ -142,7 +144,9 @@ class DownloadClient(object):
             return 0
 
     def prepend_docker_args(self, args, mnt=None, envvars=None):
-        docker_args = ['docker', 'run', '-t', '--rm']
+        uid = os.getuid()
+
+        docker_args = ['docker', 'run', '-t', '-u={}'.format(uid),  '--rm']
         if not envvars:
             envvars = {}
         for name, value in envvars.iteritems():

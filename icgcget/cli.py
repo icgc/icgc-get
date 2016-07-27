@@ -155,9 +155,8 @@ def download(ctx, ids, repos, manifest, output,
     staging = output + '/.staging'
     filter_repos(repos)
     tag = get_container_tag(ctx)
-
+    oldmask = os.umask(0000)
     if not os.path.exists(staging):
-        os.umask(0000)
         os.mkdir(staging, 0777)
     json_path = staging + '/state.json'
 
@@ -186,6 +185,7 @@ def download(ctx, ids, repos, manifest, output,
         except OSError:
             continue
     os.remove(json_path)
+    os.umask(oldmask)
 
 
 @cli.command()
