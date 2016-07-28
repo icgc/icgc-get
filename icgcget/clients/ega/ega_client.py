@@ -21,6 +21,7 @@
 import fnmatch
 import os
 import re
+from copy import copy
 from random import SystemRandom
 from string import ascii_uppercase, digits
 from urllib import quote
@@ -51,7 +52,7 @@ class EgaDownloadClient(DownloadClient):
         else:
             file_dir = staging
         # Get a list of outstanding requests, to see if the current request has already been made
-        request_list_args = args
+        request_list_args = copy(args)
         request_list_args.append('-lr')
         code = self._run_command(request_list_args, self.requests_parser)
         if code != 0:
@@ -59,7 +60,7 @@ class EgaDownloadClient(DownloadClient):
         # If the request hasn't already been made, make a download request
         if not self.skip:
             for object_id in object_ids:
-                request_call_args = args
+                request_call_args = copy(args)
                 if object_id[3] == 'D':
                     request_call_args.append('-rfd')
                 else:
@@ -69,7 +70,7 @@ class EgaDownloadClient(DownloadClient):
                 if rc_request != 0:
                     return rc_request
         # Now that request exists in some form, download the files
-        download_call_args = args
+        download_call_args = copy(args)
         download_call_args.extend(['-dr', self.label, '-path', file_dir])
         if udt:
             download_call_args.append('-udt')
@@ -77,7 +78,7 @@ class EgaDownloadClient(DownloadClient):
         if rc_download != 0:
             return rc_download
         # Decrypt downloaded files
-        decrypt_call_args = args
+        decrypt_call_args = copy(args)
         decrypt_call_args.append('-dc')
         for cip_file in os.listdir(file_dir):  # File names cannot be dynamically predicted from dataset names
             if fnmatch.fnmatch(cip_file, '*.cip'):  # Tool attempts to decrypt all encrypted files in download directory
@@ -130,9 +131,6 @@ class EgaDownloadClient(DownloadClient):
 
     def requests_parser(self, response):
         self.logger.info(response)
-        logout = re.findall(r'dataset', response)
         request = re.findall(r'EGA[A-Z][0-9]+_download_request', response)
         if request and request[0] == self.label:
             self.skip = True
-        if logout:
-            self.skip = False
