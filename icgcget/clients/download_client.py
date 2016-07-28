@@ -25,8 +25,6 @@ import tempfile
 import shutil
 import os
 import re
-import getpass
-import pwd
 import subprocess32
 
 

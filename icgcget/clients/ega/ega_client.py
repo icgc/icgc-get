@@ -47,6 +47,9 @@ class EgaDownloadClient(DownloadClient):
         args = ['java', '-jar', tool_path, '-p', access, password, '-nt', parallel]
         if self.docker:
             args = self.prepend_docker_args(args, staging)
+            file_dir = self.docker_mnt
+        else:
+            file_dir = staging
         # Get a list of outstanding requests, to see if the current request has already been made
         request_list_args = args
         request_list_args.append('-lr')
@@ -67,7 +70,7 @@ class EgaDownloadClient(DownloadClient):
                     return rc_request
         # Now that request exists in some form, download the files
         download_call_args = args
-        download_call_args.extend(['-dr', self.label, '-path', staging])
+        download_call_args.extend(['-dr', self.label, '-path', file_dir])
         if udt:
             download_call_args.append('-udt')
         rc_download = self._run_command(download_call_args, self.download_parser)
@@ -76,9 +79,9 @@ class EgaDownloadClient(DownloadClient):
         # Decrypt downloaded files
         decrypt_call_args = args
         decrypt_call_args.append('-dc')
-        for cip_file in os.listdir(staging):  # File names cannot be dynamically predicted from dataset names
+        for cip_file in os.listdir(file_dir):  # File names cannot be dynamically predicted from dataset names
             if fnmatch.fnmatch(cip_file, '*.cip'):  # Tool attempts to decrypt all encrypted files in download directory
-                decrypt_call_args.append(staging + '/' + cip_file)
+                decrypt_call_args.append(file_dir + '/' + cip_file)
         decrypt_call_args.extend(['-dck', key])
         rc_decrypt = self._run_command(decrypt_call_args, self.download_parser)
         if rc_decrypt != 0:
