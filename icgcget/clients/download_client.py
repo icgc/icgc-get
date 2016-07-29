@@ -77,7 +77,8 @@ class DownloadClient(object):
             env = dict(os.environ)
         env['PATH'] = '/usr/local/bin:' + env['PATH']  # virtalenv compatibility
         try:
-            process = subprocess.Popen(args,  stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
+            output = ''
+            process = subprocess.Popen(args, bufsize=0,  stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
             if self.session:
                 self.session['subprocess'].append(process.pid)
                 json.dump(self.session, open(self.path, 'w', 0777))
@@ -88,11 +89,14 @@ class DownloadClient(object):
             self.logger.warning("Path to download tool, %s, does not lead to expected application", args[0])
             return 2
         while True:
-            output = process.stdout.readline()
+            char = process.stdout.read(1)
             if process.poll() is not None:
                 break
-            if output:
+            if (char == '\n' or char == '\r') and output:
                 parser(output)
+                output = ''
+            else:
+                output += char
         return_code = process.poll()
         if return_code == 0 and self.session:
             self.session_update('', self.repo)  # clear any running files if exit cleanly
