@@ -38,11 +38,10 @@ from icgcget.commands.utils import api_error_catch, filter_manifest_ids, check_a
 
 
 class DownloadDispatcher(object):
-    def __init__(self, json_path=None, docker=False, logfile=None, container_version=''):
-        log_dir = os.path.split(logfile)[0] if logfile else None
+    def __init__(self, json_path=None, docker=False, log_dir=None, container_version=''):
         self.logger = logging.getLogger("__log__")
         self.gdc_client = GdcDownloadClient(json_path, docker, log_dir=log_dir, container_version=container_version)
-        self.ega_client = EgaDownloadClient(json_path, docker, log_dir, container_version=container_version)
+        self.ega_client = EgaDownloadClient(json_path, docker, log_dir=log_dir, container_version=container_version)
         self.gt_client = GnosDownloadClient(json_path, docker, log_dir, container_version=container_version)
         self.pdc_client = PdcDownloadClient(json_path, docker, log_dir, container_version=container_version)
         self.icgc_client = StorageClient(json_path, docker, log_dir=log_dir, container_version=container_version)
@@ -102,7 +101,7 @@ class DownloadDispatcher(object):
             self.gt_client.session = session
             uuids = self.get_uuids(file_data['gnos'])
             return_code = self.gt_client.download(uuids, gnos_key, gnos_path, staging, gnos_transport_parallel)
-            session = self.cleanup('gnos', return_code, staging, output, self.gt_client)
+            self.cleanup('gnos', return_code, staging, output)
 
         if 'aws-virginia' in file_data and file_data['aws-virginia']:
             check_access(self, icgc_token, 'icgc', self.icgc_client.docker, icgc_path)
@@ -110,7 +109,7 @@ class DownloadDispatcher(object):
             uuids = self.get_uuids(file_data['aws-virginia'])
             return_code = self.icgc_client.download(uuids, icgc_token, icgc_path, staging, icgc_transport_parallel,
                                                     file_from=icgc_transport_file_from, repo='aws')
-            session = self.cleanup('ICGC', return_code, staging, output, self.icgc_client)
+            self.cleanup('ICGC', return_code, staging, output)
 
         if 'ega' in file_data and file_data['ega']:
             check_access(self, ega_username, 'ega', self.ega_client.docker, ega_path, ega_password, udt=ega_udt)
@@ -121,7 +120,7 @@ class DownloadDispatcher(object):
             uuids = self.get_uuids(file_data['ega'])
             return_code = self.ega_client.download(uuids, ega_username, ega_path, staging, ega_transport_parallel,
                                                    ega_udt, password=ega_password)
-            session = self.cleanup('EGA', return_code, staging, output, self.ega_client)
+            self.cleanup('EGA', return_code, staging, output)
 
         if 'collaboratory' in file_data and file_data['collaboratory']:
             check_access(self, icgc_token, 'icgc', self.icgc_client.docker, icgc_path)
@@ -129,7 +128,7 @@ class DownloadDispatcher(object):
             uuids = self.get_uuids(file_data['collaboratory'])
             return_code = self.icgc_client.download(uuids, icgc_token, icgc_path, staging, icgc_transport_parallel,
                                                     file_from=icgc_transport_file_from, repo='collab')
-            session = self.cleanup('ICGC', return_code, staging, output, self.icgc_client)
+            self.cleanup('ICGC', return_code, staging, output)
 
         if 'pdc' in file_data and file_data['pdc']:
             check_access(self, pdc_key, 'pdc', self.pdc_client.docker, pdc_path, secret_key=pdc_secret_key)
@@ -139,7 +138,7 @@ class DownloadDispatcher(object):
             self.pdc_client.session = session
             return_code = self.pdc_client.download(urls, pdc_key, pdc_path, staging, pdc_transport_parallel,
                                                    secret_key=pdc_secret_key)
-            session = self.cleanup('PDC files', return_code, staging, output, self.pdc_client)
+            self.cleanup('PDC files', return_code, staging, output)
 
         if 'gdc' in file_data and file_data['gdc']:
             check_access(self, gdc_token, 'gdc', self.gdc_client.docker, gdc_path, udt=gdc_udt)
@@ -147,7 +146,7 @@ class DownloadDispatcher(object):
             self.gdc_client.session = session
             return_code = self.gdc_client.download(uuids, gdc_token, gdc_path, staging, gdc_transport_parallel,
                                                    gdc_udt)
-            session = self.cleanup('GDC files', return_code, staging, output, self.gdc_client)
+            self.cleanup('GDC files', return_code, staging, output)
         return session
 
     def check_code(self, client, code):
@@ -198,8 +197,6 @@ class DownloadDispatcher(object):
                     self.logger.error('Insufficient permissions to move files. ' +
                                       'Please remove .staging from your download directory manually.')
 
-    def cleanup(self, name, return_code, staging, output, client):
+    def cleanup(self, name, return_code, staging, output):
         self.check_code(name, return_code)
         self.move_files(staging, output)
-        client.session['container'] = 0
-        return client.session

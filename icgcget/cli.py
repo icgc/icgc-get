@@ -41,8 +41,7 @@ DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgc-get', force_posix=Tru
 API_URL = "https://dcc.icgc.org/api/v1/"
 DOCKER_PATHS = {'icgc_path': '/icgc/icgc-storage-client/bin/icgc-storage-client',
                 'ega_path': '/icgc/ega-download-demo/EgaDemoClient.jar',
-                'gnos_path': '/icgc/genetorrent/bin/gtdownload', 'pdc_path': '/usr/local/bin/aws',
-                'gdc_path': '/icgc/gdc-data-transfer-tool/gdc-client'}
+                'pdc_path': '/usr/local/bin/aws', 'gdc_path': '/icgc/gdc-data-transfer-tool/gdc-client'}
 
 
 def logger_setup(logfile, verbose):
@@ -147,12 +146,12 @@ def cli(ctx, config, docker, logfile, verbose):
             ctx.obj['docker'] = True
         if logfile is not None:
             logger = logger_setup(logfile, verbose)
-            ctx.obj['logfile'] = logfile
+            ctx.obj['logdir'] = os.path.split(logfile)[0]
         elif 'logfile' in config_file:
             logger = logger_setup(config_file['logfile'], verbose)
-            ctx.obj['logfile'] = config_file['logfile']
+            ctx.obj['logdir'] = os.path.split(config_file['logfile'])[0]
         else:
-            ctx.obj['logfile'] = None
+            ctx.obj['logdir'] = None
             logger = logger_setup(None, verbose)
         ctx.default_map = config_file
         logger.debug(__version__ + ' ' + ctx.invoked_subcommand)
@@ -202,13 +201,13 @@ def download(ctx, ids, repos, manifest, output,
     oldmask = os.umask(0000)
     if not os.path.exists(staging):
         os.mkdir(staging, 0777)
-    json_path = staging + '/state.json'
+    json_path = ctx.obj['logdir'] + '/state.json'
     if ctx.obj['docker']:
         atexit.register(docker_cleanup, staging)
     atexit.register(subprocess_cleanup, json_path)
 
     old_download_session = subprocess_cleanup(json_path)
-    dispatch = DownloadDispatcher(json_path, ctx.obj['docker'], ctx.obj['logfile'], tag)
+    dispatch = DownloadDispatcher(json_path, ctx.obj['docker'], ctx.obj['logdir'], tag)
     if old_download_session and ids == old_download_session['command']:
         download_session = old_download_session
     else:
@@ -288,10 +287,13 @@ def check(ctx, repos, ids, manifest, output, gnos_key, gnos_path, ega_username, 
           icgc_token, pdc_key, pdc_secret, pdc_path, no_ssl_verify):
     logger = logging.getLogger('__log__')
     logger.debug(str(ctx.params))
+    json_path = ctx.obj['logdir'] + '/state.json'
+    if ctx.obj['docker']:
+        atexit.register(docker_cleanup, output)
     filter_repos(repos)
     tag = get_container_tag(ctx)
     dispatch = AccessCheckDispatcher()
-    download_dispatch = DownloadDispatcher(tag)
+    download_dispatch = DownloadDispatcher(json_path, ctx.obj['docker'], ctx.obj['logdir'], tag)
     download_session = {'file_data': {}}
     if ('gdc' in repos or 'ega' in repos or 'pdc' in repos) and ids:
         download_session = download_dispatch.download_manifest(repos, ids, manifest, output, API_URL, no_ssl_verify)
@@ -322,7 +324,7 @@ def version(ctx, gnos_path, ega_path, gdc_path, icgc_path, pdc_path):
     logger = logging.getLogger('__log__')
     logger.debug(str(ctx.params))
     tag = get_container_tag(ctx)
-    versions_command(gnos_path, ega_path, gdc_path, icgc_path, pdc_path, ctx.obj['docker'], tag)
+    versions_command(gnos_path, ega_path, gdc_path, icgc_path, pdc_path, ctx.obj['docker'], ctx.obj['logdir'], tag)
 
 
 def main():

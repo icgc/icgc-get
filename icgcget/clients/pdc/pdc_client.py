@@ -27,7 +27,7 @@ from icgcget.clients.download_client import DownloadClient
 class PdcDownloadClient(DownloadClient):
 
     def __init__(self, json_path=None, docker=False, log_dir=None, container_version=''):
-        super(PdcDownloadClient, self).__init__(json_path, docker, log_dir, container_version=container_version)
+        super(PdcDownloadClient, self).__init__(json_path, log_dir, docker,  container_version=container_version)
         self.repo = 'pdc'
         self.url = '--endpoint-url=https://bionimbus-objstore.opensciencedatacloud.org/'
 
@@ -37,18 +37,16 @@ class PdcDownloadClient(DownloadClient):
         env_dict = dict(os.environ)
 
         for data_path in data_paths:
-            cid_name = ''
             call_args = [tool_path, '--debug' 's3', self.url, 'cp', data_path]
             if self.docker:
-                cid_name = staging + '/cidfile'
                 call_args.extend([self.docker_mnt + '/'])
                 envvars = {'AWS_ACCESS_KEY_ID': key, 'AWS_SECRET_ACCESS_KEY': secret_key}
-                call_args = self.prepend_docker_args(call_args, staging, envvars, cid_name)
+                call_args = self.prepend_docker_args(call_args, staging, envvars)
             else:
                 env_dict['AWS_ACCESS_KEY_ID'] = key
                 env_dict['AWS_SECRET_ACCESS_KEY'] = secret_key
                 call_args.extend([staging + '/'])
-            code = self._run_command(call_args, self.download_parser, env=env_dict, cidfile_name=cid_name)
+            code = self._run_command(call_args, self.download_parser, env=env_dict)
             if code != 0:
                 return code
             self.session_update(data_path, 'pdc')
@@ -59,7 +57,6 @@ class PdcDownloadClient(DownloadClient):
         env_dict['AWS_ACCESS_KEY_ID'] = key
         env_dict['AWS_SECRET_ACCESS_KEY'] = secret_key
         for data_path in data_paths:
-
             call_args = [path, 's3', self.url, 'cp', data_path]
             if self.docker:
                 call_args.append(self.docker_mnt + '/')

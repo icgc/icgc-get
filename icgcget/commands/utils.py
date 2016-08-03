@@ -135,6 +135,16 @@ def filter_manifest_ids(self, manifest_json, repos):
     return fi_ids
 
 
+def filter_repos(repos):
+    if not repos or repos.count(None) == len(repos):
+        raise click.BadOptionUsage("Must include prioritized repositories")
+    new_repos = []
+    for repo in repos:
+        if repo:
+            new_repos.append(repo)
+    return new_repos
+
+
 def get_manifest_json(self, file_ids, api_url, repos, portal):
     if len(file_ids) > 1:
         self.logger.error("For download from manifest files, multiple manifest id arguments is not supported")
@@ -193,13 +203,3 @@ def validate_ids(ids, manifest):
                                                  "add the -m tag.")
                 raise click.BadArgumentUsage(message="Bad FI ID: passed argument '{}'".format(fi_id) +
                                              " isn't in FI00000 format")
-
-
-def filter_repos(repos):
-    if not repos or repos.count(None) == len(repos):
-        raise click.BadOptionUsage("Must include prioritized repositories")
-    new_repos = []
-    for repo in repos:
-        if repo:
-            new_repos.append(repo)
-    return new_repos

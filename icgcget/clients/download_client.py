@@ -32,17 +32,19 @@ class DownloadClient(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
-    def __init__(self, json_path=None, docker=False, log_dir=None, container_version=""):
+    def __init__(self, json_path, log_dir, docker=False, container_version=""):
 
         self.logger = logging.getLogger('__log__')
         self.jobs = []
-        self.session = {}
+        self.session = {'subprocess': [], 'container': 0}
         self.path = json_path
         self.docker = docker
         self.repo = ''
         self.docker_mnt = '/icgc/mnt'
         self.docker_version = 'icgc/icgc-get:' + container_version
         self.log_dir = log_dir
+        if log_dir:
+            self.cidfile = log_dir + '/cidfile'
 
     @abc.abstractmethod
     def download(self, manifest, access, tool_path, staging, processes, udt=None, file_from=None, repo=None,
@@ -57,6 +59,7 @@ class DownloadClient(object):
     def print_version(self, path):
         call_args = [path, '--version']
         if self.docker:
+
             call_args = self.prepend_docker_args(call_args)
         self._run_command(call_args, self.version_parser)
 
@@ -68,7 +71,7 @@ class DownloadClient(object):
     def download_parser(self, output):
         self.logger.info(output)
 
-    def _run_command(self, args, parser, env=None, cidfile_name=None):
+    def _run_command(self, args, parser, env=None):
         self.logger.debug(args)
         if None in args:
             self.logger.warning("Missing argument in %s", args)
@@ -78,19 +81,8 @@ class DownloadClient(object):
         env['PATH'] = '/usr/local/bin:' + env['PATH']  # virtalenv compatibility
         try:
             output = ''
-
-            process = subprocess.Popen(args, bufsize=0,  stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
-            if self.session:
-                self.session['subprocess'].append(process.pid)
-                if cidfile_name:
-                    while True:
-                        try:
-                            cidfile = open(cidfile_name)  # CID file is created asychronously, try to read until done.
-                            break
-                        except IOError:
-                            continue
-                    self.session['container'] = cidfile.readline()
-                json.dump(self.session, open(self.path, 'w', 0777))
+            process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
+            self.log_subprocess(process.pid)
         except subprocess.CalledProcessError as ex:
             self.logger.warning(ex.output)
             return ex.returncode
@@ -107,20 +99,23 @@ class DownloadClient(object):
             else:
                 output += char
         return_code = process.poll()
-        if return_code == 0 and self.session:
+        if return_code == 0:
             self.session_update('', self.repo)  # clear any running files if exit cleanly
+        if self.cidfile:
+            os.remove(self.cidfile)
         return return_code
 
     def session_update(self, file_name, repo):
-        for name, file_object in self.session['file_data'][repo].iteritems():
-            if file_object['index_filename'] == file_name or file_object['fileName'] == file_name or \
-                            file_object['fileUrl'] == file_name:
-                file_object['state'] = 'Running'
-                self.session['file_data'][repo][name] = file_object
-            elif file_object['state'] == 'Running':  # only one file at a time can be downloaded.
-                file_object['state'] = 'Finished'
-                self.session['file_data'][repo][name] = file_object
-        json.dump(self.session, open(self.path, 'w', 0777))
+        if 'file_data' in self.session:
+            for name, file_object in self.session['file_data'][repo].iteritems():
+                if file_object['index_filename'] == file_name or file_object['fileName'] == file_name or \
+                                file_object['fileUrl'] == file_name:
+                    file_object['state'] = 'Running'
+                    self.session['file_data'][repo][name] = file_object
+                elif file_object['state'] == 'Running':  # only one file at a time can be downloaded.
+                    file_object['state'] = 'Finished'
+                    self.session['file_data'][repo][name] = file_object
+            json.dump(self.session, open(self.path, 'w', 0777))
 
     def _run_test_command(self, args, forbidden, not_found, env=None, timeout=2):
         if not env:
@@ -130,7 +125,8 @@ class DownloadClient(object):
             self.logger.warning("Missing argument in %s", args)
             return 1
         try:
-            subprocess32.check_output(args, stderr=subprocess.STDOUT, env=env, timeout=timeout)
+            process = subprocess32.check_output(args, stderr=subprocess.STDOUT, env=env, timeout=timeout)
+            self.log_subprocess(process.pid)
         except subprocess32.CalledProcessError as ex:
             code = self.parse_test_ex(ex, forbidden, not_found)
             if code == 0:
@@ -154,15 +150,17 @@ class DownloadClient(object):
         else:
             return 0
 
-    def prepend_docker_args(self, args, mnt=None, envvars=None, cidname=None):
+    def prepend_docker_args(self, args, mnt=None, envvars=None):
         uid = os.getuid()
-        docker_args = ['docker', 'run', '-t', '-u={}'.format(uid),  '--rm']
+        docker_args = ['docker', 'run', '-t', '-u={}'.format(uid), '--rm']
         if not envvars:
             envvars = {}
         for name, value in envvars.iteritems():
             docker_args.extend(['-e', name + '=' + value])
-        if mnt and cidname:
-            docker_args.extend(['-v', mnt + ':' + self.docker_mnt, '--cidfile={}'.format(cidname)])
+        if self.cidfile:
+            docker_args.append('--cidfile={}'.format(self.cidfile))
+        if mnt:
+            docker_args.extend(['-v', mnt + ':' + self.docker_mnt])
         docker_args.append(self.docker_version)
         return docker_args + args
 
@@ -178,3 +176,15 @@ class DownloadClient(object):
             access_file.file.write(access)
             access_file.file.seek(0)
         return access_file
+
+    def log_subprocess(self, pid):
+        self.session['subprocess'].append(pid)
+        if self.docker and self.cidfile:
+            while True:
+                try:
+                    cidfile = open(self.cidfile)  # CID file is created asychronously, try to read until done.
+                    break
+                except IOError:
+                    continue
+            self.session['container'] = cidfile.readline()
+        json.dump(self.session, open(self.path, 'w', 0777))
