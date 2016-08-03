@@ -68,7 +68,7 @@ class DownloadClient(object):
     def download_parser(self, output):
         self.logger.info(output)
 
-    def _run_command(self, args, parser, env=None):
+    def _run_command(self, args, parser, env=None, cidfile_name=None):
         self.logger.debug(args)
         if None in args:
             self.logger.warning("Missing argument in %s", args)
@@ -78,9 +78,18 @@ class DownloadClient(object):
         env['PATH'] = '/usr/local/bin:' + env['PATH']  # virtalenv compatibility
         try:
             output = ''
+
             process = subprocess.Popen(args, bufsize=0,  stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
             if self.session:
                 self.session['subprocess'].append(process.pid)
+                if cidfile_name:
+                    while True:
+                        try:
+                            cidfile = open(cidfile_name)  # CID file is created asychronously, try to read until done.
+                            break
+                        except IOError:
+                            continue
+                    self.session['container'] = cidfile.readline()
                 json.dump(self.session, open(self.path, 'w', 0777))
         except subprocess.CalledProcessError as ex:
             self.logger.warning(ex.output)
@@ -145,16 +154,15 @@ class DownloadClient(object):
         else:
             return 0
 
-    def prepend_docker_args(self, args, mnt=None, envvars=None):
+    def prepend_docker_args(self, args, mnt=None, envvars=None, cidname=None):
         uid = os.getuid()
-
         docker_args = ['docker', 'run', '-t', '-u={}'.format(uid),  '--rm']
         if not envvars:
             envvars = {}
         for name, value in envvars.iteritems():
             docker_args.extend(['-e', name + '=' + value])
-        if mnt:
-            docker_args.extend(['-v', mnt + ':' + self.docker_mnt])
+        if mnt and cidname:
+            docker_args.extend(['-v', mnt + ':' + self.docker_mnt, '--cidfile={}'.format(cidname)])
         docker_args.append(self.docker_version)
         return docker_args + args
 

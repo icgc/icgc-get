@@ -39,21 +39,23 @@ class GdcDownloadClient(DownloadClient):
         call_args.extend(uuids)
         access_file = self.get_access_file(access, staging)
         log_name = '/gdc_log.log'
+        cid_name = ''
         if self.log_dir:
             logfile = self.log_dir + log_name
         if self.docker:
+            cid_name = staging + '/cidfile'
             access_path = self.docker_mnt + '/' + os.path.basename(access_file.name)
             call_args.extend(['--dir', self.docker_mnt, '-n', processes, '--token', access_path])
             if self.log_dir:
                 call_args.extend(['--log-file', self.docker_mnt + log_name])
-            call_args = self.prepend_docker_args(call_args, staging)
+            call_args = self.prepend_docker_args(call_args, staging, cidname=cid_name)
         else:
             call_args.extend(['--dir', staging, '-n', processes, '--token', access_file.name])
             if self.log_dir:
                 call_args.extend(['--log-file', logfile])
         if udt:
             call_args.append('--udt')
-        code = self._run_command(call_args, self.download_parser)
+        code = self._run_command(call_args, self.download_parser, cidfile_name=cid_name)
         if self.docker and self.log_dir:
             shutil.move(staging + log_name, logfile)
         return code

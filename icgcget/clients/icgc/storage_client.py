@@ -36,6 +36,7 @@ class StorageClient(DownloadClient):
     def download(self, uuids, access, tool_path, staging, processes, udt=None, file_from=None, repo=None,
                  password=None):
         env_dict = dict(os.environ)
+        cid_name = ''
         if self.log_dir:
             log_file = self.log_dir + '/icgc_log.log'
         log_staging = staging + '/icgc_log.log'
@@ -48,9 +49,10 @@ class StorageClient(DownloadClient):
         elif repo == 'aws':
             self.repo = 'aws-virginia'
         if self.docker:
+            cid_name = staging + '/cidfile'
             call_args.extend(['--output-dir', self.docker_mnt])
             envvars = {'ACCESSTOKEN': access, 'TRANSPORT_PARALLEL': processes}
-            call_args = self.prepend_docker_args(call_args, staging, envvars)
+            call_args = self.prepend_docker_args(call_args, staging, envvars, cid_name)
         else:
             if self.log_dir:
                 log_conf_path = os.path.abspath(os.path.join(os.path.dirname(tool_path), '../conf/logback.xml'))
@@ -59,7 +61,7 @@ class StorageClient(DownloadClient):
             env_dict['TRANSPORT_PARALLEL'] = processes
 
             call_args.extend(['--output-dir', staging])
-        code = self._run_command(call_args, parser=self.download_parser, env=env_dict)
+        code = self._run_command(call_args, parser=self.download_parser, env=env_dict, cidfile_name=cid_name)
         if self.docker and os.path.isfile(log_staging) and self.log_dir:
             shutil.move(log_staging, log_file)
         elif self.docker and os.path.isfile(log_staging):

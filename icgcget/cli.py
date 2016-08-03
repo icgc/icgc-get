@@ -22,8 +22,10 @@ import json
 import logging
 import os
 import sys
-
+import atexit
+import signal
 import click
+import subprocess
 
 from icgcget.commands.access_checks import AccessCheckDispatcher
 from icgcget.commands.configure import ConfigureDispatcher
@@ -71,6 +73,45 @@ def logger_setup(logfile, verbose):
     stderr_handler.setLevel(logging.WARNING)
     logger.addHandler(stderr_handler)
     return logger
+
+
+def docker_cleanup(staging):
+    try:
+        os.remove(staging + '/cidfile')
+    except OSError:
+        pass
+    env = dict(os.environ)
+    env['PATH'] = '/usr/local/bin:' + env['PATH']
+    args = ['docker', 'ps', '-a', '-q', '-f', 'status=exited']
+    exited_containers = subprocess.Popen(args, stdout=subprocess.PIPE, env=env)
+    container_ids = exited_containers.stdout.read().splitlines()
+    if container_ids:
+        print container_ids
+        args = ['docker', 'rm', '-v']
+        args.extend(container_ids)  # remove any stopped containers
+        devnull = open('/dev/null', 'w')
+        subprocess.call(args, stdout=devnull, env=env)
+
+
+def subprocess_cleanup(json_path):
+    session = load_json(json_path, False)
+    if session:
+        if session['container']:
+            print session['container']
+            args = ['docker', 'rm', '-f', session['container']]
+            subprocess.call(args)  # try to stop the last running container
+        print 'exit'
+        for pid in session['subprocess']:  # kill any existing subprocessess
+            try:
+                os.kill(pid, 0)
+            except OSError:
+                continue
+            os.kill(pid, signal.SIGKILL)
+            try:
+                os.kill(pid, 0)
+                print "Unable to kill client process with pid {}".format(pid)
+            except OSError:
+                continue
 
 
 def get_container_tag(context_map):
@@ -159,6 +200,9 @@ def download(ctx, ids, repos, manifest, output,
     if not os.path.exists(staging):
         os.mkdir(staging, 0777)
     json_path = staging + '/state.json'
+    if ctx.obj['docker']:
+        atexit.register(docker_cleanup, staging)
+    atexit.register(subprocess_cleanup, json_path)
 
     old_download_session = load_json(json_path)
     dispatch = DownloadDispatcher(json_path, ctx.obj['docker'], ctx.obj['logfile'], tag)
@@ -171,19 +215,12 @@ def download(ctx, ids, repos, manifest, output,
         download_session['file_data'] = compare_ids(download_session['file_data'], old_download_session['file_data'],
                                                     override)
     json.dump(download_session, open(json_path, 'w', 0777))
-    download_session = dispatch.download(download_session, staging, output,
-                                         gnos_key, gnos_path, gnos_transport_parallel,
-                                         ega_username, ega_password, ega_path, ega_transport_parallel, ega_udt,
-                                         gdc_token, gdc_path, gdc_transport_parallel, gdc_udt,
-                                         icgc_token, icgc_path, icgc_transport_file_from, icgc_transport_parallel,
-                                         pdc_key, pdc_secret, pdc_path, pdc_transport_parallel)
-    for pid in download_session['subprocess']:
-        try:
-            os.kill(int(pid), 0)
-            raise Exception("""wasn't able to kill the process
-                              HINT:use signal.SIGKILL or signal.SIGABORT""")
-        except OSError:
-            continue
+    dispatch.download(download_session, staging, output,
+                      gnos_key, gnos_path, gnos_transport_parallel,
+                      ega_username, ega_password, ega_path, ega_transport_parallel, ega_udt,
+                      gdc_token, gdc_path, gdc_transport_parallel, gdc_udt,
+                      icgc_token, icgc_path, icgc_transport_file_from, icgc_transport_parallel,
+                      pdc_key, pdc_secret, pdc_path, pdc_transport_parallel)
     os.remove(json_path)
     os.umask(oldmask)
 

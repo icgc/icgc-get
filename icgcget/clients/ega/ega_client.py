@@ -21,6 +21,7 @@
 import fnmatch
 import os
 import re
+import tempfile
 from copy import copy
 from random import SystemRandom
 from string import ascii_uppercase, digits
@@ -43,11 +44,13 @@ class EgaDownloadClient(DownloadClient):
 
     def download(self, object_ids, access, tool_path, staging, parallel, udt=None, file_from=None, repo=None,
                  password=None):
+        cid_name = ''
         key = ''.join(SystemRandom().choice(ascii_uppercase + digits) for _ in range(4))
         self.label = object_ids[0] + '_download_request'
         args = ['java', '-jar', tool_path, '-p', access, password, '-nt', parallel]
         if self.docker:
-            args = self.prepend_docker_args(args, staging)
+            cid_name = staging + '/cidfile'
+            args = self.prepend_docker_args(args, staging, cid_name)
             file_dir = self.docker_mnt
         else:
             file_dir = staging
@@ -74,7 +77,7 @@ class EgaDownloadClient(DownloadClient):
         download_call_args.extend(['-dr', self.label, '-path', file_dir])
         if udt:
             download_call_args.append('-udt')
-        rc_download = self._run_command(download_call_args, self.download_parser)
+        rc_download = self._run_command(download_call_args, self.download_parser, cidfile_name=cid_name)
         if rc_download != 0:
             return rc_download
         # Decrypt downloaded files

@@ -51,7 +51,7 @@ class DownloadDispatcher(object):
         portal = portal_client.IcgcPortalClient(verify)
         manifest_json = self.get_manifest(manifest, file_ids, api_url, repos, portal)
         download_session = {'pid': os.getpid(), 'start_time': datetime.datetime.utcnow().isoformat(),
-                            'subprocess': [], 'command': file_ids}
+                            'subprocess': [], 'command': file_ids, 'container': 0}
         size, download_session = calculate_size(manifest_json, download_session)
         file_data = download_session['file_data']
         if manifest:
@@ -97,7 +97,6 @@ class DownloadDispatcher(object):
                  icgc_token, icgc_path, icgc_transport_file_from, icgc_transport_parallel,
                  pdc_key, pdc_secret_key, pdc_path, pdc_transport_parallel):
         file_data = session['file_data']
-
         if 'gnos' in file_data and file_data['gnos']:
             check_access(self, gnos_key, 'gnos', self.gt_client.docker, gnos_path)
             self.gt_client.session = session
@@ -186,7 +185,9 @@ class DownloadDispatcher(object):
 
     def move_files(self, staging, output):
         for staged_file in os.listdir(staging):
-            if staged_file != "state.json":
+            if staged_file == "cidfile":
+                os.remove(os.path.join(staging, staged_file))
+            elif staged_file != "state.json":
                 try:
                     try:
                         shutil.move(os.path.join(staging, staged_file), output)
@@ -200,4 +201,5 @@ class DownloadDispatcher(object):
     def cleanup(self, name, return_code, staging, output, client):
         self.check_code(name, return_code)
         self.move_files(staging, output)
+        client.session['container'] = 0
         return client.session
