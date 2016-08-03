@@ -84,7 +84,7 @@ def docker_cleanup(staging):
     env['PATH'] = '/usr/local/bin:' + env['PATH']
     args = ['docker', 'ps', '-a', '-q', '-f', 'status=exited']
     exited_containers = subprocess.Popen(args, stdout=subprocess.PIPE, env=env)
-    container_ids = exited_containers.stdout.read().splitlines()
+    container_ids = exited_containers.stdout.read().splitlines()  # get list of stopped containers
     if container_ids:
         print container_ids
         args = ['docker', 'rm', '-v']
@@ -100,6 +100,7 @@ def subprocess_cleanup(json_path):
             print session['container']
             args = ['docker', 'rm', '-f', session['container']]
             subprocess.call(args)  # try to stop the last running container
+            session['container'] = 0
         print 'exit'
         for pid in session['subprocess']:  # kill any existing subprocessess
             try:
@@ -111,7 +112,9 @@ def subprocess_cleanup(json_path):
                 os.kill(pid, 0)
                 print "Unable to kill client process with pid {}".format(pid)
             except OSError:
+                session['subprocess'].remove(pid)
                 continue
+    return session
 
 
 def get_container_tag(context_map):
@@ -204,16 +207,17 @@ def download(ctx, ids, repos, manifest, output,
         atexit.register(docker_cleanup, staging)
     atexit.register(subprocess_cleanup, json_path)
 
-    old_download_session = load_json(json_path)
+    old_download_session = subprocess_cleanup(json_path)
     dispatch = DownloadDispatcher(json_path, ctx.obj['docker'], ctx.obj['logfile'], tag)
     if old_download_session and ids == old_download_session['command']:
         download_session = old_download_session
     else:
         validate_ids(ids, manifest)
         download_session = dispatch.download_manifest(repos, ids, manifest, output, API_URL, no_ssl_verify, unique=True)
-    if old_download_session:
-        download_session['file_data'] = compare_ids(download_session['file_data'], old_download_session['file_data'],
-                                                    override)
+        if old_download_session:
+            download_session['file_data'] = compare_ids(download_session['file_data'],
+                                                        old_download_session['file_data'], override)
+            download_session['subprocess'] = old_download_session['subprocess']
     json.dump(download_session, open(json_path, 'w', 0777))
     dispatch.download(download_session, staging, output,
                       gnos_key, gnos_path, gnos_transport_parallel,
