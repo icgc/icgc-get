@@ -184,15 +184,16 @@ class DownloadDispatcher(object):
 
     def move_files(self, staging, output):
         for staged_file in os.listdir(staging):
+
             try:
+                shutil.move(os.path.join(staging, staged_file), output)
+            except shutil.Error:
                 try:
-                    shutil.move(os.path.join(staging, staged_file), output)
-                except shutil.Error:
                     self.logger.info('File %s already present in download directory', staged_file)
                     os.remove(os.path.join(staging, staged_file))
-            except OSError:
-                self.logger.error('Insufficient permissions to move files. ' +
-                                  'Please remove .staging from your download directory manually.')
+                except OSError:
+                    self.logger.error('Insufficient permissions to move files. ' +
+                                      'Please remove .staging from your download directory manually.')
 
     def cleanup(self, name, return_code, staging, output):
         self.check_code(name, return_code)

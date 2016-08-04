@@ -75,10 +75,14 @@ def logger_setup(logfile, verbose):
 
 
 def docker_cleanup(cid_dir):
+    logger = logging.getLogger('__log__')
     try:
         os.remove(cid_dir + '/cidfile')
-    except OSError:
-        pass
+    except OSError as ex:
+        if ex.errno == 2:
+            pass
+        else:
+            logger.warning(ex.message)
     env = dict(os.environ)
     env['PATH'] = '/usr/local/bin:' + env['PATH']
     args = ['docker', 'ps', '-a', '-q', '-f', 'status=exited']
@@ -92,26 +96,33 @@ def docker_cleanup(cid_dir):
 
 
 def subprocess_cleanup(json_path):
+    logger = logging.getLogger('__log__')
     session = load_json(json_path, False)
     if session:
-        if session['container']:
-            print session['container']
-            args = ['docker', 'rm', '-f', session['container']]
-            subprocess.call(args)  # try to stop the last running container
-            session['container'] = 0
-        print 'exit'
         for pid in session['subprocess']:  # kill any existing subprocessess
             try:
                 os.kill(pid, 0)
-            except OSError:
-                continue
+                session['subprocess'].remove(pid)
+            except OSError as ex:
+                if ex.errno == 3:
+                    continue
+                else:
+                    logger.warning(ex.message)
             os.kill(pid, signal.SIGKILL)
             try:
                 os.kill(pid, 0)
                 print "Unable to kill client process with pid {}".format(pid)
-            except OSError:
-                session['subprocess'].remove(pid)
-                continue
+            except OSError as ex:
+                if ex.errno == 3:
+                    session['subprocess'].remove(pid)
+                    continue
+                else:
+                    logger.warning(ex.message)
+
+        if session['container']:
+            args = ['docker', 'rm', '-f', session['container']]
+            subprocess.call(args)  # try to stop the last running container
+            session['container'] = 0
         os.remove(json_path)
     return session
 

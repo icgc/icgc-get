@@ -26,6 +26,7 @@ import shutil
 import os
 import re
 import subprocess32
+from time import sleep
 
 
 class DownloadClient(object):
@@ -79,6 +80,7 @@ class DownloadClient(object):
         if not env:
             env = dict(os.environ)
         env['PATH'] = '/usr/local/bin:' + env['PATH']  # virtalenv compatibility
+
         try:
             output = ''
             process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
@@ -89,6 +91,7 @@ class DownloadClient(object):
         except OSError:
             self.logger.warning("Path to download tool, %s, does not lead to expected application", args[0])
             return 2
+
         while True:
             char = process.stdout.read(1)
             if process.poll() is not None:
@@ -98,6 +101,7 @@ class DownloadClient(object):
                 output = ''
             else:
                 output += char
+
         return_code = process.poll()
         if return_code == 0:
             self.session_update('', self.repo)  # clear any running files if exit cleanly
@@ -153,8 +157,7 @@ class DownloadClient(object):
     def prepend_docker_args(self, args, mnt=None, envvars=None):
         uid = os.getuid()
         docker_args = ['docker', 'run', '-t', '--rm']
-        if not envvars:
-            envvars = {}
+        envvars = envvars or {}
         for name, value in envvars.iteritems():
             docker_args.extend(['-e', name + '=' + value])
         if self.cidfile:
@@ -180,11 +183,13 @@ class DownloadClient(object):
     def log_subprocess(self, pid):
         self.session['subprocess'].append(pid)
         if self.docker and self.cidfile:
-            while True:
+            count = 0
+            while count < 5:
                 try:
                     cidfile = open(self.cidfile)  # CID file is created asychronously, try to read until done.
                     break
                 except IOError:
-                    continue
+                    sleep(0.1)
+                    count += 1
             self.session['container'] = cidfile.readline()
         json.dump(self.session, open(self.path, 'w', 0777))
