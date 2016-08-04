@@ -74,9 +74,9 @@ def logger_setup(logfile, verbose):
     return logger
 
 
-def docker_cleanup(staging):
+def docker_cleanup(cid_dir):
     try:
-        os.remove(staging + '/cidfile')
+        os.remove(cid_dir + '/cidfile')
     except OSError:
         pass
     env = dict(os.environ)
@@ -85,7 +85,6 @@ def docker_cleanup(staging):
     exited_containers = subprocess.Popen(args, stdout=subprocess.PIPE, env=env)
     container_ids = exited_containers.stdout.read().splitlines()  # get list of stopped containers
     if container_ids:
-        print container_ids
         args = ['docker', 'rm', '-v']
         args.extend(container_ids)  # remove any stopped containers
         devnull = open('/dev/null', 'w')
@@ -113,6 +112,7 @@ def subprocess_cleanup(json_path):
             except OSError:
                 session['subprocess'].remove(pid)
                 continue
+        os.remove(json_path)
     return session
 
 
@@ -153,6 +153,9 @@ def cli(ctx, config, docker, logfile, verbose):
         else:
             ctx.obj['logdir'] = None
             logger = logger_setup(None, verbose)
+        if ctx.obj['docker']:
+            atexit.register(docker_cleanup, ctx.obj['logdir'])
+        atexit.register(subprocess_cleanup, ctx.obj['logdir'] + '/state.json')
         ctx.default_map = config_file
         logger.debug(__version__ + ' ' + ctx.invoked_subcommand)
 
@@ -202,18 +205,15 @@ def download(ctx, ids, repos, manifest, output,
     if not os.path.exists(staging):
         os.mkdir(staging, 0777)
     json_path = ctx.obj['logdir'] + '/state.json'
-    if ctx.obj['docker']:
-        atexit.register(docker_cleanup, staging)
-    atexit.register(subprocess_cleanup, json_path)
 
-    old_download_session = subprocess_cleanup(json_path)
+    old_download_session = subprocess_cleanup(json_path)  # strips pids and cids that have been stopped
     dispatch = DownloadDispatcher(json_path, ctx.obj['docker'], ctx.obj['logdir'], tag)
-    if old_download_session and ids == old_download_session['command']:
+    if old_download_session and ids == old_download_session['command']:  # if old session was the same command, can skip
         download_session = old_download_session
     else:
         validate_ids(ids, manifest)
         download_session = dispatch.download_manifest(repos, ids, manifest, output, API_URL, no_ssl_verify, unique=True)
-        if old_download_session:
+        if old_download_session and 'file_data' in old_download_session:  # Check and report don't have file data
             download_session['file_data'] = compare_ids(download_session['file_data'],
                                                         old_download_session['file_data'], override)
             download_session['subprocess'] = old_download_session['subprocess']
@@ -224,7 +224,6 @@ def download(ctx, ids, repos, manifest, output,
                       gdc_token, gdc_path, gdc_transport_parallel, gdc_udt,
                       icgc_token, icgc_path, icgc_transport_file_from, icgc_transport_parallel,
                       pdc_key, pdc_secret, pdc_path, pdc_transport_parallel)
-    os.remove(json_path)
     os.umask(oldmask)
 
 
@@ -246,8 +245,8 @@ def report(ctx, repos, ids, manifest, output, table_format, data_type, no_ssl_ve
 
     json_path = None
     download_session = None
-    if output:
-        json_path = output + '/.staging/state.json'
+    if ctx.obj['logdir']:
+        json_path = ctx.obj['logdir'] + '/.staging/state.json'
         old_download_session = load_json(json_path, abort=False)
         if old_download_session and (not ids or ids == old_download_session['command']):
             download_session = old_download_session
@@ -288,8 +287,6 @@ def check(ctx, repos, ids, manifest, output, gnos_key, gnos_path, ega_username, 
     logger = logging.getLogger('__log__')
     logger.debug(str(ctx.params))
     json_path = ctx.obj['logdir'] + '/state.json'
-    if ctx.obj['docker']:
-        atexit.register(docker_cleanup, output)
     filter_repos(repos)
     tag = get_container_tag(ctx)
     dispatch = AccessCheckDispatcher()

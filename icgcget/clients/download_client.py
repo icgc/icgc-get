@@ -36,7 +36,7 @@ class DownloadClient(object):
 
         self.logger = logging.getLogger('__log__')
         self.jobs = []
-        self.session = {'subprocess': [], 'container': 0}
+        self.session = {'subprocess': [], 'container': 0, 'command': ''}
         self.path = json_path
         self.docker = docker
         self.repo = ''
@@ -152,7 +152,7 @@ class DownloadClient(object):
 
     def prepend_docker_args(self, args, mnt=None, envvars=None):
         uid = os.getuid()
-        docker_args = ['docker', 'run', '-t', '-u={}'.format(uid), '--rm']
+        docker_args = ['docker', 'run', '-t', '--rm']
         if not envvars:
             envvars = {}
         for name, value in envvars.iteritems():
@@ -160,7 +160,7 @@ class DownloadClient(object):
         if self.cidfile:
             docker_args.append('--cidfile={}'.format(self.cidfile))
         if mnt:
-            docker_args.extend(['-v', mnt + ':' + self.docker_mnt])
+            docker_args.extend(['-u={}'.format(uid), '-v', mnt + ':' + self.docker_mnt])
         docker_args.append(self.docker_version)
         return docker_args + args
 

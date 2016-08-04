@@ -97,7 +97,9 @@ RUN cd /icgc/icgcget && \
     apt-get upgrade -y && \
     pip install -U pip setuptools && \
     pip install awscli && \
-    pip uninstall -y pip setuptools
+    pip uninstall -y pip setuptools && \
+    mkdir /icgc/mnt
+
 
 WORKDIR /icgc
 
