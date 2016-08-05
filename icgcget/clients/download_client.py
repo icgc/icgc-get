@@ -189,7 +189,7 @@ class DownloadClient(object):
                     cidfile = open(self.cidfile)  # CID file is created asychronously, try to read until done.
                     break
                 except IOError:
-                    sleep(0.1)
+                    sleep(0.4)
                     count += 1
             self.session['container'] = cidfile.readline()
         json.dump(self.session, open(self.path, 'w', 0777))
