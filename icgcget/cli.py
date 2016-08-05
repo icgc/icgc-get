@@ -22,8 +22,10 @@ import json
 import logging
 import os
 import sys
-
+import atexit
+import signal
 import click
+import subprocess
 
 from icgcget.commands.access_checks import AccessCheckDispatcher
 from icgcget.commands.configure import ConfigureDispatcher
@@ -39,8 +41,7 @@ DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgc-get', force_posix=Tru
 API_URL = "https://dcc.icgc.org/api/v1/"
 DOCKER_PATHS = {'icgc_path': '/icgc/icgc-storage-client/bin/icgc-storage-client',
                 'ega_path': '/icgc/ega-download-demo/EgaDemoClient.jar',
-                'gnos_path': '/icgc/genetorrent/bin/gtdownload', 'pdc_path': '/usr/local/bin/aws',
-                'gdc_path': '/icgc/gdc-data-transfer-tool/gdc-client'}
+                'pdc_path': '/usr/local/bin/aws', 'gdc_path': '/icgc/gdc-data-transfer-tool/gdc-client'}
 
 
 def logger_setup(logfile, verbose):
@@ -73,6 +74,62 @@ def logger_setup(logfile, verbose):
     return logger
 
 
+def docker_cleanup(cid_dir):
+    logger = logging.getLogger('__log__')
+    try:
+        os.remove(cid_dir + '/cidfile')
+    except OSError as ex:
+        if ex.errno == 2:
+            pass
+        else:
+            logger.warning(ex.message)
+    env = dict(os.environ)
+    env['PATH'] = '/usr/local/bin:' + env['PATH']
+    args = ['docker', 'ps', '-a', '-q', '-f', 'status=exited']
+    exited_containers = subprocess.Popen(args, stdout=subprocess.PIPE, env=env)
+    container_ids = exited_containers.stdout.read().splitlines()  # get list of stopped containers
+
+    if container_ids:
+        args = ['docker', 'rm', '-v']
+        args.extend(container_ids)  # remove any stopped containers
+        devnull = open('/dev/null', 'w')
+        subprocess.call(args, stdout=devnull, env=env)
+
+
+def subprocess_cleanup(json_path):
+    logger = logging.getLogger('__log__')
+    session = load_json(json_path, False)
+    if session:
+        for pid in session['subprocess']:  # kill any existing subprocessess
+            try:
+                os.kill(pid, 0)
+                session['subprocess'].remove(pid)
+            except OSError as ex:
+                if ex.errno == 3:
+                    continue
+                else:
+                    logger.warning(ex.message)
+            os.kill(pid, signal.SIGKILL)
+            try:
+                os.kill(pid, 0)
+                print "Unable to kill client process with pid {}".format(pid)
+            except OSError as ex:
+                if ex.errno == 3:
+                    session['subprocess'].remove(pid)
+                    continue
+                else:
+                    logger.warning(ex.message)
+
+        if session['container']:
+            env = dict(os.environ)
+            env['PATH'] = '/usr/local/bin:' + env['PATH']
+            args = ['docker', 'rm', '-f', session['container']]
+            devnull = open('/dev/null', 'w')
+            subprocess.call(args, stdout=devnull, stderr=devnull, env=env)  # try to stop the last running container
+            session['container'] = 0
+    return session
+
+
 def get_container_tag(context_map):
     if os.getenv("ICGCGET_CONTAINER_TAG"):
         tag = os.getenv("ICGCGET_CONTAINER_TAG")
@@ -93,6 +150,7 @@ def cli(ctx, config, docker, logfile, verbose):
     if ctx.invoked_subcommand != 'configure':
         config_file = config_parse(config, DEFAULT_CONFIG_FILE, docker, DOCKER_PATHS)
         ctx.obj = {'docker': '', 'logfile': None}
+
         if config != DEFAULT_CONFIG_FILE and not config_file:
             raise click.Abort()
         if docker is not None:
@@ -101,15 +159,20 @@ def cli(ctx, config, docker, logfile, verbose):
             ctx.obj['docker'] = config_file['docker']
         else:
             ctx.obj['docker'] = True
+
         if logfile is not None:
             logger = logger_setup(logfile, verbose)
-            ctx.obj['logfile'] = logfile
+            ctx.obj['logdir'] = os.path.split(logfile)[0]
         elif 'logfile' in config_file:
             logger = logger_setup(config_file['logfile'], verbose)
-            ctx.obj['logfile'] = config_file['logfile']
+            ctx.obj['logdir'] = os.path.split(config_file['logfile'])[0]
         else:
-            ctx.obj['logfile'] = None
+            ctx.obj['logdir'] = None
             logger = logger_setup(None, verbose)
+
+        if ctx.obj['docker']:
+            atexit.register(docker_cleanup, ctx.obj['logdir'])
+        atexit.register(subprocess_cleanup, ctx.obj['logdir'] + '/state.json')
         ctx.default_map = config_file
         logger.debug(__version__ + ' ' + ctx.invoked_subcommand)
 
@@ -158,34 +221,28 @@ def download(ctx, ids, repos, manifest, output,
     oldmask = os.umask(0000)
     if not os.path.exists(staging):
         os.mkdir(staging, 0777)
-    json_path = staging + '/state.json'
+    json_path = ctx.obj['logdir'] + '/state.json'
 
-    old_download_session = load_json(json_path)
-    dispatch = DownloadDispatcher(json_path, ctx.obj['docker'], ctx.obj['logfile'], tag)
-    if old_download_session and ids == old_download_session['command']:
+    old_download_session = subprocess_cleanup(json_path)  # strips pids and cids that have been stopped
+    dispatch = DownloadDispatcher(json_path, ctx.obj['docker'], ctx.obj['logdir'], tag)
+    if old_download_session and ids == old_download_session['command']:  # if old session was the same command, can skip
         download_session = old_download_session
     else:
         validate_ids(ids, manifest)
         download_session = dispatch.download_manifest(repos, ids, manifest, output, API_URL, no_ssl_verify, unique=True)
-    if old_download_session:
-        download_session['file_data'] = compare_ids(download_session['file_data'], old_download_session['file_data'],
-                                                    override)
+        if old_download_session and 'file_data' in old_download_session.keys():  # Check and report don't have file data
+            download_session['file_data'] = compare_ids(download_session['file_data'],
+                                                        old_download_session['file_data'], override)
+            download_session['subprocess'] = old_download_session['subprocess']
     json.dump(download_session, open(json_path, 'w', 0777))
-    download_session = dispatch.download(download_session, staging, output,
-                                         gnos_key, gnos_path, gnos_transport_parallel,
-                                         ega_username, ega_password, ega_path, ega_transport_parallel, ega_udt,
-                                         gdc_token, gdc_path, gdc_transport_parallel, gdc_udt,
-                                         icgc_token, icgc_path, icgc_transport_file_from, icgc_transport_parallel,
-                                         pdc_key, pdc_secret, pdc_path, pdc_transport_parallel)
-    for pid in download_session['subprocess']:
-        try:
-            os.kill(int(pid), 0)
-            raise Exception("""wasn't able to kill the process
-                              HINT:use signal.SIGKILL or signal.SIGABORT""")
-        except OSError:
-            continue
-    os.remove(json_path)
+    dispatch.download(download_session, staging, output,
+                      gnos_key, gnos_path, gnos_transport_parallel,
+                      ega_username, ega_password, ega_path, ega_transport_parallel, ega_udt,
+                      gdc_token, gdc_path, gdc_transport_parallel, gdc_udt,
+                      icgc_token, icgc_path, icgc_transport_file_from, icgc_transport_parallel,
+                      pdc_key, pdc_secret, pdc_path, pdc_transport_parallel)
     os.umask(oldmask)
+    os.remove(json_path)
 
 
 @cli.command()
@@ -206,8 +263,8 @@ def report(ctx, repos, ids, manifest, output, table_format, data_type, no_ssl_ve
 
     json_path = None
     download_session = None
-    if output:
-        json_path = output + '/.staging/state.json'
+    if ctx.obj['logdir']:
+        json_path = ctx.obj['logdir'] + '/.staging/state.json'
         old_download_session = load_json(json_path, abort=False)
         if old_download_session and (not ids or ids == old_download_session['command']):
             download_session = old_download_session
@@ -224,6 +281,7 @@ def report(ctx, repos, ids, manifest, output, table_format, data_type, no_ssl_ve
         dispatch.file_table(download_session['file_data'], output, table_format)
     elif data_type == 'summary':
         dispatch.summary_table(download_session['file_data'], output, table_format)
+    os.remove(json_path)
 
 
 @cli.command()
@@ -247,16 +305,18 @@ def check(ctx, repos, ids, manifest, output, gnos_key, gnos_path, ega_username, 
           icgc_token, pdc_key, pdc_secret, pdc_path, no_ssl_verify):
     logger = logging.getLogger('__log__')
     logger.debug(str(ctx.params))
+    json_path = ctx.obj['logdir'] + '/state.json'
     filter_repos(repos)
     tag = get_container_tag(ctx)
     dispatch = AccessCheckDispatcher()
-    download_dispatch = DownloadDispatcher(tag)
+    download_dispatch = DownloadDispatcher(json_path, ctx.obj['docker'], ctx.obj['logdir'], tag)
     download_session = {'file_data': {}}
     if ('gdc' in repos or 'ega' in repos or 'pdc' in repos) and ids:
         download_session = download_dispatch.download_manifest(repos, ids, manifest, output, API_URL, no_ssl_verify)
     dispatch.access_checks(repos, download_session['file_data'], gnos_key, gnos_path, ega_username, ega_password,
                            gdc_token, icgc_token, pdc_key, pdc_secret, pdc_path, output, ctx.obj['docker'], API_URL,
                            no_ssl_verify)
+    os.remove(json_path)
 
 
 @cli.command()
@@ -281,7 +341,7 @@ def version(ctx, gnos_path, ega_path, gdc_path, icgc_path, pdc_path):
     logger = logging.getLogger('__log__')
     logger.debug(str(ctx.params))
     tag = get_container_tag(ctx)
-    versions_command(gnos_path, ega_path, gdc_path, icgc_path, pdc_path, ctx.obj['docker'], tag)
+    versions_command(gnos_path, ega_path, gdc_path, icgc_path, pdc_path, ctx.obj['docker'], ctx.obj['logdir'], tag)
 
 
 def main():

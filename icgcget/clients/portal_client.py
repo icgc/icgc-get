@@ -31,6 +31,9 @@ def call_api(request, headers=None, head=False, verify=True):
             resp = requests.head(request, headers=headers, verify=verify)
         else:
             resp = requests.get(request, headers=headers, verify=verify)
+    except requests.exceptions.SSLError as ex:
+        logger.error(ex.message.message)
+        raise ApiError(request, ex.message.message)
     except (requests.exceptions.ConnectionError, requests.exceptions.Timeout,
             requests.exceptions.RequestException) as ex:
         logger.error(ex.message.message)

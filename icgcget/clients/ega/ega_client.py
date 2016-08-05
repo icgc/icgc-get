@@ -25,7 +25,6 @@ from copy import copy
 from random import SystemRandom
 from string import ascii_uppercase, digits
 from urllib import quote
-
 from requests import HTTPError
 
 from icgcget.clients.download_client import DownloadClient
@@ -34,8 +33,8 @@ from icgcget.clients.portal_client import call_api
 
 class EgaDownloadClient(DownloadClient):
 
-    def __init__(self, json_path=None, docker=False, verify=True, container_version=''):
-        super(EgaDownloadClient, self) .__init__(json_path, docker, container_version=container_version)
+    def __init__(self, json_path=None, docker=False, verify=True, log_dir=None, container_version=''):
+        super(EgaDownloadClient, self) .__init__(json_path, log_dir, docker=docker, container_version=container_version)
         self.repo = 'ega'
         self.verify = verify
         self.label = ''
