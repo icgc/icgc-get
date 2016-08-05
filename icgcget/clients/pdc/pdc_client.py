@@ -33,6 +33,19 @@ class PdcDownloadClient(DownloadClient):
 
     def download(self, data_paths, key, tool_path, staging, processes, udt=None, file_from=None, repo=None,
                  secret_key=None):
+        """
+        Method that constructs arguments to make a download call to the PDC repository
+        :param data_paths:
+        :param key:
+        :param tool_path:
+        :param staging:
+        :param processes:
+        :param udt:
+        :param file_from:
+        :param repo:
+        :param secret_key:
+        :return:
+        """
         code = 0
         env_dict = dict(os.environ)
 
@@ -53,6 +66,17 @@ class PdcDownloadClient(DownloadClient):
         return code
 
     def access_check(self, key, data_paths=None, path=None, repo=None, output=None, api_url=None, secret_key=None):
+        """
+        Method that constructs arguments to make a access check call to the PDC repository
+        :param key:
+        :param data_paths:
+        :param path:
+        :param repo:
+        :param output:
+        :param api_url:
+        :param secret_key:
+        :return:
+        """
         env_dict = dict(os.environ)
         env_dict['AWS_ACCESS_KEY_ID'] = key
         env_dict['AWS_SECRET_ACCESS_KEY'] = secret_key
@@ -76,12 +100,27 @@ class PdcDownloadClient(DownloadClient):
                 raise SubprocessError(result, "AWS failed with code {}".format(result))
 
     def print_version(self, path):
+        """
+        Print version command.  Uses base print_version implementation
+        :param path:
+        :return:
+        """
         super(PdcDownloadClient, self).print_version(path)
 
     def download_parser(self, output):
+        """
+        Due to limited output of aws-cli, does not track which file is being downloaded.  Just outputs client response.
+        :param output:
+        :return:
+        """
         self.logger.info(output.strip())
 
     def version_parser(self, output):
+        """
+        parser that filters version number out of version output.
+        :param output:
+        :return:
+        """
         version = re.findall(r"aws-cli/[0-9.]+", output)
         if version:
             self.logger.info(" AWS CLI Version:             %s", version[0][8:])

@@ -42,6 +42,19 @@ class EgaDownloadClient(DownloadClient):
 
     def download(self, object_ids, access, tool_path, staging, parallel, udt=None, file_from=None, repo=None,
                  password=None):
+        """
+        Inhereited method.  Makes four subprocess calls to request download and decrypt data from the ega
+        :param object_ids:
+        :param access:
+        :param tool_path:
+        :param staging:
+        :param parallel:
+        :param udt:
+        :param file_from:
+        :param repo:
+        :param password:
+        :return:
+        """
         key = ''.join(SystemRandom().choice(ascii_uppercase + digits) for _ in range(4))
         self.label = object_ids[0] + '_download_request'
         args = ['java', '-jar', tool_path, '-p', access, password, '-nt', parallel]
@@ -89,6 +102,17 @@ class EgaDownloadClient(DownloadClient):
         return 0
 
     def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None):
+        """
+        Calls ega api once to log in and a second time to verify access
+        :param access:
+        :param uuids:
+        :param path:
+        :param repo:
+        :param output:
+        :param api_url:
+        :param password:
+        :return:
+        """
         base_url = "https://ega.ebi.ac.uk/ega/rest/access/v2/"
 
         login_request = base_url + 'users/' + quote(access) + "?pass=" + quote(password)
@@ -109,19 +133,31 @@ class EgaDownloadClient(DownloadClient):
         return False
 
     def print_version(self, path):
-        # Tool automatically shows version on invocation with demo credentials
+        """
+        Makes subprocess call to show ega version
+        """
         call_args = ['java', '-jar', path, '-p', 'demo@test.org', '123pass']
         if self.docker:
             call_args = self.prepend_docker_args(call_args)
         self._run_command(call_args, self.version_parser)
 
     def version_parser(self, response):
+        """
+        filters output of ega client version call for ega version and prints it
+        :param response:
+        :return:
+        """
         version = re.findall(r"Version: [0-9.]+", response)
         if version:
             version = version[0][9:]
             self.logger.info(" EGA Client Version:          %s", version)
 
     def download_parser(self, response):
+        """
+        parser to keep track of which files are being downloaded
+        :param response:
+        :return:
+        """
         filename = re.findall(r'/[^/]+.cip  \(', response)
         if filename:
             filename = filename[0][1:-7]
@@ -129,6 +165,11 @@ class EgaDownloadClient(DownloadClient):
         self.logger.info(response.strip())
 
     def requests_parser(self, response):
+        """
+        Parses that attempts to identify if a request for a given file has already been made
+        :param response:
+        :return:
+        """
         self.logger.info(response)
         request = re.findall(r'EGA[A-Z][0-9]+_download_request', response)
         if request and request[0] == self.label:

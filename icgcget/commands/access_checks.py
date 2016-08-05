@@ -38,7 +38,9 @@ class AccessCheckDispatcher(object):
 
     def access_checks(self, repo_list, file_data, cghub_key, cghub_path, ega_username, ega_password,
                       gdc_token, icgc_token, pdc_key, pdc_secret_key, pdc_path, output, docker, api_url, verify):
-
+        """
+        Dispatcher for access check functions of all repositories
+        """
         gdc_client = GdcDownloadClient(verify=verify)
         ega_client = EgaDownloadClient(verify=verify)
         gt_client = GnosDownloadClient(docker=docker)
@@ -90,12 +92,21 @@ class AccessCheckDispatcher(object):
                 raise click.Abort
 
     def access_response(self, result, repo):
+        """
+        Logs formatted output based on result of access check function
+        :param result:
+        :param repo:
+        :return:
+        """
         if result:
             self.logger.info("Valid access to the " + repo)
         else:
             self.logger.info("Invalid access to the " + repo)
 
     def id_check(self, repo, ids):
+        """
+        Function that checks if there were any ids to be checked on a repository that needs to be checked
+        """
         if not ids:
             self.logger.info("None of the specified ids will be downloaded from the %s repository, " +
                              "unable to verify access credentials.", repo)
@@ -104,6 +115,11 @@ class AccessCheckDispatcher(object):
             return True
 
     def get_ids(self, file_data):
+        """
+        Extracts ids of relevant repositories from file_data object
+        :param file_data:
+        :return:
+        """
         if 'gdc' in file_data:
             for gdc_file in file_data['gdc'].values():
                 self.gdc_ids.append(gdc_file['uuid'])

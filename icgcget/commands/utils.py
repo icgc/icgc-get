@@ -38,6 +38,19 @@ def api_error_catch(self, func, *args):
 
 
 def check_access(self, access, name, docker=False, path="Default", password="Default", secret_key="Default", udt=True):
+    """
+    Verifies if path and access parameters have been provided and that paths are valid.
+    :param self:
+    :param access:
+    :param name:
+    :param docker:
+    :param path:
+    :param password:
+    :param secret_key:
+    :param udt:
+    :return:
+    """
+
     if access is None:
         self.logger.error("No credentials provided for the {} repository".format(name))
         raise click.BadParameter("Please provide credentials for {}".format(name))
@@ -58,6 +71,13 @@ def check_access(self, access, name, docker=False, path="Default", password="Def
 
 
 def compare_ids(current_session, old_session, override):
+    """
+    Compares manifest of state.json to manifest retrieved from api and stripps out any files that already finished
+    :param current_session:
+    :param old_session:
+    :param override:
+    :return:
+    """
     updated_session = {}
     for repo in current_session:
         updated_session[repo] = {}
@@ -75,6 +95,13 @@ def compare_ids(current_session, old_session, override):
 
 
 def config_errors(message, default):
+    """
+    Handler that supresses errors in config parsing if default config file has been provided.  Used to allow runnning
+    without config file.
+    :param message:
+    :param default:
+    :return:
+    """
     if default:
         return {}
     else:
@@ -83,6 +110,15 @@ def config_errors(message, default):
 
 
 def config_parse(filename, default_filename, docker=False, docker_paths=None, empty_ok=False):
+    """
+    Parses config file.  If docker is enabled, will add default docker paths to configuration.
+    :param filename:
+    :param default_filename:
+    :param docker:
+    :param docker_paths:
+    :param empty_ok:
+    :return:
+    """
     default = filename == default_filename
     try:
         config_file = open(filename, 'r')
@@ -115,11 +151,23 @@ def config_parse(filename, default_filename, docker=False, docker_paths=None, em
 
 
 def constructor(node):
+    """
+    Yaml constructor used to load config file.
+    :param node:
+    :return:
+    """
     return node.value
 
 
 def filter_manifest_ids(self, manifest_json, repos):
-    fi_ids = []  # Function to return a list of unique file ids from a manifest.  Throws error if not unique
+    """
+    Function to return a list of unique file ids from a manifest.  Throws error if not unique, or no files found
+    :param self:
+    :param manifest_json:
+    :param repos:
+    :return:
+    """
+    fi_ids = []
     for repo_info in manifest_json["entries"]:
         if repo_info["repo"] in repos:
             for file_info in repo_info["files"]:
@@ -136,6 +184,12 @@ def filter_manifest_ids(self, manifest_json, repos):
 
 
 def filter_repos(repos):
+    """
+    Function to strip out null values from a list of repositories.  Throws error if all values are null.  nulls are
+    a common product of improper config file editing.
+    :param repos:
+    :return:
+    """
     if not repos or repos.count(None) == len(repos):
         raise click.BadOptionUsage("Must include prioritized repositories")
     new_repos = []
@@ -146,6 +200,15 @@ def filter_repos(repos):
 
 
 def get_manifest_json(self, file_ids, api_url, repos, portal):
+    """
+    Wrapper around portal.get_manifest_id that handles errors and validates that only one manifest can be retrived
+    :param self:
+    :param file_ids:
+    :param api_url:
+    :param repos:
+    :param portal:
+    :return:
+    """
     if len(file_ids) > 1:
         self.logger.error("For download from manifest files, multiple manifest id arguments is not supported")
         raise click.BadArgumentUsage("Multiple manifest files specified.")
@@ -154,6 +217,12 @@ def get_manifest_json(self, file_ids, api_url, repos, portal):
 
 
 def load_json(json_path, abort=True):
+    """
+    Funtion that reads state.json, attempts to kill all processess, and removes json file if it is unreadable.
+    :param json_path:
+    :param abort:
+    :return:
+    """
     logger = logging.getLogger('__log__')
     if os.path.isfile(json_path):
         try:
@@ -164,6 +233,15 @@ def load_json(json_path, abort=True):
             for pid in old_download_session['subprocess']:
                 if psutil.pid_exists(pid) and abort:
                     os.kill(pid, signal.SIGKILL)
+                    try:
+                        os.kill(pid, 0)
+                        print "Unable to kill client process with pid {}".format(pid)
+                    except OSError as ex:
+                        if ex.errno == 3:
+                            old_download_session['subprocess'].remove(pid)
+                            continue
+                        else:
+                            logger.warning(ex.message)
             return old_download_session
         except ValueError:
             logger.info("Corrupted download state found.  Cleaning...")
@@ -172,6 +250,13 @@ def load_json(json_path, abort=True):
 
 
 def match_repositories(self, repos, copies):
+    """
+    Function that finds the fileCopy object that corressponds to the highest priority repository
+    :param self:
+    :param repos:
+    :param copies:
+    :return:
+    """
     for repository in repos:
         for copy in copies["fileCopies"]:
             if repository == copy["repoCode"]:
@@ -181,6 +266,11 @@ def match_repositories(self, repos, copies):
 
 
 def override_prompt(override):
+    """
+    Overrideable prompt that warns the user if state file dosn't match current command.
+    :param override:
+    :return:
+    """
     if override:
         return True
     if click.confirm("Previous session data does not match current command.  Ok to overwrite previous session info?"):
@@ -190,6 +280,12 @@ def override_prompt(override):
 
 
 def validate_ids(ids, manifest):
+    """
+    Funciton to ensure formatting of supplide FIids and UUids is correct.
+    :param ids:
+    :param manifest:
+    :return:
+    """
     if manifest:
         if not re.match(r'\w{8}-\w{4}-\w{4}-\w{4}-\w{12}', ids[0]):
             raise click.BadArgumentUsage(message="Bad Manifest ID: passed argument" +

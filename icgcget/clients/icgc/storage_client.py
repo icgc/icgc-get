@@ -35,6 +35,19 @@ class StorageClient(DownloadClient):
 
     def download(self, uuids, access, tool_path, staging, processes, udt=None, file_from=None, repo=None,
                  password=None):
+        """
+        Function that constructs arguments to make storage client download call
+        :param uuids:
+        :param access:
+        :param tool_path:
+        :param staging:
+        :param processes:
+        :param udt:
+        :param file_from:
+        :param repo:
+        :param password:
+        :return:
+        """
         env_dict = dict(os.environ)
         if self.log_dir:
             log_file = self.log_dir + '/icgc_log.log'
@@ -67,6 +80,18 @@ class StorageClient(DownloadClient):
         return code
 
     def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None):
+        """
+        Function that calls the icgc api to determine the access of a given credential
+        :param access:
+        :param uuids:
+        :param path:
+        :param repo:
+        :param output:
+        :param api_url:
+        :param password:
+        :return:
+        """
+
         request = api_url + 'settings/tokens/' + access
         try:
             resp = call_api(request, verify=self.verify)
@@ -78,18 +103,34 @@ class StorageClient(DownloadClient):
         return match in resp["scope"]
 
     def print_version(self, path):
+        """
+        method to construct arguments to print version of storage client
+        :param path:
+        :return:
+        """
         call_args = [path, 'version']
         if self.docker:
             call_args = self.prepend_docker_args(call_args)
         self._run_command(call_args, self.version_parser)
 
     def version_parser(self, response):
+        """
+        method to parse version number from verison output
+        :param response:
+        :return:
+        """
         response = re.sub(r"\x1b[^m]*m", '', response)  # Strip ANSI colour codes
         version = re.findall(r"Version: [0-9.]+", response)
         if version:
             self.logger.info(" ICGC Storage Client %s", version[0])
 
     def download_parser(self, response):
+        """
+        method to parse download response, track current file
+        :param response:
+        :return:
+        """
+
         response = re.sub(r"\x1b[^m]*m", '', response)
         filename = re.findall(r"\(\w{8}-\w{4}-\w{4}-\w{4}-\w{12}.+", response)
         if filename:
@@ -99,6 +140,12 @@ class StorageClient(DownloadClient):
 
     @staticmethod
     def edit_logback(logback, log_file):
+        """
+        Method to edit storage clients logging configuration file and place logfile in desired directory
+        :param logback:
+        :param log_file:
+        :return:
+        """
         for line in fileinput.input(logback, inplace=1):
             match = re.search(r'name="LOG_FILE"', line)
             if match:

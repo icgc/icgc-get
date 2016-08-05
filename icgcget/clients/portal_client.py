@@ -24,6 +24,14 @@ from icgcget.clients.errors import ApiError
 
 
 def call_api(request, headers=None, head=False, verify=True):
+    """
+    Handles all calls to outside APIs and provides basic error handling.
+    :param request:
+    :param headers:
+    :param head:
+    :param verify:
+    :return:
+    """
     logger = logging.getLogger("__log__")
     try:
         if head:
@@ -50,6 +58,13 @@ class IcgcPortalClient(object):
         self.verify = verify
 
     def get_manifest_id(self, manifest_id, api_url, repos=None):
+        """
+        Function that calls icgc api for a manifest by ID
+        :param manifest_id:
+        :param api_url:
+        :param repos:
+        :return:
+        """
         fields = '&fields=id,size,content,repoFileId&format=json'
         if repos:
             request = (api_url + 'manifests/' + manifest_id + '?repos=' + ','.join(repos) +
@@ -66,6 +81,14 @@ class IcgcPortalClient(object):
         return entity_set
 
     def get_manifest(self, file_ids, api_url, repos=None):
+        """
+        Function that calls icgc_api for a manifest by list of file ids
+        :param file_ids:
+        :param api_url:
+        :param repos:
+        :return:
+        """
+
         fields = '&fields=id,size,content,repoFileId&format=json'
         if repos:
             request = (api_url + 'manifests' + self.filters(file_ids) + '&repos=' + ','.join(repos) + '&unique=true&' +
@@ -76,6 +99,12 @@ class IcgcPortalClient(object):
         return entity_set
 
     def get_metadata_bulk(self, file_ids, api_url):
+        """
+        function that calls icgc api for file metadata by list of files
+        :param file_ids:
+        :param api_url:
+        :return:
+        """
         entity_set = []
         pages_available = True
         while pages_available:
@@ -90,4 +119,9 @@ class IcgcPortalClient(object):
 
     @staticmethod
     def filters(file_ids):
+        """
+        Used to construct file id filter parameters for icgc api calls
+        :param file_ids:
+        :return:
+        """
         return '?filters={"file":{"id":{"is":["' + '","'.join(file_ids) + '"]}}}'

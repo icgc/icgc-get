@@ -22,6 +22,17 @@ import os
 
 
 def build_table(table, repo, sizes, counts, donors, downloads, output):
+    """
+    Function to create a nested list 'table" for the report function.
+    :param table:
+    :param repo:
+    :param sizes:
+    :param counts:
+    :param donors:
+    :param downloads:
+    :param output:
+    :return:
+    """
     for data_type in sizes:
         file_size = convert_size(sizes[data_type])
         if data_type == 'total':
@@ -39,6 +50,13 @@ def build_table(table, repo, sizes, counts, donors, downloads, output):
 
 
 def calculate_size(manifest_json, download_session):
+    """
+    Function that calculates the total size of download based on manifest json return.  Also intializes the file
+    data object for a download
+    :param manifest_json:
+    :param download_session:
+    :return:
+    """
     size = 0
     file_data = {}
     for repo_info in manifest_json["entries"]:
@@ -54,6 +72,12 @@ def calculate_size(manifest_json, download_session):
 
 
 def convert_size(num, suffix='B'):
+    """
+    Function that converts size in bits to a human readable format
+    :param num:
+    :param suffix:
+    :return:
+    """
     for unit in ['', 'K', 'M', 'G', 'T']:
         if abs(num) < 1024.0:
             return ["%3.2f" % num, "%s%s" % (unit, suffix)]
@@ -62,6 +86,13 @@ def convert_size(num, suffix='B'):
 
 
 def donor_addition(donor_list, donor, data_type):
+    """
+    Adds donors and data types to lists of donors compiled during report formatting
+    :param donor_list:
+    :param donor:
+    :param data_type:
+    :return:
+    """
     if data_type not in donor_list:
         donor_list[data_type] = []
     if donor not in donor_list['total']:
@@ -72,6 +103,13 @@ def donor_addition(donor_list, donor, data_type):
 
 
 def flatten_dict(dictionary, parent_key='', sep='_'):
+    """
+    Function that breaks down nested dictionaries into a single level dictionary.  Calls itself recurisivly
+    :param dictionary:
+    :param parent_key:
+    :param sep: separator for new keys that are combinations of the nested path.
+    :return:
+    """
     items = []
     for key, value in dictionary.items():
         new_key = parent_key + sep + key if parent_key else key
@@ -84,6 +122,11 @@ def flatten_dict(dictionary, parent_key='', sep='_'):
 
 
 def flatten_file_data(file_data):
+    """
+    function to get all file ids from a file_data object
+    :param file_data:
+    :return:
+    """
     file_ids = []
     for repo in file_data:
         file_ids.extend(file_data[repo].keys())
@@ -91,6 +134,13 @@ def flatten_file_data(file_data):
 
 
 def increment_types(typename, count_dict, size):
+    """
+    Function used during report table construction to tally the number of files for each data type
+    :param typename:
+    :param count_dict:
+    :param size:
+    :return:
+    """
     if typename not in count_dict:
         count_dict[typename] = 0
     count_dict["total"] += size
@@ -100,6 +150,11 @@ def increment_types(typename, count_dict, size):
 
 
 def normalize_keys(obj):
+    """
+    Recursive function that filters keys from python conventions to yaml conventions
+    :param obj:
+    :return:
+    """
     if isinstance(obj, dict):
         return obj
     else:
@@ -107,6 +162,12 @@ def normalize_keys(obj):
 
 
 def search_recursive(filename, output):
+    """
+    Function to recursivly search through a directory and all of it's children for a file name.
+    :param filename:
+    :param output:
+    :return:
+    """
     if not output:
         return False
     for root, dirs, files in os.walk(output, topdown=False):

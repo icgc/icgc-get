@@ -45,6 +45,11 @@ DOCKER_PATHS = {'icgc_path': '/icgc/icgc-storage-client/bin/icgc-storage-client'
 
 
 def logger_setup(logfile, verbose):
+    """
+    Configures logging and standard output levels, creates logfile if one is not available.
+    :param logfile:
+    :param verbose:
+    """
     logger = logging.getLogger('__log__')
     logger.setLevel(logging.DEBUG)
 
@@ -75,6 +80,11 @@ def logger_setup(logfile, verbose):
 
 
 def docker_cleanup(cid_dir):
+    """
+    Function run at program exit.  Removes CID file and exited docker containers
+    :param cid_dir:
+    :return:
+    """
     logger = logging.getLogger('__log__')
     try:
         os.remove(cid_dir + '/cidfile')
@@ -97,29 +107,13 @@ def docker_cleanup(cid_dir):
 
 
 def subprocess_cleanup(json_path):
-    logger = logging.getLogger('__log__')
+    """
+    function run at exit.  Removes subprocessess and running docker containers found in state.json.
+    :param json_path:
+    :return:
+    """
     session = load_json(json_path, False)
     if session:
-        for pid in session['subprocess']:  # kill any existing subprocessess
-            try:
-                os.kill(pid, 0)
-                session['subprocess'].remove(pid)
-            except OSError as ex:
-                if ex.errno == 3:
-                    continue
-                else:
-                    logger.warning(ex.message)
-            os.kill(pid, signal.SIGKILL)
-            try:
-                os.kill(pid, 0)
-                print "Unable to kill client process with pid {}".format(pid)
-            except OSError as ex:
-                if ex.errno == 3:
-                    session['subprocess'].remove(pid)
-                    continue
-                else:
-                    logger.warning(ex.message)
-
         if session['container']:
             env = dict(os.environ)
             env['PATH'] = '/usr/local/bin:' + env['PATH']
@@ -131,6 +125,11 @@ def subprocess_cleanup(json_path):
 
 
 def get_container_tag(context_map):
+    """
+    Gets the version tag for the docker container. Default tag can be overridden
+    :param context_map:
+    :return:
+    """
     if os.getenv("ICGCGET_CONTAINER_TAG"):
         tag = os.getenv("ICGCGET_CONTAINER_TAG")
     elif context_map and "container_tag" in context_map.default_map:
@@ -147,6 +146,15 @@ def get_container_tag(context_map):
 @click.option('--verbose', '-v', is_flag=True, default=False, help="Do not verify ssl certificates")
 @click.pass_context
 def cli(ctx, config, docker, logfile, verbose):
+    """
+    Handles icgc-get configuration and setup before running a subcommand, passes centralized variable to subcommands.
+    :param ctx:
+    :param config:
+    :param docker:
+    :param logfile:
+    :param verbose:
+    :return:
+    """
     if ctx.invoked_subcommand != 'configure':
         config_file = config_parse(config, DEFAULT_CONFIG_FILE, docker, DOCKER_PATHS)
         ctx.obj = {'docker': '', 'logfile': None}
@@ -213,6 +221,10 @@ def download(ctx, ids, repos, manifest, output,
              gdc_token, gdc_path, gdc_transport_parallel, gdc_udt,
              icgc_token, icgc_path, icgc_transport_file_from, icgc_transport_parallel,
              pdc_key, pdc_secret, pdc_path, pdc_transport_parallel, override, no_ssl_verify):
+    """
+    Manages the download command, parses state.json and checks arguments for validity.
+
+    """
     logger = logging.getLogger('__log__')
     logger.debug(str(ctx.params))
     staging = output + '/.staging'
@@ -256,6 +268,19 @@ def download(ctx, ids, repos, manifest, output,
 @click.option('--no-ssl-verify', is_flag=True, default=True, help="Do not verify ssl certificates")
 @click.pass_context
 def report(ctx, repos, ids, manifest, output, table_format, data_type, no_ssl_verify):
+    """
+    Controls the report command, gets data from icgc api, and sends it to table parsers. Function is also
+     responsible for verifying input parameters
+    :param ctx:
+    :param repos:
+    :param ids:
+    :param manifest:
+    :param output:
+    :param table_format:
+    :param data_type:
+    :param no_ssl_verify:
+    :return:
+    """
     logger = logging.getLogger('__log__')
     logger.debug(str(ctx.params))
     filter_repos(repos)
@@ -303,6 +328,10 @@ def report(ctx, repos, ids, manifest, output, table_format, data_type, no_ssl_ve
 @click.pass_context
 def check(ctx, repos, ids, manifest, output, gnos_key, gnos_path, ega_username, ega_password, gdc_token,
           icgc_token, pdc_key, pdc_secret, pdc_path, no_ssl_verify):
+    """
+    Dispatcher for the check command.  Verifies input arguments, hits api if necessary, and dispatches access check
+    command.
+    """
     logger = logging.getLogger('__log__')
     logger.debug(str(ctx.params))
     json_path = ctx.obj['logdir'] + '/state.json'
@@ -322,6 +351,10 @@ def check(ctx, repos, ids, manifest, output, gnos_key, gnos_path, ega_username, 
 @cli.command()
 @click.option('--config', '-c', type=click.Path(), default=DEFAULT_CONFIG_FILE, envvar='ICGCGET_CONFIG')
 def configure(config):
+    """
+    Dispatcher for the check command.  Makes config dir if necessar, and dispatches config prompt function
+    command.
+    """
     default_dir = os.path.split(DEFAULT_CONFIG_FILE)[0]
     if config == DEFAULT_CONFIG_FILE and not os.path.exists(default_dir):
         os.umask(0000)
@@ -338,6 +371,9 @@ def configure(config):
 @click.option('--pdc-path', envvar='ICGCGET_PDC_PATH')
 @click.pass_context
 def version(ctx, gnos_path, ega_path, gdc_path, icgc_path, pdc_path):
+    """
+    Dispatcher for the version check command.
+    """
     logger = logging.getLogger('__log__')
     logger.debug(str(ctx.params))
     tag = get_container_tag(ctx)

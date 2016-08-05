@@ -28,6 +28,11 @@ from icgcget.params import ReposParam, LogfileParam
 class ConfigureDispatcher(object):
 
     def __init__(self, config_destination, default):
+        """
+        Init function parses any previous config files found in the configuration directory
+        :param config_destination:
+        :param default:
+        """
         self.old_config = {}
         self.default_dir = os.path.split(default)[0]
 
@@ -37,6 +42,11 @@ class ConfigureDispatcher(object):
                 self.old_config = old_config['report']
 
     def configure(self, config_destination):
+        """
+        Series of prompts that gathers informaiton needed for the config file.
+        :param config_destination:
+        :return:
+        """
         config_directory = os.path.split(config_destination)
         if not os.path.isdir(config_directory[0]):
             raise click.BadOptionUsage("Unable to write to directory {}".format(config_directory[0]))

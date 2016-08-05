@@ -30,9 +30,19 @@ REPOS = {'collaboratory': {'code': 'collaboratory', 'name': 'collab'},
 
 
 class LogfileParam(click.ParamType):
+    """
+    Custom click parameter to verify valid inputs for logfiles.
+    """
     name = 'logfile'
 
     def convert(self, value, param, ctx):
+        """
+        Method to ckeck if logfile is an accessible file if it exists or in an accessable directory if it dosn't exist
+        :param value:
+        :param param:
+        :param ctx:
+        :return:
+        """
         if os.path.isdir(value):
             self.fail("Logfile destination '%s' is a directory" % value, param, ctx)
         elif os.path.isfile(value):
@@ -55,9 +65,19 @@ class LogfileParam(click.ParamType):
 
 
 class RepoParam(click.ParamType):
+    """
+    Custom click parameter for a single repository.  Used for command line inputs, typically provided in a list.
+    """
     name = 'repo'
 
     def convert(self, value, param, ctx):
+        """
+        Function that verifies that repository name is valid repository name
+        :param value:
+        :param param:
+        :param ctx:
+        :return:
+        """
         try:
             if value in REPOS.keys():
                 return value
@@ -69,8 +89,18 @@ class RepoParam(click.ParamType):
 
 class ReposParam(click.ParamType):
     name = 'repos'
-
+    """
+    Custom click paramater for a list of repositories: used in the configure function exclusivly due to limitations of
+    prompts.
+    """
     def convert(self, value, param, ctx):
+        """
+        Function that ensures every non null value must be a valid repository name.  Null values are stripped later.
+        :param value:
+        :param param:
+        :param ctx:
+        :return:
+        """
         value = value.split(' ')
         repos = []
         for repo in value:

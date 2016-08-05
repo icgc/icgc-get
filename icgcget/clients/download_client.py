@@ -30,6 +30,9 @@ from time import sleep
 
 
 class DownloadClient(object):
+    """
+    Base class for repository specific download clients.
+    """
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
@@ -50,14 +53,43 @@ class DownloadClient(object):
     @abc.abstractmethod
     def download(self, manifest, access, tool_path, staging, processes, udt=None, file_from=None, repo=None,
                  password=None):
+        """
+        Abstract download method
+        :param manifest:
+        :param access:
+        :param tool_path:
+        :param staging:
+        :param processes:
+        :param udt:
+        :param file_from:
+        :param repo:
+        :param password:
+        :return:
+        """
         return
 
     @abc.abstractmethod
     def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None):
+        """
+        Abstract access check method
+        :param access:
+        :param uuids:
+        :param path:
+        :param repo:
+        :param output:
+        :param api_url:
+        :param password:
+        :return:
+        """
         return
 
     @abc.abstractmethod
     def print_version(self, path):
+        """
+        Abstract method used to print version.  Used by pdc and gdc due to common syntax.
+        :param path:
+        :return:
+        """
         call_args = [path, '--version']
         if self.docker:
 
@@ -66,13 +98,31 @@ class DownloadClient(object):
 
     @abc.abstractmethod
     def version_parser(self, output):
+        """
+        abstract version parser method
+        :param output:
+        :return:
+        """
         return
 
     @abc.abstractmethod
     def download_parser(self, output):
+        """
+        Abstract download parser method
+        :param output:
+        :return:
+        """
         self.logger.info(output)
 
     def _run_command(self, args, parser, env=None):
+        """
+        Function controlling the calling and handling of subprocessess.  Creates, monitors and closes subprocess,
+        handles errors.
+        :param args:
+        :param parser:
+        :param env:
+        :return:
+        """
         self.logger.debug(args)
         if None in args:
             self.logger.warning("Missing argument in %s", args)
@@ -110,6 +160,12 @@ class DownloadClient(object):
         return return_code
 
     def session_update(self, file_name, repo):
+        """
+        Updates state file to keep track of running and finished downlaods
+        :param file_name:
+        :param repo:
+        :return:
+        """
         if 'file_data' in self.session:
             for name, file_object in self.session['file_data'][repo].iteritems():
                 if file_object['index_filename'] == file_name or file_object['fileName'] == file_name or \
@@ -122,6 +178,16 @@ class DownloadClient(object):
             json.dump(self.session, open(self.path, 'w', 0777))
 
     def _run_test_command(self, args, forbidden, not_found, env=None, timeout=2):
+        """
+        Function used to test download permissions-process is started, and then exited after short timeout.
+        Returns are parsed to determine if access had been granted.
+        :param args:
+        :param forbidden:
+        :param not_found:
+        :param env:
+        :param timeout:
+        :return:
+        """
         if not env:
             env = dict(os.environ)
         env['PATH'] = '/usr/local/bin:' + env['PATH']
@@ -145,6 +211,13 @@ class DownloadClient(object):
 
     @staticmethod
     def parse_test_ex(ex, forbidden, not_found):
+        """
+        method used to parse the output of test commands
+        :param ex:
+        :param forbidden: regex pattern corresponding to invalid access response
+        :param not_found: regex pattern corresponding to file not found resonse
+        :return:
+        """
         invalid_login = re.findall(forbidden, ex.output)
         not_found = re.findall(not_found, ex.output)
         if invalid_login:
@@ -155,6 +228,13 @@ class DownloadClient(object):
             return 0
 
     def prepend_docker_args(self, args, mnt=None, envvars=None):
+        """
+        Function that accepts client arguments and prepends them to run the command through a docker container
+        :param args:
+        :param mnt:
+        :param envvars: environmental variables
+        :return:
+        """
         uid = os.getuid()
         docker_args = ['docker', 'run', '-t', '--rm']
         envvars = envvars or {}
@@ -168,6 +248,12 @@ class DownloadClient(object):
         return docker_args + args
 
     def get_access_file(self, access, staging):
+        """
+        Function used to process access parameters. takes both string and file formats, returns a file object.
+        :param access:
+        :param staging:
+        :return:
+        """
         if os.path.isfile(access):
             if self.docker and os.path.split(access)[1] != staging:
                 access_file = tempfile.NamedTemporaryFile(dir=staging)
@@ -181,6 +267,11 @@ class DownloadClient(object):
         return access_file
 
     def log_subprocess(self, pid):
+        """
+        Logs container id from cidfile and pid from subprocess variable to download session
+        :param pid:
+        :return:
+        """
         self.session['subprocess'].append(pid)
         if self.docker and self.cidfile:
             count = 0

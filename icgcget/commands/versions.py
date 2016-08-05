@@ -29,6 +29,18 @@ from icgcget.version import __version__
 
 
 def versions_command(gnos_path, ega_path, gdc_path, icgc_path, pdc_path, docker, log_dir, container_version):
+    """
+    Function that controlls the outputs of the versions command and creates download client objects.
+    :param gnos_path:
+    :param ega_path:
+    :param gdc_path:
+    :param icgc_path:
+    :param pdc_path:
+    :param docker:
+    :param log_dir:
+    :param container_version:
+    :return:
+    """
     logger = logging.getLogger("__log__")
     logger.info("ICGC-Get Version: %s", __version__)
     logger.info("Clients:")
@@ -46,6 +58,13 @@ def versions_command(gnos_path, ega_path, gdc_path, icgc_path, pdc_path, docker,
 
 
 def check_version_path(client, name, path):
+    """
+    Checks if path is valid then calls client's print_version command or throws error if path invalid.  Skips if no path
+    :param client:
+    :param name:
+    :param path:
+    :return:
+    """
     logger = logging.getLogger("__log__")
     if path:
         if os.path.isfile(path) or client.docker:

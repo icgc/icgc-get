@@ -34,6 +34,19 @@ class GnosDownloadClient(DownloadClient):
 
     def download(self, uuids, access, tool_path, staging, processes, udt=None, file_from=None, repo=None,
                  password=None):
+        """
+        Function that constructs arguments to make gnos client download call
+        :param uuids:
+        :param access:
+        :param tool_path:
+        :param staging:
+        :param processes:
+        :param udt:
+        :param file_from:
+        :param repo:
+        :param password:
+        :return:
+        """
         access_file = self.get_access_file(access, staging)
         call_args = self.make_call_args(tool_path, staging, access_file, uuids)
         code = self._run_command(call_args, self.download_parser)
@@ -42,6 +55,17 @@ class GnosDownloadClient(DownloadClient):
         return code
 
     def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None):
+        """
+        Function that constructs arguments to make gnos client access check call
+        :param access:
+        :param uuids:
+        :param path:
+        :param repo:
+        :param output:
+        :param api_url:
+        :param password:
+        :return:
+        """
         access_file = self.get_access_file(access, output)
         call_args = self.make_call_args(path, output, access_file, uuids)
         result = self._run_test_command(call_args, "403 Forbidden", "404 Not Found")
@@ -57,15 +81,31 @@ class GnosDownloadClient(DownloadClient):
             raise SubprocessError(result, "Genetorrent failed with code {}".format(result))
 
     def print_version(self, path):
+        """
+        Function that constructs arguments to make gnos client version check call
+        :param path:
+        :return:
+        """
         super(GnosDownloadClient, self).print_version(path)
 
     def version_parser(self, response):
+        """
+        Parses show version response from Gtdownload
+        :param response:
+        :return:
+        """
         version = re.findall(r"release [0-9.]+", response)
         if version:
             version = version[0][8:]
             self.logger.info(" Gtdownload Version:          %s", version)
 
     def download_parser(self, response):
+        """
+        Tracks which files are being downloaded from client output, displays it
+        :param response:
+        :return:
+        """
+
         self.logger.info(response.strip())
         filename = re.findall(r'filename=*', response)
         if filename:
@@ -73,6 +113,15 @@ class GnosDownloadClient(DownloadClient):
             self.session_update(filename, 'gnos')
 
     def make_call_args(self, tool_path, staging, access_file, uuids):
+        """
+        Helper function that constructs call args
+        :param tool_path:
+        :param staging:
+        :param access_file:
+        :param uuids:
+        :return:
+        """
+
         if self.docker:
             access_path = self.docker_mnt + '/' + os.path.basename(access_file.name)
             # Client needs to be run using sh to be able to download files in docker container.

@@ -35,6 +35,19 @@ class GdcDownloadClient(DownloadClient):
 
     def download(self, uuids, access, tool_path, staging, processes, udt=None, file_from=None, repo=None,
                  password=None):
+        """
+        Function that constructs arguments to make a GDC download call
+        :param uuids:
+        :param access:
+        :param tool_path:
+        :param staging:
+        :param processes:
+        :param udt:
+        :param file_from:
+        :param repo:
+        :param password:
+        :return:
+        """
         call_args = [tool_path, 'download']
         call_args.extend(uuids)
         access_file = self.get_access_file(access, staging)
@@ -61,6 +74,17 @@ class GdcDownloadClient(DownloadClient):
         return code
 
     def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None):
+        """
+        Function that calls the gdc api to determine the access of a given credential for give uuids via head request
+        :param access:
+        :param uuids:
+        :param path:
+        :param repo:
+        :param output:
+        :param api_url:
+        :param password:
+        :return:
+        """
         base_url = 'https://gdc-api.nci.nih.gov/data/'
         request = base_url + ','.join(uuids)
         header = {'X-auth-Token': access}
@@ -74,15 +98,30 @@ class GdcDownloadClient(DownloadClient):
                 raise ex
 
     def print_version(self, path):
+        """
+        function which constructs arguments for version display of gdc client.  Uses inherited function
+        :param path:
+        :return:
+        """
         super(GdcDownloadClient, self).print_version(path)
 
     def version_parser(self, response):
+        """
+        Parses version response for version number and outputs to console
+        :param response:
+        :return:
+        """
         version = re.findall(r"v[0-9.]+", response)
         if version:
             version = version[0][1:]
             self.logger.info(" GDC Client Version:          %s", version)
 
     def download_parser(self, response):
+        """
+        Function that tracks current file being downloaded and outputs all responses to stdout.
+        :param response:
+        :return:
+        """
         file_id = re.findall(r'v------ \w{8}-\w{4}-\w{4}-\w{4}-\w{12} ------v', response)
         if file_id:
             file_id = file_id[8:-8]

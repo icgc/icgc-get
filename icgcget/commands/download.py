@@ -47,6 +47,18 @@ class DownloadDispatcher(object):
         self.icgc_client = StorageClient(json_path, docker, log_dir=log_dir, container_version=container_version)
 
     def download_manifest(self, repos, file_ids, manifest, output, api_url, verify, unique=False):
+        """
+        Funtion responsible for retriving manifests and metadata from the icgc api and formatting that data into
+        a download session object.  All queries to the portal go through this function.
+        :param repos:
+        :param file_ids:
+        :param manifest:
+        :param output:
+        :param api_url: icgc-api url
+        :param verify: toggles ssl verification
+        :param unique: controls if all files on output manifest must be unique
+        :return: download session
+        """
         portal = portal_client.IcgcPortalClient(verify)
         manifest_json = self.get_manifest(manifest, file_ids, api_url, repos, portal)
         download_session = {'pid': os.getpid(), 'start_time': datetime.datetime.utcnow().isoformat(),
@@ -82,6 +94,7 @@ class DownloadDispatcher(object):
                         continue
                 file_data[repo][entity["id"]].update(temp_file)
                 self.logger.debug('File %s added to file data under repo %s', entity['id'], repo)
+
         self.size_check(size, output)
         if not flatten_file_data(file_data):
             self.logger.error("All files were found in download directory, aborting")
@@ -95,6 +108,10 @@ class DownloadDispatcher(object):
                  gdc_token, gdc_path, gdc_transport_parallel, gdc_udt,
                  icgc_token, icgc_path, icgc_transport_file_from, icgc_transport_parallel,
                  pdc_key, pdc_secret_key, pdc_path, pdc_transport_parallel):
+        """
+        Function that manages download subprocessesss, cleans up downloaded files, and passes updated session info
+        between each process.
+        """
         file_data = session['file_data']
         if 'gnos' in file_data and file_data['gnos']:
             check_access(self, gnos_key, 'gnos', self.gt_client.docker, gnos_path)
@@ -150,6 +167,12 @@ class DownloadDispatcher(object):
         return session
 
     def check_code(self, client, code):
+        """
+        Function used to parse error codes returned by docker containers and clients
+        :param client:
+        :param code:
+        :return:
+        """
         if code == 127:
             self.logger.error("Error connecting to the docker container.")
             raise click.ClickException("Please check the status of your docker client")
@@ -158,6 +181,12 @@ class DownloadDispatcher(object):
             raise click.ClickException("Please check client output for error messages")
 
     def size_check(self, size, output):
+        """
+        Function to check if projected download size is small enough for avaiable disk space.
+        :param size:
+        :param output:
+        :return:
+        """
         if output:
             free = psutil.disk_usage(output)[2]
             if free <= size:
@@ -167,12 +196,26 @@ class DownloadDispatcher(object):
 
     @staticmethod
     def get_uuids(file_data):
+        """
+        Function used to extract all uuids from a file_data object
+        :param file_data:
+        :return:
+        """
         uuids = []
         for object_id in file_data:
             uuids.append(file_data[object_id]['uuid'])
         return uuids
 
     def get_manifest(self, manifest, file_ids, api_url, repos, portal):
+        """
+
+        :param manifest:
+        :param file_ids:
+        :param api_url:
+        :param repos:
+        :param portal:
+        :return:
+        """
         if manifest:
             manifest_json = get_manifest_json(self, file_ids, api_url, repos, portal)
         else:
@@ -183,6 +226,12 @@ class DownloadDispatcher(object):
         return manifest_json
 
     def move_files(self, staging, output):
+        """
+        Function that moves files from staging to output and handles errrors
+        :param staging:
+        :param output:
+        :return:
+        """
         for staged_file in os.listdir(staging):
 
             try:
@@ -196,5 +245,13 @@ class DownloadDispatcher(object):
                                       'Please remove .staging from your download directory manually.')
 
     def cleanup(self, name, return_code, staging, output):
+        """
+        Wrapper around download.move_files and download.check_code
+        :param name:
+        :param return_code:
+        :param staging:
+        :param output:
+        :return:
+        """
         self.check_code(name, return_code)
         self.move_files(staging, output)

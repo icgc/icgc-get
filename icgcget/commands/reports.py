@@ -25,10 +25,21 @@ from icgcget.clients.utils import convert_size, donor_addition, increment_types,
 
 
 class StatusScreenDispatcher(object):
+    """
+    Dispathcer responsible for setting up status report tables from  fiel data
+    """
+
     def __init__(self):
         self.logger = logging.getLogger("__log__")
 
     def summary_table(self, file_data, output, table_format):
+        """
+        Function that constructs summary style tables out of file data
+        :param file_data:
+        :param output:
+        :param table_format: tsv/json/pretty output format
+        :return:
+        """
         repos = file_data.keys()
 
         type_counts = {"total": 0}
@@ -70,6 +81,14 @@ class StatusScreenDispatcher(object):
         self.print_table(headers, summary_table, table_format)
 
     def file_table(self, file_data, output, table_format):
+        """
+        Function that constructs file by file style tables.
+        :param file_data:
+        :param output:
+        :param table_format: tsv/json/pretty output format
+        :return:
+        """
+
         repos = file_data.keys()
         headers = ["", "Size", "Unit", "File Format", "Data Type", "Repo", "Donor", "File Name", "Downloaded"]
         file_table = []
@@ -93,7 +112,13 @@ class StatusScreenDispatcher(object):
         self.print_table(headers, file_table, table_format)
 
     def print_table(self, headers, file_table, table_format):
-
+        """
+        Function responsible for printing constructed tables.  prints either in tsv, json or pretty.
+        :param headers:
+        :param file_table:
+        :param table_format:
+        :return:
+        """
         if table_format == 'tsv':
             for line in file_table:
                 line = [str(item) for item in line]

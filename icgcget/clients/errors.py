@@ -20,6 +20,9 @@
 
 
 class SubprocessError(Exception):
+    """
+    Custom exception for errors raised during subprocess operation
+    """
     def __init__(self, code, message):
         Exception.__init__(self, message)
         self.message = message
@@ -27,6 +30,9 @@ class SubprocessError(Exception):
 
 
 class ApiError(Exception):
+    """
+    Custom exception for errors raised by API calls
+    """
     def __init__(self, request_string, message, code=None):
         Exception.__init__(self, message)
         self.request_string = request_string
