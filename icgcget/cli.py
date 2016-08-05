@@ -23,7 +23,6 @@ import logging
 import os
 import sys
 import atexit
-import signal
 import click
 import subprocess
 
