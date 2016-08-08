@@ -17,13 +17,14 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 import logging
 import os
 import shutil
 import datetime
-
 import click
 import psutil
+
 from icgcget.clients import portal_client
 from icgcget.clients.gnos.gnos_client import GnosDownloadClient
 from icgcget.clients.ega.ega_client import EgaDownloadClient
@@ -68,7 +69,7 @@ class DownloadDispatcher(object):
             file_ids = []
             for repo in file_data:
                 file_ids.extend(file_data[repo].keys())
-                self.logger.debug(file_data[repo].keys() + ' found on manifest')
+                self.logger.debug(' '.join(file_data[repo].keys()) + ' found on manifest')
         entities = api_error_catch(self, portal.get_metadata_bulk, file_ids, api_url)
         for entity in entities:
             repo, copy = match_repositories(self, repos, entity)
