@@ -29,7 +29,7 @@ class ConfigureDispatcher(object):
 
     def __init__(self, config_destination, default):
         """
-        Init function parses any previous config files found in the configuration directory
+        Init function parses any previous config.yaml files found in the configuration directory
         :param config_destination:
         :param default:
         """
@@ -43,7 +43,7 @@ class ConfigureDispatcher(object):
 
     def configure(self, config_destination):
         """
-        Series of prompts that gathers information needed for the config file.
+        Series of prompts that gathers information needed for the config.yaml file.
         :param config_destination:
         :return:
         """

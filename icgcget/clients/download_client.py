@@ -49,6 +49,8 @@ class DownloadClient(object):
         self.log_dir = log_dir
         if log_dir:
             self.cidfile = log_dir + '/cidfile'
+        else:
+            self.cidfile = None
 
     @abc.abstractmethod
     def download(self, manifest, access, tool_path, staging, processes, udt=None, file_from=None, repo=None,
@@ -155,7 +157,7 @@ class DownloadClient(object):
         return_code = process.poll()
         if return_code == 0:
             self.session_update('', self.repo)  # clear any running files if exit cleanly
-        if self.cidfile:
+        if self.cidfile and os.path.isfile(self.cidfile):
             os.remove(self.cidfile)
         return return_code
 
@@ -285,4 +287,4 @@ class DownloadClient(object):
                     count += 1
             if cidfile:
                 self.session['container'] = cidfile.readline()
-        json.dump(self.session, open(self.path, 'w', 0777))
+        json.dump(self.session, open(self.path, 'w+', 0777))

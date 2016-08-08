@@ -96,8 +96,8 @@ def compare_ids(current_session, old_session, override):
 
 def config_errors(message, default):
     """
-    Handler that suppresses errors in config parsing if default config file has been provided.  Used to allow running
-    without config file.
+    Handler that suppresses errors in config.yaml parsing if default config.yaml file has been provided.  Used to allow running
+    without config.yaml file.
     :param message:
     :param default:
     :return:
@@ -111,7 +111,7 @@ def config_errors(message, default):
 
 def config_parse(filename, default_filename, docker=False, docker_paths=None, empty_ok=False):
     """
-    Parses config file.  If docker is enabled, will add default docker paths to configuration.
+    Parses config.yaml file.  If docker is enabled, will add default docker paths to configuration.
     :param filename:
     :param default_filename:
     :param docker:
@@ -145,14 +145,14 @@ def config_parse(filename, default_filename, docker=False, docker_paths=None, em
         else:
             config = config_errors("Config file '{}' is an empty file.".format(filename), default)
     except yaml.YAMLError:
-        config = config_errors("Failed to parse config file '{}'.  Config must be in YAML format.".format(filename),
+        config = config_errors("Failed to parse config.yaml file '{}'.  Config must be in YAML format.".format(filename),
                                default)
     return config
 
 
 def constructor(node):
     """
-    Yaml constructor used to load config file
+    Yaml constructor used to load config.yaml file
     :param node:
     :return:
     """
@@ -186,7 +186,7 @@ def filter_manifest_ids(self, manifest_json, repos):
 def filter_repos(repos):
     """
     Function to strip out null values from a list of repositories.  Throws error if all values are null.  Nulls are
-    a common product of improper config file editing.
+    a common product of improper config.yaml file editing.
     :param repos:
     :return:
     """

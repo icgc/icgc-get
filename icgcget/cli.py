@@ -36,7 +36,7 @@ from icgcget.params import RepoParam, LogfileParam
 from icgcget.log_filters import MaxLevelFilter
 from icgcget.version import __version__, __container_version__
 
-DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgc-get', force_posix=True), 'config.yaml')
+DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgc-get', force_posix=True), 'config.yaml.yaml')
 API_URL = "https://dcc.icgc.org/api/v1/"
 DOCKER_PATHS = {'icgc_path': '/icgc/icgc-storage-client/bin/icgc-storage-client',
                 'ega_path': '/icgc/ega-download-demo/EgaDemoClient.jar',
@@ -125,7 +125,7 @@ def subprocess_cleanup(json_path):
 
 def get_container_tag(context_map):
     """
-    Gets the version tag for the docker container. Default tag can be overridden by config file or environmental
+    Gets the version tag for the docker container. Default tag can be overridden by config.yaml file or environmental
     varaible, but not command line option
     :param context_map:
     :return:
@@ -140,7 +140,7 @@ def get_container_tag(context_map):
 
 
 @click.group()
-@click.option('--config', default=DEFAULT_CONFIG_FILE, envvar='ICGCGET_CONFIG')
+@click.option('--config.yaml', default=DEFAULT_CONFIG_FILE, envvar='ICGCGET_CONFIG')
 @click.option('--docker', '-d', type=click.BOOL, default=None, envvar='ICGCGET_DOCKER')
 @click.option('--logfile', type=LogfileParam(), default=None, envvar='ICGCGET_LOGFILE')
 @click.option('--verbose', '-v', is_flag=True, default=False, help="Do not verify ssl certificates")
@@ -349,10 +349,10 @@ def check(ctx, repos, ids, manifest, output, gnos_key, gnos_path, ega_username, 
 
 
 @cli.command()
-@click.option('--config', '-c', type=click.Path(), default=DEFAULT_CONFIG_FILE, envvar='ICGCGET_CONFIG')
+@click.option('--config.yaml', '-c', type=click.Path(), default=DEFAULT_CONFIG_FILE, envvar='ICGCGET_CONFIG')
 def configure(config):
     """
-    Dispatcher for the check command.  Makes config dir if necessary, and dispatches config prompt function
+    Dispatcher for the check command.  Makes config.yaml dir if necessary, and dispatches config.yaml prompt function
     command.
     """
     default_dir = os.path.split(DEFAULT_CONFIG_FILE)[0]
