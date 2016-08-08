@@ -51,7 +51,7 @@ def build_table(table, repo, sizes, counts, donors, downloads, output):
 
 def calculate_size(manifest_json, download_session):
     """
-    Function that calculates the total size of download based on manifest json return.  Also intializes the file
+    Function that calculates the total size of download based on manifest json return.  Also initializes the file
     data object for a download
     :param manifest_json:
     :param download_session:
@@ -104,7 +104,7 @@ def donor_addition(donor_list, donor, data_type):
 
 def flatten_dict(dictionary, parent_key='', sep='_'):
     """
-    Function that breaks down nested dictionaries into a single level dictionary.  Calls itself recurisivly
+    Function that breaks down nested dictionaries into a single level dictionary.  Calls itself recursively
     :param dictionary:
     :param parent_key:
     :param sep: separator for new keys that are combinations of the nested path.
@@ -123,7 +123,7 @@ def flatten_dict(dictionary, parent_key='', sep='_'):
 
 def flatten_file_data(file_data):
     """
-    function to get all file ids from a file_data object
+    Function to get all file ids from a file_data object
     :param file_data:
     :return:
     """
@@ -163,7 +163,7 @@ def normalize_keys(obj):
 
 def search_recursive(filename, output):
     """
-    Function to recursivly search through a directory and all of it's children for a file name.
+    Function to recursively search through a directory and all of it's children for a file name.
     :param filename:
     :param output:
     :return:

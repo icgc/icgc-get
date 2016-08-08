@@ -37,7 +37,7 @@ class LogfileParam(click.ParamType):
 
     def convert(self, value, param, ctx):
         """
-        Method to ckeck if logfile is an accessible file if it exists or in an accessable directory if it dosn't exist
+        Method to check if logfile is an accessible file if it exists or in an accessible directory if it doesn't exist
         :param value:
         :param param:
         :param ctx:
@@ -66,7 +66,7 @@ class LogfileParam(click.ParamType):
 
 class RepoParam(click.ParamType):
     """
-    Custom click parameter for a single repository.  Used for command line inputs, typically provided in a list.
+    Custom click parameter for a single repository.  Used for command line inputs, typically provided in a list
     """
     name = 'repo'
 
@@ -90,12 +90,12 @@ class RepoParam(click.ParamType):
 class ReposParam(click.ParamType):
     name = 'repos'
     """
-    Custom click paramater for a list of repositories: used in the configure function exclusivly due to limitations of
+    Custom click parameter for a list of repositories: used in the configure function exclusively due to limitations of
     prompts.
     """
     def convert(self, value, param, ctx):
         """
-        Function that ensures every non null value must be a valid repository name.  Null values are stripped later.
+        Function that ensures every non null value must be a valid repository name.  Null values are stripped later
         :param value:
         :param param:
         :param ctx:

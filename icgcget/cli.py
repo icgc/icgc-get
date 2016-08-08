@@ -80,7 +80,7 @@ def logger_setup(logfile, verbose):
 
 def docker_cleanup(cid_dir):
     """
-    Function run at program exit.  Removes CID file and exited docker containers
+    Function run at program exit. Removes CID file and exited docker containers
     :param cid_dir:
     :return:
     """
@@ -107,7 +107,7 @@ def docker_cleanup(cid_dir):
 
 def subprocess_cleanup(json_path):
     """
-    function run at exit.  Removes subprocessess and running docker containers found in state.json.
+    Function run at exit. Removes running docker containers found in state.json.
     :param json_path:
     :return:
     """
@@ -125,7 +125,8 @@ def subprocess_cleanup(json_path):
 
 def get_container_tag(context_map):
     """
-    Gets the version tag for the docker container. Default tag can be overridden
+    Gets the version tag for the docker container. Default tag can be overridden by config file or environmental
+    varaible, but not command line option
     :param context_map:
     :return:
     """
@@ -146,7 +147,7 @@ def get_container_tag(context_map):
 @click.pass_context
 def cli(ctx, config, docker, logfile, verbose):
     """
-    Handles icgc-get configuration and setup before running a subcommand, passes centralized variable to subcommands.
+    Handles icgc-get configuration and setup before running a sub command, passes centralized variable to sub commands.
     :param ctx:
     :param config:
     :param docker:
@@ -268,8 +269,8 @@ def download(ctx, ids, repos, manifest, output,
 @click.pass_context
 def report(ctx, repos, ids, manifest, output, table_format, data_type, no_ssl_verify):
     """
-    Controls the report command, gets data from icgc api, and sends it to table parsers. Function is also
-     responsible for verifying input parameters
+    Controls the report command, gets data from ICGC api, and sends it to table parsers. Function is also
+    responsible for verifying input parameters
     :param ctx:
     :param repos:
     :param ids:
@@ -351,7 +352,7 @@ def check(ctx, repos, ids, manifest, output, gnos_key, gnos_path, ega_username, 
 @click.option('--config', '-c', type=click.Path(), default=DEFAULT_CONFIG_FILE, envvar='ICGCGET_CONFIG')
 def configure(config):
     """
-    Dispatcher for the check command.  Makes config dir if necessar, and dispatches config prompt function
+    Dispatcher for the check command.  Makes config dir if necessary, and dispatches config prompt function
     command.
     """
     default_dir = os.path.split(DEFAULT_CONFIG_FILE)[0]

@@ -30,7 +30,7 @@ from icgcget.version import __version__
 
 def versions_command(gnos_path, ega_path, gdc_path, icgc_path, pdc_path, docker, log_dir, container_version):
     """
-    Function that controlls the outputs of the versions command and creates download client objects.
+    Function that controls the outputs of the versions command and creates download client objects.
     :param gnos_path:
     :param ega_path:
     :param gdc_path:
@@ -60,6 +60,7 @@ def versions_command(gnos_path, ega_path, gdc_path, icgc_path, pdc_path, docker,
 def check_version_path(client, name, path):
     """
     Checks if path is valid then calls client's print_version command or throws error if path invalid.  Skips if no path
+    provided for the client
     :param client:
     :param name:
     :param path:

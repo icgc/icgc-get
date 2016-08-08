@@ -29,7 +29,7 @@ from icgcget.clients.portal_client import call_api
 class GdcDownloadClient(DownloadClient):
 
     def __init__(self, json_path=None, docker=False, verify=True, log_dir=None, container_version=''):
-        super(GdcDownloadClient, self).__init__(json_path, log_dir, docker,  container_version=container_version)
+        super(GdcDownloadClient, self).__init__(json_path, log_dir, docker, container_version=container_version)
         self.repo = 'gdc'
         self.verify = verify
 
@@ -75,7 +75,7 @@ class GdcDownloadClient(DownloadClient):
 
     def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None):
         """
-        Function that calls the gdc api to determine the access of a given credential for give uuids via head request
+        Function that calls the GDC api to determine the access of a given credential for give uuids via head request
         :param access:
         :param uuids:
         :param path:
@@ -99,7 +99,7 @@ class GdcDownloadClient(DownloadClient):
 
     def print_version(self, path):
         """
-        function which constructs arguments for version display of gdc client.  Uses inherited function
+        Function which constructs arguments for version display of gdc client.  Uses inherited function
         :param path:
         :return:
         """

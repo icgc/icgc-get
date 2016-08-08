@@ -105,7 +105,8 @@ class AccessCheckDispatcher(object):
 
     def id_check(self, repo, ids):
         """
-        Function that checks if there were any ids to be checked on a repository that needs to be checked
+        Function that checks if there were any ids to be checked on a specified repository that validates ids
+        individually
         """
         if not ids:
             self.logger.info("None of the specified ids will be downloaded from the %s repository, " +
@@ -116,7 +117,7 @@ class AccessCheckDispatcher(object):
 
     def get_ids(self, file_data):
         """
-        Extracts ids of relevant repositories from file_data object
+        Extracts file ids on relevant repositories from file_data object
         :param file_data:
         :return:
         """

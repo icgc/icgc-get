@@ -26,7 +26,7 @@ from icgcget.clients.utils import convert_size, donor_addition, increment_types,
 
 class StatusScreenDispatcher(object):
     """
-    Dispathcer responsible for setting up status report tables from  fiel data
+    Dispatcher responsible for setting up status report tables from file data
     """
 
     def __init__(self):
@@ -82,7 +82,7 @@ class StatusScreenDispatcher(object):
 
     def file_table(self, file_data, output, table_format):
         """
-        Function that constructs file by file style tables.
+        Function that constructs file by file style tables out of file data
         :param file_data:
         :param output:
         :param table_format: tsv/json/pretty output format
@@ -113,7 +113,7 @@ class StatusScreenDispatcher(object):
 
     def print_table(self, headers, file_table, table_format):
         """
-        Function responsible for printing constructed tables.  prints either in tsv, json or pretty.
+        Function responsible for printing constructed tables.  Prints either in tsv, json or pretty table format
         :param headers:
         :param file_table:
         :param table_format:

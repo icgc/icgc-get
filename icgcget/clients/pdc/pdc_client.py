@@ -27,14 +27,14 @@ from icgcget.clients.download_client import DownloadClient
 class PdcDownloadClient(DownloadClient):
 
     def __init__(self, json_path=None, docker=False, log_dir=None, container_version=''):
-        super(PdcDownloadClient, self).__init__(json_path, log_dir, docker,  container_version=container_version)
+        super(PdcDownloadClient, self).__init__(json_path, log_dir, docker, container_version=container_version)
         self.repo = 'pdc'
         self.url = '--endpoint-url=https://bionimbus-objstore.opensciencedatacloud.org/'
 
     def download(self, data_paths, key, tool_path, staging, processes, udt=None, file_from=None, repo=None,
                  secret_key=None):
         """
-        Method that constructs arguments to make a download call to the PDC repository
+        Method that constructs arguments and sets environmental variables to make a download call to the PDC repository
         :param data_paths:
         :param key:
         :param tool_path:
@@ -101,7 +101,7 @@ class PdcDownloadClient(DownloadClient):
 
     def print_version(self, path):
         """
-        Print version command.  Uses base print_version implementation
+        Print version command.  Uses base class print_version implementation
         :param path:
         :return:
         """
@@ -109,7 +109,8 @@ class PdcDownloadClient(DownloadClient):
 
     def download_parser(self, output):
         """
-        Due to limited output of aws-cli, does not track which file is being downloaded.  Just outputs client response.
+        Due to limited output of aws-cli, this parser does not track which file is being downloaded.
+         Just outputs client response.
         :param output:
         :return:
         """
@@ -117,7 +118,7 @@ class PdcDownloadClient(DownloadClient):
 
     def version_parser(self, output):
         """
-        parser that filters version number out of version output.
+        Parser function that filters version number out of client version output.
         :param output:
         :return:
         """

@@ -32,7 +32,6 @@ from icgcget.clients.icgc.storage_client import StorageClient
 from icgcget.clients.pdc.pdc_client import PdcDownloadClient
 from icgcget.clients.utils import calculate_size, convert_size, search_recursive, flatten_file_data
 
-
 from icgcget.commands.utils import api_error_catch, filter_manifest_ids, check_access, get_manifest_json, \
     match_repositories
 
@@ -48,7 +47,7 @@ class DownloadDispatcher(object):
 
     def download_manifest(self, repos, file_ids, manifest, output, api_url, verify, unique=False):
         """
-        Funtion responsible for retriving manifests and metadata from the icgc api and formatting that data into
+        Funtion responsible for retrieving manifests and metadata from the icgc api and formatting that data into
         a download session object.  All queries to the portal go through this function.
         :param repos:
         :param file_ids:
@@ -109,7 +108,7 @@ class DownloadDispatcher(object):
                  icgc_token, icgc_path, icgc_transport_file_from, icgc_transport_parallel,
                  pdc_key, pdc_secret_key, pdc_path, pdc_transport_parallel):
         """
-        Function that manages download subprocessesss, cleans up downloaded files, and passes updated session info
+        Function that manages client download calls, cleans up downloaded files, and passes updated session info
         between each process.
         """
         file_data = session['file_data']
@@ -182,7 +181,7 @@ class DownloadDispatcher(object):
 
     def size_check(self, size, output):
         """
-        Function to check if projected download size is small enough for avaiable disk space.
+        Function to check if projected download size is small enough for available disk space.
         :param size:
         :param output:
         :return:
@@ -208,7 +207,7 @@ class DownloadDispatcher(object):
 
     def get_manifest(self, manifest, file_ids, api_url, repos, portal):
         """
-
+        Function that calls the api for a manifest.json files and filters it for duplicates if necessary.
         :param manifest:
         :param file_ids:
         :param api_url:
@@ -227,7 +226,7 @@ class DownloadDispatcher(object):
 
     def move_files(self, staging, output):
         """
-        Function that moves files from staging to output and handles errrors
+        Function that moves files from staging to output and handles errors
         :param staging:
         :param output:
         :return:

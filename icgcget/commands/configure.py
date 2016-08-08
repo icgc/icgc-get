@@ -43,7 +43,7 @@ class ConfigureDispatcher(object):
 
     def configure(self, config_destination):
         """
-        Series of prompts that gathers informaiton needed for the config file.
+        Series of prompts that gathers information needed for the config file.
         :param config_destination:
         :return:
         """

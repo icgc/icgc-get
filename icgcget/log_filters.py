@@ -22,8 +22,8 @@ from logging import Filter
 
 class MaxLevelFilter(Filter):
     """
-    custom logging filter to show multiple logging levels
-    :param record:
+    Custom logging filter to show multiple logging levels
+    :param:
     :return:
     """
     def __init__(self, level):

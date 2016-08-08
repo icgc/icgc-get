@@ -72,7 +72,7 @@ def check_access(self, access, name, docker=False, path="Default", password="Def
 
 def compare_ids(current_session, old_session, override):
     """
-    Compares manifest of state.json to manifest retrieved from api and stripps out any files that already finished
+    Compares manifest of state.json to manifest retrieved from api and strips out any files that already finished
     :param current_session:
     :param old_session:
     :param override:
@@ -96,7 +96,7 @@ def compare_ids(current_session, old_session, override):
 
 def config_errors(message, default):
     """
-    Handler that supresses errors in config parsing if default config file has been provided.  Used to allow runnning
+    Handler that suppresses errors in config parsing if default config file has been provided.  Used to allow running
     without config file.
     :param message:
     :param default:
@@ -152,7 +152,7 @@ def config_parse(filename, default_filename, docker=False, docker_paths=None, em
 
 def constructor(node):
     """
-    Yaml constructor used to load config file.
+    Yaml constructor used to load config file
     :param node:
     :return:
     """
@@ -185,7 +185,7 @@ def filter_manifest_ids(self, manifest_json, repos):
 
 def filter_repos(repos):
     """
-    Function to strip out null values from a list of repositories.  Throws error if all values are null.  nulls are
+    Function to strip out null values from a list of repositories.  Throws error if all values are null.  Nulls are
     a common product of improper config file editing.
     :param repos:
     :return:
@@ -201,7 +201,7 @@ def filter_repos(repos):
 
 def get_manifest_json(self, file_ids, api_url, repos, portal):
     """
-    Wrapper around portal.get_manifest_id that handles errors and validates that only one manifest can be retrived
+    Wrapper around portal.get_manifest_id that handles errors and validates that only one manifest can be retrieved.
     :param self:
     :param file_ids:
     :param api_url:
@@ -218,7 +218,8 @@ def get_manifest_json(self, file_ids, api_url, repos, portal):
 
 def load_json(json_path, abort=True):
     """
-    Funtion that reads state.json, attempts to kill all processess, and removes json file if it is unreadable.
+    Function that reads state.json, attempts to kill all processes listed in state file,
+     and removes json file if it is unreadable.
     :param json_path:
     :param abort:
     :return:
@@ -251,7 +252,7 @@ def load_json(json_path, abort=True):
 
 def match_repositories(self, repos, copies):
     """
-    Function that finds the fileCopy object that corressponds to the highest priority repository
+    Function that finds the fileCopy object that corresponds to the highest priority repository
     :param self:
     :param repos:
     :param copies:
@@ -267,7 +268,7 @@ def match_repositories(self, repos, copies):
 
 def override_prompt(override):
     """
-    Overrideable prompt that warns the user if state file dosn't match current command.
+    Overridable prompt that warns the user if state file doesn't match current command.
     :param override:
     :return:
     """
@@ -281,7 +282,7 @@ def override_prompt(override):
 
 def validate_ids(ids, manifest):
     """
-    Funciton to ensure formatting of supplide FIids and UUids is correct.
+    Function to ensure formatting of supplied FI ids and UUids is correct.
     :param ids:
     :param manifest:
     :return:

@@ -81,7 +81,7 @@ class StorageClient(DownloadClient):
 
     def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None):
         """
-        Function that calls the icgc api to determine the access of a given credential
+        Function that calls the icgc api to determine the access of a given access token
         :param access:
         :param uuids:
         :param path:
@@ -104,7 +104,7 @@ class StorageClient(DownloadClient):
 
     def print_version(self, path):
         """
-        method to construct arguments to print version of storage client
+        Method to construct arguments and call subprocess to print version of storage client
         :param path:
         :return:
         """
@@ -115,7 +115,7 @@ class StorageClient(DownloadClient):
 
     def version_parser(self, response):
         """
-        method to parse version number from verison output
+        Method to parse version number from client version output
         :param response:
         :return:
         """
@@ -126,7 +126,7 @@ class StorageClient(DownloadClient):
 
     def download_parser(self, response):
         """
-        method to parse download response, track current file
+        Method to parse and output client download response, tracking the current file that is being downloaded
         :param response:
         :return:
         """
@@ -141,7 +141,7 @@ class StorageClient(DownloadClient):
     @staticmethod
     def edit_logback(logback, log_file):
         """
-        Method to edit storage clients logging configuration file and place logfile in desired directory
+        Method to edit storage client's logging configuration file to place client logfile in desired location
         :param logback:
         :param log_file:
         :return:

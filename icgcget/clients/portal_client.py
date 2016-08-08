@@ -59,7 +59,7 @@ class IcgcPortalClient(object):
 
     def get_manifest_id(self, manifest_id, api_url, repos=None):
         """
-        Function that calls icgc api for a manifest by ID
+        Function that calls ICGC api for a manifest by manifest ID
         :param manifest_id:
         :param api_url:
         :param repos:
@@ -82,7 +82,7 @@ class IcgcPortalClient(object):
 
     def get_manifest(self, file_ids, api_url, repos=None):
         """
-        Function that calls icgc_api for a manifest by list of file ids
+        Function that calls ICGC api for a manifest by list of file ids
         :param file_ids:
         :param api_url:
         :param repos:
@@ -100,7 +100,7 @@ class IcgcPortalClient(object):
 
     def get_metadata_bulk(self, file_ids, api_url):
         """
-        function that calls icgc api for file metadata by list of files
+        Function that calls ICGC api for file metadata by list of files
         :param file_ids:
         :param api_url:
         :return:
@@ -120,7 +120,7 @@ class IcgcPortalClient(object):
     @staticmethod
     def filters(file_ids):
         """
-        Used to construct file id filter parameters for icgc api calls
+        Used to construct file id filter parameters for ICGC api calls
         :param file_ids:
         :return:
         """

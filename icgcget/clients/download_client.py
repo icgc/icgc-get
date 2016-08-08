@@ -86,7 +86,7 @@ class DownloadClient(object):
     @abc.abstractmethod
     def print_version(self, path):
         """
-        Abstract method used to print version.  Used by pdc and gdc due to common syntax.
+        Abstract method used to print version.  Used by pdc, gnos, and gdc due to common syntax.
         :param path:
         :return:
         """
@@ -99,7 +99,7 @@ class DownloadClient(object):
     @abc.abstractmethod
     def version_parser(self, output):
         """
-        abstract version parser method
+        Abstract version parser method
         :param output:
         :return:
         """
@@ -116,7 +116,7 @@ class DownloadClient(object):
 
     def _run_command(self, args, parser, env=None):
         """
-        Function controlling the calling and handling of subprocessess.  Creates, monitors and closes subprocess,
+        Function controlling the calling and handling of subprocesses.  Creates, monitors and closes subprocess,
         handles errors.
         :param args:
         :param parser:
@@ -161,7 +161,7 @@ class DownloadClient(object):
 
     def session_update(self, file_name, repo):
         """
-        Updates state file to keep track of running and finished downlaods
+        Updates state file to keep track of running and finished downloads
         :param file_name:
         :param repo:
         :return:
@@ -212,7 +212,7 @@ class DownloadClient(object):
     @staticmethod
     def parse_test_ex(ex, forbidden, not_found):
         """
-        method used to parse the output of test commands
+        Method used to parse the output of test commands
         :param ex:
         :param forbidden: regex pattern corresponding to invalid access response
         :param not_found: regex pattern corresponding to file not found resonse
@@ -275,6 +275,7 @@ class DownloadClient(object):
         self.session['subprocess'].append(pid)
         if self.docker and self.cidfile:
             count = 0
+            cidfile = None
             while count < 5:
                 try:
                     cidfile = open(self.cidfile)  # CID file is created asychronously, try to read until done.
@@ -282,5 +283,6 @@ class DownloadClient(object):
                 except IOError:
                     sleep(0.4)
                     count += 1
-            self.session['container'] = cidfile.readline()
+            if cidfile:
+                self.session['container'] = cidfile.readline()
         json.dump(self.session, open(self.path, 'w', 0777))

@@ -43,7 +43,7 @@ class EgaDownloadClient(DownloadClient):
     def download(self, object_ids, access, tool_path, staging, parallel, udt=None, file_from=None, repo=None,
                  password=None):
         """
-        Inhereited method.  Makes four subprocess calls to request download and decrypt data from the ega
+        Inherited method.  Makes four subprocess calls to request, download and decrypt data from the EGA repository
         :param object_ids:
         :param access:
         :param tool_path:
@@ -134,7 +134,7 @@ class EgaDownloadClient(DownloadClient):
 
     def print_version(self, path):
         """
-        Makes subprocess call to show ega version
+        Makes subprocess call to show EGA version
         """
         call_args = ['java', '-jar', path, '-p', 'demo@test.org', '123pass']
         if self.docker:
@@ -143,7 +143,7 @@ class EgaDownloadClient(DownloadClient):
 
     def version_parser(self, response):
         """
-        filters output of ega client version call for ega version and prints it
+        Method to parse version number from client version output
         :param response:
         :return:
         """
@@ -154,7 +154,7 @@ class EgaDownloadClient(DownloadClient):
 
     def download_parser(self, response):
         """
-        parser to keep track of which files are being downloaded
+        Parser to keep track of which files are being downloaded in session info and output client response to user
         :param response:
         :return:
         """
@@ -166,11 +166,11 @@ class EgaDownloadClient(DownloadClient):
 
     def requests_parser(self, response):
         """
-        Parses that attempts to identify if a request for a given file has already been made
+        Parser that attempts to identify if a request for a given file has already been made based on request command
+        output
         :param response:
         :return:
         """
-        self.logger.info(response)
         request = re.findall(r'EGA[A-Z][0-9]+_download_request', response)
         if request and request[0] == self.label:
             self.skip = True

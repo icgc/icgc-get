@@ -35,7 +35,7 @@ class GnosDownloadClient(DownloadClient):
     def download(self, uuids, access, tool_path, staging, processes, udt=None, file_from=None, repo=None,
                  password=None):
         """
-        Function that constructs arguments to make gnos client download call
+        Function that makes gnos client download call
         :param uuids:
         :param access:
         :param tool_path:
@@ -56,7 +56,7 @@ class GnosDownloadClient(DownloadClient):
 
     def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None):
         """
-        Function that constructs arguments to make gnos client access check call
+        Function that makes gnos client access check call via a test download from client
         :param access:
         :param uuids:
         :param path:
@@ -82,7 +82,7 @@ class GnosDownloadClient(DownloadClient):
 
     def print_version(self, path):
         """
-        Function that constructs arguments to make gnos client version check call
+        Function that makes a gnos client version call.  Uses base class functionality
         :param path:
         :return:
         """
@@ -90,7 +90,7 @@ class GnosDownloadClient(DownloadClient):
 
     def version_parser(self, response):
         """
-        Parses show version response from Gtdownload
+        Parses show version response from Gtdownload for version number
         :param response:
         :return:
         """
@@ -101,7 +101,7 @@ class GnosDownloadClient(DownloadClient):
 
     def download_parser(self, response):
         """
-        Tracks which files are being downloaded from client output, displays it
+        Parser function that tracks which files are being downloaded from client output and displays client output.
         :param response:
         :return:
         """
@@ -114,7 +114,7 @@ class GnosDownloadClient(DownloadClient):
 
     def make_call_args(self, tool_path, staging, access_file, uuids):
         """
-        Helper function that constructs call args
+        Helper function that constructs call args for download and test downloads
         :param tool_path:
         :param staging:
         :param access_file:
