@@ -31,9 +31,18 @@ class GnosDownloadClient(DownloadClient):
         super(GnosDownloadClient, self).__init__(json_path, log_dir, docker, container_version=container_version)
         self.repo = 'cghub'
         self.log_name = '/gnos_log.log'
+        self.data_paths = {"pcawg-heidelberg": "https://gtrepo-dkfz.annailabs.com/",
+                           "pcawg-london": "https://gtrepo-ebi.annailabs.com/",
+                           "pcawg-chicago-icgc": "https://gtrepo-osdc-icgc.annailabs.com/",
+                           "pcawg-tokyo": "https://gtrepo-riken.annailabs.com/",
+                           "pcawg-seoul": "https://gtrepo-etri.annailabs.com/",
+                           "pcawg-barcelona": "https://gtrepo-bsc.annailabs.com/",
+                           "pcawg-chicago-tcga": "https://gtrepo-osdc-tcga.annailabs.com/",
+                           "pcawg-cghub": "https://cghub.ucsc.edu/"   # is this one still up?
+                           }
 
     def download(self, uuids, access, tool_path, staging, processes, udt=None, file_from=None, repo=None,
-                 password=None):
+                 password=None, secret_key=None):
         """
         Function that makes gnos client download call
         :param uuids:
@@ -45,29 +54,32 @@ class GnosDownloadClient(DownloadClient):
         :param file_from:
         :param repo:
         :param password:
+        :param secret_key:
         :return:
         """
         access_file = self.get_access_file(access, staging)
-        call_args = self.make_call_args(tool_path, staging, access_file, uuids)
+        call_args = self.make_call_args(tool_path, staging, access_file, uuids, repo)
         code = self._run_command(call_args, self.download_parser)
         if self.docker and self.log_dir and os.path.isfile(staging + self.log_name):
             shutil.move(staging + self.log_name, self.log_dir + self.log_name)
         return code
 
-    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None):
+    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None,
+                     secret_key=None):
         """
         Function that makes gnos client access check call via a test download from client
         :param access:
         :param uuids:
         :param path:
-        :param repo:
+        :param repo: code for the PCAWG repository being tested
         :param output:
         :param api_url:
         :param password:
+        :param secret_key:
         :return:
         """
         access_file = self.get_access_file(access, output)
-        call_args = self.make_call_args(path, output, access_file, uuids)
+        call_args = self.make_call_args(path, output, access_file, uuids, repo)
         result = self._run_test_command(call_args, "403 Forbidden", "404 Not Found")
         if self.docker and self.log_dir:
             shutil.move(output + '/gnos_log', self.log_dir + '/gnos_log')
@@ -112,13 +124,14 @@ class GnosDownloadClient(DownloadClient):
             filename = filename[9:]
             self.session_update(filename, 'gnos')
 
-    def make_call_args(self, tool_path, staging, access_file, uuids):
+    def make_call_args(self, tool_path, staging, access_file, uuids, code):
         """
         Helper function that constructs call args for download and test downloads
         :param tool_path:
         :param staging:
         :param access_file:
         :param uuids:
+        :param code:
         :return:
         """
 
@@ -132,7 +145,7 @@ class GnosDownloadClient(DownloadClient):
             call_args = self.prepend_docker_args(call_args, staging)
         else:
             call_args = [tool_path, '-vv', '-d',
-                         'https://gtrepo-osdc-icgc.annailabs.com/cghub/data/analysis/download/' + uuids[0]]
+                         self.data_paths[code] + 'cghub/data/analysis/download/' + uuids[0]]
             call_args.extend(['-c', access_file.name, '-p', staging])
             if self.log_dir:
                 call_args.extend(['-l', self.log_dir + self.log_name])
