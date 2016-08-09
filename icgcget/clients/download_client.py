@@ -66,6 +66,7 @@ class DownloadClient(object):
         :param file_from:
         :param repo:
         :param password:
+        :param secret_key:
         :return:
         """
         return
@@ -120,7 +121,7 @@ class DownloadClient(object):
 
     def _run_command(self, args, parser, env=None):
         """
-        Function controlling the calling and handling of subprocesses.  Creates, monitors and closes subprocess,
+        Function controlling the calling and handling of subprocesses.  Creates, monitors and closes subprocesses,
         handles errors.
         :param args:
         :param parser:

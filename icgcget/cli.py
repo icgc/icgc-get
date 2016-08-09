@@ -147,7 +147,15 @@ def get_container_tag(context_map):
 @click.option('--verbose', '-v', is_flag=True, default=False, help="Do not verify ssl certificates")
 @click.pass_context
 def cli(ctx, config, docker, logfile, verbose):
-
+    """
+    Handles icgc-get configuration and setup before running a sub command, passes centralized variable to sub commands.
+    :param ctx:
+    :param config:
+    :param docker:
+    :param logfile:
+    :param verbose:
+    :return:
+    """
     if ctx.invoked_subcommand != 'configure':
         config_file = config_parse(config, DEFAULT_CONFIG_FILE, docker, DOCKER_PATHS)
         ctx.obj = {'docker': '', 'logfile': None}
@@ -233,7 +241,10 @@ def download(ctx, ids, repos, manifest, output,
     oldmask = os.umask(0000)
     if not os.path.exists(staging):
         os.mkdir(staging, 0777)
-    json_path = ctx.obj['logdir'] + '/state.json'
+    if ctx.obj['logdir']:
+        json_path = ctx.obj['logdir'] + '/state.json'
+    else:
+        json_path = None
 
     old_download_session = subprocess_cleanup(json_path)  # strips pids and cids that have been stopped
     dispatch = DownloadDispatcher(json_path, ctx.obj['docker'], ctx.obj['logdir'], tag)
@@ -246,6 +257,7 @@ def download(ctx, ids, repos, manifest, output,
             download_session['file_data'] = compare_ids(download_session['file_data'],
                                                         old_download_session['file_data'], override)
             download_session['subprocess'] = old_download_session['subprocess']
+
     json.dump(download_session, open(json_path, 'w', 0777))
     dispatch.download(download_session, staging, output,
                       gnos_key_icgc, gnos_key_tcga, gnos_key_barcelona, gnos_key_heidelberg, gnos_key_london,
@@ -290,8 +302,8 @@ def report(ctx, repos, ids, manifest, output, table_format, data_type, no_ssl_ve
     json_path = None
     download_session = None
     if ctx.obj['logdir']:
-        json_path = ctx.obj['logdir'] + '/.staging/state.json'
-        old_download_session = load_json(json_path, abort=False)
+        json_path = ctx.obj['logdir'] + '/.staging/state.json'  # Json is only used to speed up command if available
+        old_download_session = load_json(json_path, abort=False)  # report will never write to json
         if old_download_session and (not ids or ids == old_download_session['command']):
             download_session = old_download_session
 
@@ -307,7 +319,6 @@ def report(ctx, repos, ids, manifest, output, table_format, data_type, no_ssl_ve
         dispatch.file_table(download_session['file_data'], output, table_format)
     elif data_type == 'summary':
         dispatch.summary_table(download_session['file_data'], output, table_format)
-    os.remove(json_path)
 
 
 @cli.command()
