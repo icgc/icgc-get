@@ -15,6 +15,7 @@ streamline this process is highly desirable. This is the problem the `icgc-get` 
 ## Installation
 
 To install `icgc-get` on your local machine , first download the `icgc-get` package, then unzip the executable.
+`unzip icgc-get_linux_v0.3.13_x64.zip`
 
 Once the installation is complete, `icgc-get` can be invoked with the path to the `icgc-get` executable.  To make the
 executable callable from anywhere, you need to either move the executable to a folder on your `PATH` or add the folder you downloaded
@@ -39,3 +40,12 @@ such as your access credentials.  Enter `./icgc-get configure` and follow the in
 To keep the default values for the parameters, press enter.
 
 For further information, please view our documentation [here](http://docs.icgc.org/cloud/icgc-get/)
+
+### Packaging from source
+To package icgc-get from source code first [install pyinstaller](http://www.pyinstaller.org/) and install the necessary python packages with 
+`pip install click PyYaml subprocess32 tabulate psutil`
+
+Then you can package up python using 
+`python ~/pyinstaller.py --clean --onefile -n icgc-get --additional-hooks-dir ~/icgc-get/bin ~/icgc-get/icgcget/cli.py`
+
+The executable will be in a folder named `dist` in your current directory, the executable can be found inside.

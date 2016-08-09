@@ -48,7 +48,7 @@ class DownloadDispatcher(object):
 
     def download_manifest(self, repos, file_ids, manifest, output, api_url, verify, unique=False):
         """
-        Funtion responsible for retrieving manifests and metadata from the icgc api and formatting that data into
+        Function responsible for retrieving manifests and metadata from the icgc api and formatting that data into
         a download session object.  All queries to the portal go through this function.
         :param repos:
         :param file_ids:
@@ -99,7 +99,6 @@ class DownloadDispatcher(object):
         if not flatten_file_data(file_data):
             self.logger.error("All files were found in download directory, aborting")
             raise click.Abort
-        download_session['file_data'] = file_data
         return download_session
 
     def download(self, session, staging, output,
@@ -113,10 +112,10 @@ class DownloadDispatcher(object):
         between each process.
         """
         file_data = session['file_data']
-        if 'gnos' in file_data and file_data['gnos']:
+        if 'pcawg-chicago-icgc' in file_data and file_data['pcawg-chicago-icgc']:
             check_access(self, gnos_key, 'gnos', self.gt_client.docker, gnos_path)
             self.gt_client.session = session
-            uuids = self.get_uuids(file_data['gnos'])
+            uuids = self.get_uuids(file_data['pcawg-chicago-icgc'])
             return_code = self.gt_client.download(uuids, gnos_key, gnos_path, staging, gnos_transport_parallel)
             self.cleanup('gnos', return_code, staging, output)
 
@@ -255,3 +254,17 @@ class DownloadDispatcher(object):
         """
         self.check_code(name, return_code)
         self.move_files(staging, output)
+
+    def client_download(self, repo, token, path, client, session, staging, output, transport_parallel,
+                        transport_file_from=None, code=None, udt=True, password=None):
+        check_access(self, token, repo, client.docker, path, udt)
+        self.icgc_client.session = session
+        if repo == 'pdc':
+            uuids = []
+            for object_id in session['file_data'][repo]:
+                uuids.append(session['file_data'][repo][object_id]['fileUrl'])
+        else:
+            uuids = self.get_uuids(session['file_data'][repo])
+        return_code = client.download(uuids, token, path, staging, transport_parallel, repo=code, udt=udt,
+                                      file_from=transport_file_from, password=password)
+        self.cleanup(repo, return_code, staging, output)

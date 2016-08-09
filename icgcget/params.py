@@ -21,12 +21,14 @@
 import os
 import tempfile
 import click
+
 REPOS = {'collaboratory': {'code': 'collaboratory', 'name': 'collab'},
          'aws-virginia': {'code': 'aws-virginia', 'name': 'aws'},
          'ega': {'code': 'ega', 'name': 'european genome association'},
          'gdc': {'code': 'gdc', 'name': 'genomic data commons'},
          'gnos': {'code': 'gnos', 'name': 'gnos'},
-         'pdc': {'code': 'pdc', 'name': 'bionimbus protected data commons'}}
+         'pdc': {'code': 'pdc', 'name': 'bionimbus protected data commons'},
+         'pcawg-chicago-icgc': {'code': 'pdc', 'name': 'bionimbus protected data commons'}}
 
 
 class LogfileParam(click.ParamType):

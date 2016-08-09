@@ -50,7 +50,7 @@ class GnosDownloadClient(DownloadClient):
         access_file = self.get_access_file(access, staging)
         call_args = self.make_call_args(tool_path, staging, access_file, uuids)
         code = self._run_command(call_args, self.download_parser)
-        if self.docker and self.log_dir:
+        if self.docker and self.log_dir and os.path.isfile(staging + self.log_name):
             shutil.move(staging + self.log_name, self.log_dir + self.log_name)
         return code
 
@@ -125,14 +125,14 @@ class GnosDownloadClient(DownloadClient):
         if self.docker:
             access_path = self.docker_mnt + '/' + os.path.basename(access_file.name)
             # Client needs to be run using sh to be able to download files in docker container.
-            call_args = ['/bin/sh', '-c', tool_path + ' -vv' + ' -d ' + ' '.join(uuids) + ' -c ' + access_path +
-                         ' -p ' + self.docker_mnt]
+            call_args = ['/bin/sh', '-c', tool_path + ' -vv' + ' -d ' + ' -c ' + access_path +
+                         '  https://gtrepo-osdc-icgc.annailabs.com/'.join(uuids) + ' -p ' + self.docker_mnt]
             if self.log_dir:
                 call_args[2] += ' -l ' + self.docker_mnt + self.log_name
             call_args = self.prepend_docker_args(call_args, staging)
         else:
-            call_args = [tool_path, '-vv', '-d']
-            call_args.extend(uuids)
+            call_args = [tool_path, '-vv', '-d',
+                         'https://gtrepo-osdc-icgc.annailabs.com/cghub/data/analysis/download/' + uuids[0]]
             call_args.extend(['-c', access_file.name, '-p', staging])
             if self.log_dir:
                 call_args.extend(['-l', self.log_dir + self.log_name])

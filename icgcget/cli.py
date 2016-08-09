@@ -36,10 +36,11 @@ from icgcget.params import RepoParam, LogfileParam
 from icgcget.log_filters import MaxLevelFilter
 from icgcget.version import __version__, __container_version__
 
-DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgc-get', force_posix=True), 'config.yaml.yaml')
+DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgc-get', force_posix=True), 'config.yaml')
 API_URL = "https://dcc.icgc.org/api/v1/"
 DOCKER_PATHS = {'icgc_path': '/icgc/icgc-storage-client/bin/icgc-storage-client',
                 'ega_path': '/icgc/ega-download-demo/EgaDemoClient.jar',
+                'gnos_path': '/icgc/genetorrent/genetorrent',
                 'pdc_path': '/usr/local/bin/aws', 'gdc_path': '/icgc/gdc-data-transfer-tool/gdc-client'}
 
 
@@ -140,21 +141,13 @@ def get_container_tag(context_map):
 
 
 @click.group()
-@click.option('--config.yaml', default=DEFAULT_CONFIG_FILE, envvar='ICGCGET_CONFIG')
+@click.option('--config', default=DEFAULT_CONFIG_FILE, envvar='ICGCGET_CONFIG')
 @click.option('--docker', '-d', type=click.BOOL, default=None, envvar='ICGCGET_DOCKER')
 @click.option('--logfile', type=LogfileParam(), default=None, envvar='ICGCGET_LOGFILE')
 @click.option('--verbose', '-v', is_flag=True, default=False, help="Do not verify ssl certificates")
 @click.pass_context
 def cli(ctx, config, docker, logfile, verbose):
-    """
-    Handles icgc-get configuration and setup before running a sub command, passes centralized variable to sub commands.
-    :param ctx:
-    :param config:
-    :param docker:
-    :param logfile:
-    :param verbose:
-    :return:
-    """
+
     if ctx.invoked_subcommand != 'configure':
         config_file = config_parse(config, DEFAULT_CONFIG_FILE, docker, DOCKER_PATHS)
         ctx.obj = {'docker': '', 'logfile': None}
@@ -223,7 +216,6 @@ def download(ctx, ids, repos, manifest, output,
              pdc_key, pdc_secret, pdc_path, pdc_transport_parallel, override, no_ssl_verify):
     """
     Manages the download command, parses state.json and checks arguments for validity.
-
     """
     logger = logging.getLogger('__log__')
     logger.debug(str(ctx.params))
@@ -340,7 +332,7 @@ def check(ctx, repos, ids, manifest, output, gnos_key, gnos_path, ega_username, 
     dispatch = AccessCheckDispatcher()
     download_dispatch = DownloadDispatcher(json_path, ctx.obj['docker'], ctx.obj['logdir'], tag)
     download_session = {'file_data': {}}
-    if ('gdc' in repos or 'ega' in repos or 'pdc' in repos) and ids:
+    if ('gdc' in repos or 'pcawg-chicago-icgc' in repos or 'pdc' in repos) and ids:
         download_session = download_dispatch.download_manifest(repos, ids, manifest, output, API_URL, no_ssl_verify)
     dispatch.access_checks(repos, download_session['file_data'], gnos_key, gnos_path, ega_username, ega_password,
                            gdc_token, icgc_token, pdc_key, pdc_secret, pdc_path, output, ctx.obj['docker'], API_URL,
@@ -349,7 +341,7 @@ def check(ctx, repos, ids, manifest, output, gnos_key, gnos_path, ega_username, 
 
 
 @cli.command()
-@click.option('--config.yaml', '-c', type=click.Path(), default=DEFAULT_CONFIG_FILE, envvar='ICGCGET_CONFIG')
+@click.option('--config', '-c', type=click.Path(), default=DEFAULT_CONFIG_FILE, envvar='ICGCGET_CONFIG')
 def configure(config):
     """
     Dispatcher for the check command.  Makes config.yaml dir if necessary, and dispatches config.yaml prompt function

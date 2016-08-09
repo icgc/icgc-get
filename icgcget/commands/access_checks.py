@@ -32,7 +32,7 @@ from icgcget.commands.utils import check_access, api_error_catch
 class AccessCheckDispatcher(object):
     def __init__(self):
         self.logger = logging.getLogger("__log__")
-        self.cghub_ids = []
+        self.gnos_ids = []
         self.gdc_ids = []
         self.pdc_urls = []
 
@@ -73,10 +73,10 @@ class AccessCheckDispatcher(object):
             gdc_result = api_error_catch(self, gdc_client.access_check, gdc_token, self.gdc_ids)
             self.access_response(gdc_result, "GDC files specified.")
 
-        if 'gnos' in repo_list and self.id_check('gnos', self.cghub_ids):
+        if 'pcawg-chicago-icgc' in repo_list and self.id_check('pcawg-chicago-icgc', self.gnos_ids):
             check_access(self, cghub_key, 'gnos', gt_client.docker, cghub_path)
             try:
-                self.access_response(gt_client.access_check(cghub_key, self.cghub_ids, cghub_path,
+                self.access_response(gt_client.access_check(cghub_key, self.gnos_ids, cghub_path,
                                                             output=output), "GNOS files.")
             except SubprocessError as ex:
                 self.logger.error(ex.message)
@@ -125,9 +125,9 @@ class AccessCheckDispatcher(object):
             for gdc_file in file_data['gdc'].values():
                 self.gdc_ids.append(gdc_file['uuid'])
 
-        if 'cghub' in file_data:
-            for cghub_file in file_data['cghub'].values():
-                self.cghub_ids.append(cghub_file['uuid'])
+        if 'pcawg-chicago-icgc' in file_data:
+            for gnos_file in file_data['pcawg-chicago-icgc'].values():
+                self.gnos_ids.append(gnos_file['uuid'])
 
         if 'pdc' in file_data:
             for pdc_file in file_data['pdc'].values():
