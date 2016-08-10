@@ -22,7 +22,7 @@ import click
 import yaml
 
 from icgcget.commands.utils import config_parse
-from icgcget.params import ReposParam, LogfileParam
+from icgcget.params import ReposParam, LogfileParam, GNOS
 
 
 class ConfigureDispatcher(object):
@@ -35,8 +35,7 @@ class ConfigureDispatcher(object):
         """
         self.old_config = {}
         self.default_dir = os.path.split(default)[0]
-        self.gnos_repos = ["pcawg-heidelberg", "pcawg-london", "pcawg-chicago-icgc", "pcawg-tokyo", "pcawg-seoul",
-                           "pcawg-barcelona", "pcawg-chicago-tcga", "pcawg-cghub"]
+        self.gnos_repos = GNOS.keys()
         if os.path.isfile(config_destination):
             old_config = config_parse(config_destination, default, empty_ok=True)
             if old_config:

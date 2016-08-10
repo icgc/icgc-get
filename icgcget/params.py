@@ -27,15 +27,20 @@ REPOS = {'collaboratory': {'code': 'collaboratory', 'name': 'collab'},
          'ega': {'code': 'ega', 'name': 'european genome association'},
          'gdc': {'code': 'gdc', 'name': 'genomic data commons'},
          'gnos': {'code': 'gnos', 'name': 'gnos'},
-         'pdc': {'code': 'pdc', 'name': 'bionimbus protected data commons'},
-         'pcawg-chicago-icgc': {'code': 'pcawg-chicago-icgc', 'name': 'pcawg-chicago-icgc'},
-         'pcawg-heidelberg': {'code': 'pcawg-heidelberg', 'name': 'pcawg-heidelberg'},
-         'pcawg-london': {'code': 'pcawg-london', 'name': 'pcawg-london'},
-         'pcawg-tokyo': {'code': 'pcawg-tokyo', 'name': 'pcawg-tokyo'},
-         'pcawg-seoul': {'code': 'pcawg-seoul', 'name': 'pcawg-seoul'},
-         'pcawg-barcelona': {'code': 'pcawg-barcelona', 'name': 'pcawg-barcelona'},
-         'pcawg-cghub': {'code': 'pcawg-cghub', 'name': 'pcawg-cghub'},
-         'pcawg-chicago-tcga': {'code': 'pcawg-chicago-tcga', 'name': 'pcawg-chicago-tcga'}}
+         'pdc': {'code': 'pdc', 'name': 'bionimbus protected data commons'}}
+
+GNOS = {'pcawg-chicago-icgc': {'code': 'pcawg-chicago-icgc', 'name': 'pcawg-chicago-icgc',
+                               'path': "https://gtrepo-osdc-icgc.annailabs.com/"},
+        'pcawg-heidelberg': {'code': 'pcawg-heidelberg', 'name': 'pcawg-heidelberg',
+                             'path': "https://gtrepo-dkfz.annailabs.com/"},
+        'pcawg-london': {'code': 'pcawg-london', 'name': 'pcawg-london', 'path': "https://gtrepo-ebi.annailabs.com/"},
+        'pcawg-tokyo': {'code': 'pcawg-tokyo', 'name': 'pcawg-tokyo', 'path': "https://gtrepo-riken.annailabs.com/"},
+        'pcawg-seoul': {'code': 'pcawg-seoul', 'name': 'pcawg-seoul', 'path': "https://gtrepo-etri.annailabs.com/"},
+        'pcawg-barcelona': {'code': 'pcawg-barcelona', 'name': 'pcawg-barcelona',
+                            'path': "https://gtrepo-bsc.annailabs.com/"},
+        'pcawg-cghub': {'code': 'pcawg-cghub', 'name': 'pcawg-cghub', 'path': "https://cghub.ucsc.edu/"},
+        'pcawg-chicago-tcga': {'code': 'pcawg-chicago-tcga', 'name': 'pcawg-chicago-tcga',
+                               'path': "https://gtrepo-osdc-tcga.annailabs.com/"}}
 
 
 class LogfileParam(click.ParamType):
@@ -88,7 +93,7 @@ class RepoParam(click.ParamType):
         :return:
         """
         try:
-            if value in REPOS.keys():
+            if value in REPOS.keys() or value in GNOS.keys():
                 return value
             else:
                 self.fail("Invalid repo '{0}'.  Valid repos are: {1}".format(value, ' '.join(REPOS)), param, ctx)
@@ -114,7 +119,7 @@ class ReposParam(click.ParamType):
         value = value.split(' ')
         repos = []
         for repo in value:
-            if repo in REPOS.keys():
+            if repo in REPOS.keys() or GNOS.keys():
                 repos.append(repo)
             elif repo:
                 self.fail("Invalid repo '{0}'.  Valid repos are: {1}".format(repo, ' '.join(REPOS)), param, ctx)

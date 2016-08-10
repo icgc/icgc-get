@@ -23,6 +23,7 @@ import os
 import shutil
 from icgcget.clients.download_client import DownloadClient
 from icgcget.clients.errors import SubprocessError
+from icgcget.params import GNOS
 
 
 class GnosDownloadClient(DownloadClient):
@@ -31,15 +32,7 @@ class GnosDownloadClient(DownloadClient):
         super(GnosDownloadClient, self).__init__(json_path, log_dir, docker, container_version=container_version)
         self.repo = 'cghub'
         self.log_name = '/gnos_log.log'
-        self.data_paths = {"pcawg-heidelberg": "https://gtrepo-dkfz.annailabs.com/",
-                           "pcawg-london": "https://gtrepo-ebi.annailabs.com/",
-                           "pcawg-chicago-icgc": "https://gtrepo-osdc-icgc.annailabs.com/",
-                           "pcawg-tokyo": "https://gtrepo-riken.annailabs.com/",
-                           "pcawg-seoul": "https://gtrepo-etri.annailabs.com/",
-                           "pcawg-barcelona": "https://gtrepo-bsc.annailabs.com/",
-                           "pcawg-chicago-tcga": "https://gtrepo-osdc-tcga.annailabs.com/",
-                           "pcawg-cghub": "https://cghub.ucsc.edu/"   # is this one still up?
-                           }
+        self.data_paths = GNOS
 
     def download(self, uuids, access, tool_path, staging, processes, udt=None, file_from=None, repo=None,
                  password=None, secret_key=None):
@@ -134,7 +127,7 @@ class GnosDownloadClient(DownloadClient):
         :param code:
         :return:
         """
-        data_path = self.data_paths[code] + 'cghub/data/analysis/download/'
+        data_path = self.data_paths[code]['path'] + 'cghub/data/analysis/download/'
         uuids = [data_path + uuid for uuid in uuids]
         if self.docker:
             access_path = self.docker_mnt + '/' + os.path.basename(access_file.name)
