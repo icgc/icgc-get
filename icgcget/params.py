@@ -97,11 +97,12 @@ class RepoParam(click.ParamType):
 
 
 class ReposParam(click.ParamType):
-    name = 'repos'
     """
     Custom click parameter for a list of repositories: used in the configure function exclusively due to limitations of
     prompts.
     """
+    name = 'repos'
+
     def convert(self, value, param, ctx):
         """
         Function that ensures every non null value must be a valid repository name.  Null values are stripped later

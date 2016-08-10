@@ -34,7 +34,7 @@ class AccessCheckDispatcher(object):
         self.logger = logging.getLogger("__log__")
 
     def access_checks(self, repo_list, file_data, gnos_key_icgc, gnos_key_tcga, gnos_key_barcelona, gnos_key_heidelberg,
-                      gnos_key_london, gnos_key_cghub, gnos_key_seoul, gnos_key_tokyo,  gnos_path, ega_username,
+                      gnos_key_london, gnos_key_cghub, gnos_key_seoul, gnos_key_tokyo, gnos_path, ega_username,
                       ega_password, gdc_token, icgc_token, pdc_key, pdc_secret_key, pdc_path, output, docker, api_url,
                       verify):
         """
@@ -112,7 +112,7 @@ class AccessCheckDispatcher(object):
 
     def access_check_ids(self, repo, file_data, key, client, path=None, output=None, secret_key="Default"):
         """
-        Access check for clients that can only verify indivdual files.  uUed by pdc, gdc, and gnos
+        Access check for clients that can only verify individual files.  uUed by pdc, gdc, and gnos
         :param repo:
         :param file_data:
         :param key:
@@ -133,7 +133,7 @@ class AccessCheckDispatcher(object):
                 return
             check_access(self, key, repo, path, secret_key=secret_key)
             try:
-                self.access_response(client.access_check(key, uuids, path, output=output,
+                self.access_response(client.access_check(key, uuids, path, output=output, repo=repo,
                                                          secret_key=secret_key), repo.upper() + " files.")
             except SubprocessError as ex:
                 self.logger.error(ex.message)
