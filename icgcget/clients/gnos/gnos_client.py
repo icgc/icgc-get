@@ -20,6 +20,7 @@
 
 import re
 import os
+import fnmatch
 import shutil
 from icgcget.clients.download_client import DownloadClient
 from icgcget.clients.errors import SubprocessError
@@ -53,8 +54,10 @@ class GnosDownloadClient(DownloadClient):
         access_file = self.get_access_file(access, staging)
         call_args = self.make_call_args(tool_path, staging, access_file, uuids, repo)
         code = self._run_command(call_args, self.download_parser)
-        if self.docker and self.log_dir and os.path.isfile(staging + self.log_name):
-            shutil.move(staging + self.log_name, self.log_dir + self.log_name)
+        if self.docker and self.log_dir:
+            for logfile in os.listdir(staging):
+                if fnmatch.fnmatch(logfile, '*.log'):
+                    shutil.move(staging + '/' + logfile, self.log_dir + '/' + logfile)
         return code
 
     def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None,
