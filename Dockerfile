@@ -55,7 +55,11 @@ RUN mkdir -p /icgc/ega-download-demo && \
 
 RUN mkdir -p /icgc/genetorrent && \
     cd /icgc/genetorrent && \
-    wget -qO- https://annai.egnyte.com/dd/LWTWQGXeAi/ -O genetorrent
+    wget -qO- https://annai.egnyte.com/dd/LWTWQGXeAi/ -O genetorrent-download.deb && \
+    wget -qO- https://annai.egnyte.com/dd/Ixrj77etn2 -O genetorrent-common.deb && \
+    apt-get install libboost-filesystem1.54.0 libboost-program-options1.54.0 libboost-regex1.54.0 libboost-system1.54.0 libxerces-c3.1 libxqilla6 python-support &&\
+    dpkg -i ./genetorrent-common.deb && \
+    dpkg -i ./genetorrent-download.deb
 
 # 
 # Install latest version of storage client distribution
@@ -110,6 +114,6 @@ WORKDIR /icgc
 ENV ICGCGET_ICGC_PATH=/icgc/icgc-storage-client/bin/icgc-storage-client
 ENV ICGCGET_GDC_PATH=/icgc/gdc-data-transfer-tool/gdc-client
 ENV ICGCGET_EGA_PATH=/icgc/ega-download-demo/EgaDemoClient.jar
-ENV ICGCGET_CGHUB_PATH=/icgc/genetorrent/bin/gtdownload
+ENV ICGCGET_GNOS_PATH=/usr/bin/gtdownload
 ENV ICGCGET_PDC_PATH=/usr/local/bin/aws
 ENV ICGCGET_CONFIG=/icgc/mnt/config.yaml

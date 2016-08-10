@@ -41,7 +41,7 @@ class EgaDownloadClient(DownloadClient):
         self.skip = False
 
     def download(self, object_ids, access, tool_path, staging, parallel, udt=None, file_from=None, repo=None,
-                 password=None):
+                 secret_key=None, password=None):
         """
         Inherited method.  Makes four subprocess calls to request, download and decrypt data from the EGA repository
         :param object_ids:
@@ -53,6 +53,7 @@ class EgaDownloadClient(DownloadClient):
         :param file_from:
         :param repo:
         :param password:
+        :param secret_key:
         :return:
         """
         key = ''.join(SystemRandom().choice(ascii_uppercase + digits) for _ in range(4))
@@ -101,7 +102,8 @@ class EgaDownloadClient(DownloadClient):
             return rc_decrypt
         return 0
 
-    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None):
+    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None,
+                     secret_key=None):
         """
         Calls ega api once to log in and a second time to verify access
         :param access:
@@ -111,6 +113,7 @@ class EgaDownloadClient(DownloadClient):
         :param output:
         :param api_url:
         :param password:
+        :param secret_key:
         :return:
         """
         base_url = "https://ega.ebi.ac.uk/ega/rest/access/v2/"

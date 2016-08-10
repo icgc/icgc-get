@@ -30,11 +30,11 @@ from icgcget.clients.errors import ApiError
 class StorageClient(DownloadClient):
 
     def __init__(self, json_path=None, docker=False, verify=True, log_dir=None, container_version=''):
-        super(StorageClient, self).__init__(json_path,  log_dir, docker, container_version=container_version)
+        super(StorageClient, self).__init__(json_path, log_dir, docker, container_version=container_version)
         self.verify = verify
 
     def download(self, uuids, access, tool_path, staging, processes, udt=None, file_from=None, repo=None,
-                 password=None):
+                 password=None, secret_key=None):
         """
         Function that constructs arguments to make storage client download call
         :param uuids:
@@ -46,6 +46,7 @@ class StorageClient(DownloadClient):
         :param file_from:
         :param repo:
         :param password:
+        :param secret_key:
         :return:
         """
         env_dict = dict(os.environ)
@@ -79,7 +80,8 @@ class StorageClient(DownloadClient):
             os.remove(log_staging)
         return code
 
-    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None):
+    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None,
+                     secret_key=None):
         """
         Function that calls the icgc api to determine the access of a given access token
         :param access:
@@ -89,6 +91,7 @@ class StorageClient(DownloadClient):
         :param output:
         :param api_url:
         :param password:
+        :param secret_key:
         :return:
         """
 

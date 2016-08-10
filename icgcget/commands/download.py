@@ -48,7 +48,7 @@ class DownloadDispatcher(object):
 
     def download_manifest(self, repos, file_ids, manifest, output, api_url, verify, unique=False):
         """
-        Funtion responsible for retrieving manifests and metadata from the icgc api and formatting that data into
+        Function responsible for retrieving manifests and metadata from the icgc api and formatting that data into
         a download session object.  All queries to the portal go through this function.
         :param repos:
         :param file_ids:
@@ -99,11 +99,11 @@ class DownloadDispatcher(object):
         if not flatten_file_data(file_data):
             self.logger.error("All files were found in download directory, aborting")
             raise click.Abort
-        download_session['file_data'] = file_data
         return download_session
 
     def download(self, session, staging, output,
-                 gnos_key, gnos_path, gnos_transport_parallel,
+                 gnos_key_icgc, gnos_key_tcga, gnos_key_barcelona, gnos_key_heidelberg,
+                 gnos_key_london, gnos_key_cghub, gnos_key_seoul, gnos_key_tokyo, gnos_path, gnos_transport_parallel,
                  ega_username, ega_password, ega_path, ega_transport_parallel, ega_udt,
                  gdc_token, gdc_path, gdc_transport_parallel, gdc_udt,
                  icgc_token, icgc_path, icgc_transport_file_from, icgc_transport_parallel,
@@ -112,58 +112,45 @@ class DownloadDispatcher(object):
         Function that manages client download calls, cleans up downloaded files, and passes updated session info
         between each process.
         """
-        file_data = session['file_data']
-        if 'gnos' in file_data and file_data['gnos']:
-            check_access(self, gnos_key, 'gnos', self.gt_client.docker, gnos_path)
-            self.gt_client.session = session
-            uuids = self.get_uuids(file_data['gnos'])
-            return_code = self.gt_client.download(uuids, gnos_key, gnos_path, staging, gnos_transport_parallel)
-            self.cleanup('gnos', return_code, staging, output)
+        self.client_download('aws-virginia', icgc_token, icgc_path, self.icgc_client, session, staging, output,
+                             icgc_transport_parallel, code='aws', transport_file_from=icgc_transport_file_from)
 
-        if 'aws-virginia' in file_data and file_data['aws-virginia']:
-            check_access(self, icgc_token, 'icgc', self.icgc_client.docker, icgc_path)
-            self.icgc_client.session = session
-            uuids = self.get_uuids(file_data['aws-virginia'])
-            return_code = self.icgc_client.download(uuids, icgc_token, icgc_path, staging, icgc_transport_parallel,
-                                                    file_from=icgc_transport_file_from, repo='aws')
-            self.cleanup('ICGC', return_code, staging, output)
+        self.client_download('collaboratory', icgc_token, icgc_path, self.icgc_client, session, staging, output,
+                             icgc_transport_parallel, code='collab', transport_file_from=icgc_transport_file_from)
 
-        if 'ega' in file_data and file_data['ega']:
-            check_access(self, ega_username, 'ega', self.ega_client.docker, ega_path, ega_password, udt=ega_udt)
-            if ega_transport_parallel != '1':
-                self.logger.warning("Parallel streams on the EGA client may cause reliability issues and failed " +
-                                    "downloads.  This option is not recommended.")
-            self.ega_client.session = session
-            uuids = self.get_uuids(file_data['ega'])
-            return_code = self.ega_client.download(uuids, ega_username, ega_path, staging, ega_transport_parallel,
-                                                   ega_udt, password=ega_password)
-            self.cleanup('EGA', return_code, staging, output)
+        self.client_download('gdc', gdc_token, gdc_path, self.gdc_client, session, staging, output,
+                             gdc_transport_parallel, udt=gdc_udt)
 
-        if 'collaboratory' in file_data and file_data['collaboratory']:
-            check_access(self, icgc_token, 'icgc', self.icgc_client.docker, icgc_path)
-            self.icgc_client.session = session
-            uuids = self.get_uuids(file_data['collaboratory'])
-            return_code = self.icgc_client.download(uuids, icgc_token, icgc_path, staging, icgc_transport_parallel,
-                                                    file_from=icgc_transport_file_from, repo='collab')
-            self.cleanup('ICGC', return_code, staging, output)
+        self.client_download('ega', ega_username, ega_path, self.ega_client, session, staging, output,
+                             ega_transport_parallel, udt=ega_udt, password=ega_password)
 
-        if 'pdc' in file_data and file_data['pdc']:
-            check_access(self, pdc_key, 'pdc', self.pdc_client.docker, pdc_path, secret_key=pdc_secret_key)
-            urls = []
-            for object_id in file_data['pdc']:
-                urls.append(file_data['pdc'][object_id]['fileUrl'])
-            self.pdc_client.session = session
-            return_code = self.pdc_client.download(urls, pdc_key, pdc_path, staging, pdc_transport_parallel,
-                                                   secret_key=pdc_secret_key)
-            self.cleanup('PDC files', return_code, staging, output)
+        self.client_download('pcawg-barcelona', gnos_key_barcelona, gnos_path, self.gt_client, session, staging, output,
+                             gnos_transport_parallel, code='pcawg-barcelona')
 
-        if 'gdc' in file_data and file_data['gdc']:
-            check_access(self, gdc_token, 'gdc', self.gdc_client.docker, gdc_path, udt=gdc_udt)
-            uuids = self.get_uuids(file_data['gdc'])
-            self.gdc_client.session = session
-            return_code = self.gdc_client.download(uuids, gdc_token, gdc_path, staging, gdc_transport_parallel,
-                                                   gdc_udt)
-            self.cleanup('GDC files', return_code, staging, output)
+        self.client_download('pcawg-cghub', gnos_key_cghub, gnos_path, self.gt_client, session, staging, output,
+                             gnos_transport_parallel, code='pcawg-cghub')
+
+        self.client_download('pcawg-chicago-icgc', gnos_key_icgc, gnos_path, self.gt_client, session, staging, output,
+                             gnos_transport_parallel, code='pcawg-chicago-icgc')
+
+        self.client_download('pcawg-chicago-tcga', gnos_key_tcga, gnos_path, self.gt_client, session, staging, output,
+                             gnos_transport_parallel, code='pcawg-chicago-tcga')
+
+        self.client_download('pcawg-heidelberg', gnos_key_heidelberg, gnos_path, self.gt_client, session, staging,
+                             output, gnos_transport_parallel, code='pcawg-heidelberg')
+
+        self.client_download('pcawg-london', gnos_key_london, gnos_path, self.gt_client, session, staging, output,
+                             gnos_transport_parallel, code='pcawg-london')
+
+        self.client_download('pcawg-seoul', gnos_key_seoul, gnos_path, self.gt_client, session, staging, output,
+                             gnos_transport_parallel, code='pcawg-seoul')
+
+        self.client_download('pcawg-tokyo', gnos_key_tokyo, gnos_path, self.gt_client, session, staging, output,
+                             gnos_transport_parallel, code='pcawg-tokyo')
+
+        self.client_download('pdc', pdc_key, pdc_path, self.pdc_client, session, staging, output,
+                             pdc_transport_parallel, secret_key=pdc_secret_key)
+
         return session
 
     def check_code(self, client, code):
@@ -179,6 +166,54 @@ class DownloadDispatcher(object):
         elif code != 0:
             self.logger.error("%s client exited with a nonzero error code %s.", client, code)
             raise click.ClickException("Please check client output for error messages")
+
+    def cleanup(self, name, return_code, staging, output):
+        """
+        Wrapper around download.move_files and download.check_code
+        :param name:
+        :param return_code:
+        :param staging:
+        :param output:
+        :return:
+        """
+        self.check_code(name, return_code)
+        self.move_files(staging, output)
+
+    def client_download(self, repo, token, path, client, session, staging, output, transport_parallel,
+                        transport_file_from=None, code=None, udt=True, password="Default", secret_key="Default"):
+        """
+        Generalized function handling argument verification, parsing, and cleanup for download from client
+        :param repo:
+        :param token:
+        :param path:
+        :param client:
+        :param session:
+        :param staging:
+        :param output:
+        :param transport_parallel:
+        :param transport_file_from:
+        :param code:
+        :param udt:
+        :param password:
+        :param secret_key:
+        :return:
+        """
+        file_data = session['file_data']
+        if repo in file_data and file_data[repo]:
+            check_access(self, token, repo, client.docker, path, udt, secret_key)
+            self.icgc_client.session = session
+            if repo == 'ega' and transport_parallel != '1':
+                self.logger.warning("Parallel streams on the EGA client may cause reliability issues and failed " +
+                                    "downloads.  This option is not recommended.")
+            if repo == 'pdc':
+                uuids = []
+                for object_id in file_data[repo]:
+                    uuids.append(file_data[repo][object_id]['fileUrl'])
+            else:
+                uuids = self.get_uuids(file_data[repo])
+            return_code = client.download(uuids, token, path, staging, transport_parallel, repo=code, udt=udt,
+                                          file_from=transport_file_from, password=password, secret_key=secret_key)
+            self.cleanup(repo, return_code, staging, output)
 
     def size_check(self, size, output):
         """
@@ -243,15 +278,3 @@ class DownloadDispatcher(object):
                 except OSError:
                     self.logger.error('Insufficient permissions to move files. ' +
                                       'Please remove .staging from your download directory manually.')
-
-    def cleanup(self, name, return_code, staging, output):
-        """
-        Wrapper around download.move_files and download.check_code
-        :param name:
-        :param return_code:
-        :param staging:
-        :param output:
-        :return:
-        """
-        self.check_code(name, return_code)
-        self.move_files(staging, output)

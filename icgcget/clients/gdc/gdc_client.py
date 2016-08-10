@@ -34,7 +34,7 @@ class GdcDownloadClient(DownloadClient):
         self.verify = verify
 
     def download(self, uuids, access, tool_path, staging, processes, udt=None, file_from=None, repo=None,
-                 password=None):
+                 password=None, secret_key=None):
         """
         Function that constructs arguments to make a GDC download call
         :param uuids:
@@ -46,6 +46,7 @@ class GdcDownloadClient(DownloadClient):
         :param file_from:
         :param repo:
         :param password:
+        :param secret_key:
         :return:
         """
         call_args = [tool_path, 'download']
@@ -73,7 +74,8 @@ class GdcDownloadClient(DownloadClient):
             shutil.move(staging + log_name, logfile)
         return code
 
-    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None):
+    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None,
+                     secret_key=None):
         """
         Function that calls the GDC api to determine the access of a given credential for give uuids via head request
         :param access:
@@ -83,6 +85,7 @@ class GdcDownloadClient(DownloadClient):
         :param output:
         :param api_url:
         :param password:
+        :param secret_key:
         :return:
         """
         base_url = 'https://gdc-api.nci.nih.gov/data/'
