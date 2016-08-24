@@ -95,14 +95,19 @@ def docker_cleanup(cid_dir):
     env = dict(os.environ)
     env['PATH'] = '/usr/local/bin:' + env['PATH']
     args = ['docker', 'ps', '-a', '-q', '-f', 'status=exited']
-    exited_containers = subprocess.Popen(args, stdout=subprocess.PIPE, env=env)
-    container_ids = exited_containers.stdout.read().splitlines()  # get list of stopped containers
-
-    if container_ids:
-        args = ['docker', 'rm', '-v']
-        args.extend(container_ids)  # remove any stopped containers
-        devnull = open('/dev/null', 'w')
-        subprocess.call(args, stdout=devnull, env=env)
+    try:
+        exited_containers = subprocess.Popen(args, stdout=subprocess.PIPE, env=env)
+        container_ids = exited_containers.stdout.read().splitlines()  # get list of stopped containers
+        if container_ids:
+            args = ['docker', 'rm', '-v']
+            args.extend(container_ids)  # remove any stopped containers
+            devnull = open('/dev/null', 'w')
+            subprocess.call(args, stdout=devnull, env=env)
+    except OSError as ex:
+        if ex.errno == 2:
+            print 'Docker was not installed, unable to run command'
+        else:
+            raise ex
 
 
 def subprocess_cleanup(json_path):

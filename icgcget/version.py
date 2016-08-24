@@ -18,5 +18,5 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-__version__ = '0.4.2'
+__version__ = '0.4.3'
 __container_version__ = '0.3.7'
