@@ -39,8 +39,7 @@ from icgcget.version import __version__, __container_version__
 DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgc-get', force_posix=True), 'config.yaml')
 API_URL = "https://dcc.icgc.org/api/v1/"
 DOCKER_PATHS = {'icgc_path': '/icgc/icgc-storage-client/bin/icgc-storage-client',
-                'ega_path': '/icgc/ega-download-demo/EgaDemoClient.jar',
-                'gnos_path': '/icgc/genetorrent/genetorrent',
+                'ega_path': '/icgc/ega-download-demo/EgaDemoClient.jar', 'gnos_path': '/usr/bin/gtdownload',
                 'pdc_path': '/usr/local/bin/aws', 'gdc_path': '/icgc/gdc-data-transfer-tool/gdc-client'}
 
 
@@ -184,7 +183,14 @@ def cli(ctx, config, docker, logfile, verbose):
 @click.option('--manifest', '-m', is_flag=True, default=False)
 @click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True),
               required=True, envvar='ICGCGET_OUTPUT')
-@click.option('--gnos-key', type=click.STRING, envvar='ICGCGET_GNOS_KEY')
+@click.option('--gnos-key-icgc', type=click.STRING, envvar='ICGCGET_GNOS_KEY_ICGC')
+@click.option('--gnos-key-tcga', type=click.STRING, envvar='ICGCGET_GNOS_KEY_TCGA')
+@click.option('--gnos-key-barcelona', type=click.STRING, envvar='ICGCGET_GNOS_KEY_BARCELONA')
+@click.option('--gnos-key-heidelberg', type=click.STRING, envvar='ICGCGET_GNOS_KEY_HEIDELBERG')
+@click.option('--gnos-key-london', type=click.STRING, envvar='ICGCGET_GNOS_KEY_LONDON')
+@click.option('--gnos-key-cghub', type=click.STRING, envvar='ICGCGET_GNOS_KEY_CGHUB')
+@click.option('--gnos-key-seoul', type=click.STRING, envvar='ICGCGET_GNOS_KEY_SEOUL')
+@click.option('--gnos-key-tokyo', type=click.STRING, envvar='ICGCGET_GNOS_KEY_TOKYO')
 @click.option('--gnos-path', envvar='ICGCGET_GNOS_PATH')
 @click.option('--gnos-transport-parallel', type=click.STRING, default='8', envvar='ICGCGET_GNOS_TRANSPORT_PARALLEL')
 @click.option('--ega-username', type=click.STRING, envvar='ICGCGET_EGA_USERNAME')
@@ -209,7 +215,8 @@ def cli(ctx, config, docker, logfile, verbose):
 @click.option('--no-ssl-verify', is_flag=True, default=True, help="Do not verify ssl certificates")
 @click.pass_context
 def download(ctx, ids, repos, manifest, output,
-             gnos_key, gnos_path, gnos_transport_parallel,
+             gnos_key_icgc, gnos_key_tcga, gnos_key_barcelona, gnos_key_heidelberg, gnos_key_london, gnos_key_cghub,
+             gnos_key_seoul, gnos_key_tokyo, gnos_path, gnos_transport_parallel,
              ega_username, ega_password, ega_path, ega_transport_parallel, ega_udt,
              gdc_token, gdc_path, gdc_transport_parallel, gdc_udt,
              icgc_token, icgc_path, icgc_transport_file_from, icgc_transport_parallel,
@@ -225,7 +232,10 @@ def download(ctx, ids, repos, manifest, output,
     oldmask = os.umask(0000)
     if not os.path.exists(staging):
         os.mkdir(staging, 0777)
-    json_path = ctx.obj['logdir'] + '/state.json'
+    if ctx.obj['logdir']:
+        json_path = ctx.obj['logdir'] + '/state.json'
+    else:
+        json_path = None
 
     old_download_session = subprocess_cleanup(json_path)  # strips pids and cids that have been stopped
     dispatch = DownloadDispatcher(json_path, ctx.obj['docker'], ctx.obj['logdir'], tag)
@@ -238,9 +248,11 @@ def download(ctx, ids, repos, manifest, output,
             download_session['file_data'] = compare_ids(download_session['file_data'],
                                                         old_download_session['file_data'], override)
             download_session['subprocess'] = old_download_session['subprocess']
+
     json.dump(download_session, open(json_path, 'w', 0777))
     dispatch.download(download_session, staging, output,
-                      gnos_key, gnos_path, gnos_transport_parallel,
+                      gnos_key_icgc, gnos_key_tcga, gnos_key_barcelona, gnos_key_heidelberg, gnos_key_london,
+                      gnos_key_cghub, gnos_key_seoul, gnos_key_tokyo, gnos_path, gnos_transport_parallel,
                       ega_username, ega_password, ega_path, ega_transport_parallel, ega_udt,
                       gdc_token, gdc_path, gdc_transport_parallel, gdc_udt,
                       icgc_token, icgc_path, icgc_transport_file_from, icgc_transport_parallel,
@@ -281,8 +293,8 @@ def report(ctx, repos, ids, manifest, output, table_format, data_type, no_ssl_ve
     json_path = None
     download_session = None
     if ctx.obj['logdir']:
-        json_path = ctx.obj['logdir'] + '/.staging/state.json'
-        old_download_session = load_json(json_path, abort=False)
+        json_path = ctx.obj['logdir'] + '/.staging/state.json'  # Json is only used to speed up command if available
+        old_download_session = load_json(json_path, abort=False)  # report will never write to json
         if old_download_session and (not ids or ids == old_download_session['command']):
             download_session = old_download_session
 
@@ -298,7 +310,6 @@ def report(ctx, repos, ids, manifest, output, table_format, data_type, no_ssl_ve
         dispatch.file_table(download_session['file_data'], output, table_format)
     elif data_type == 'summary':
         dispatch.summary_table(download_session['file_data'], output, table_format)
-    os.remove(json_path)
 
 
 @cli.command()
@@ -307,7 +318,14 @@ def report(ctx, repos, ids, manifest, output, table_format, data_type, no_ssl_ve
 @click.option('--manifest', '-m', is_flag=True, default=False)
 @click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True),
               envvar='ICGCGET_OUTPUT')
-@click.option('--gnos-key', type=click.STRING, envvar='ICGCGET_GNOS_KEY')
+@click.option('--gnos-key-icgc', type=click.STRING, envvar='ICGCGET_GNOS_KEY_ICGC')
+@click.option('--gnos-key-tcga', type=click.STRING, envvar='ICGCGET_GNOS_KEY_TCGA')
+@click.option('--gnos-key-barcelona', type=click.STRING, envvar='ICGCGET_GNOS_KEY_BARCELONA')
+@click.option('--gnos-key-heidelberg', type=click.STRING, envvar='ICGCGET_GNOS_KEY_HEIDELBERG')
+@click.option('--gnos-key-london', type=click.STRING, envvar='ICGCGET_GNOS_KEY_LONDON')
+@click.option('--gnos-key-cghub', type=click.STRING, envvar='ICGCGET_GNOS_KEY_CGHUB')
+@click.option('--gnos-key-seoul', type=click.STRING, envvar='ICGCGET_GNOS_KEY_SEOUL')
+@click.option('--gnos-key-tokyo', type=click.STRING, envvar='ICGCGET_GNOS_KEY_TOKYO')
 @click.option('--gnos-path', type=click.STRING, envvar='ICGCGET_GNOS_PATH')
 @click.option('--ega-username', type=click.STRING, envvar='ICGCGET_EGA_USERNAME')
 @click.option('--ega-password', type=click.STRING, envvar='ICGCGET_EGA_PASSWORD')
@@ -318,26 +336,31 @@ def report(ctx, repos, ids, manifest, output, table_format, data_type, no_ssl_ve
 @click.option('--pdc-path', envvar='ICGCGET_PDC_ACCESS')
 @click.option('--no-ssl-verify', is_flag=True, default=True, help="Do not verify ssl certificates")
 @click.pass_context
-def check(ctx, repos, ids, manifest, output, gnos_key, gnos_path, ega_username, ega_password, gdc_token,
-          icgc_token, pdc_key, pdc_secret, pdc_path, no_ssl_verify):
+def check(ctx, repos, ids, manifest, output, gnos_key_icgc, gnos_key_tcga, gnos_key_barcelona, gnos_key_heidelberg,
+          gnos_key_london, gnos_key_cghub, gnos_key_seoul, gnos_key_tokyo, gnos_path, ega_username, ega_password,
+          gdc_token, icgc_token, pdc_key, pdc_secret, pdc_path, no_ssl_verify):
     """
     Dispatcher for the check command.  Verifies input arguments, hits api if necessary, and dispatches access check
     command.
     """
     logger = logging.getLogger('__log__')
     logger.debug(str(ctx.params))
-    json_path = ctx.obj['logdir'] + '/state.json'
+    json_path = None
+    if ctx.obj['logdir']:
+        json_path = ctx.obj['logdir'] + '/state.json'
     filter_repos(repos)
     tag = get_container_tag(ctx)
     dispatch = AccessCheckDispatcher()
     download_dispatch = DownloadDispatcher(json_path, ctx.obj['docker'], ctx.obj['logdir'], tag)
     download_session = {'file_data': {}}
-    if ('gdc' in repos or 'pcawg-chicago-icgc' in repos or 'pdc' in repos) and ids:
+    if ids:
         download_session = download_dispatch.download_manifest(repos, ids, manifest, output, API_URL, no_ssl_verify)
-    dispatch.access_checks(repos, download_session['file_data'], gnos_key, gnos_path, ega_username, ega_password,
-                           gdc_token, icgc_token, pdc_key, pdc_secret, pdc_path, output, ctx.obj['docker'], API_URL,
-                           no_ssl_verify)
-    os.remove(json_path)
+    dispatch.access_checks(repos, download_session['file_data'], gnos_key_icgc, gnos_key_tcga, gnos_key_barcelona,
+                           gnos_key_heidelberg, gnos_key_london, gnos_key_cghub, gnos_key_seoul, gnos_key_tokyo,
+                           gnos_path, ega_username, ega_password, gdc_token, icgc_token, pdc_key, pdc_secret, pdc_path,
+                           output, ctx.obj['docker'], API_URL, no_ssl_verify)
+    if os.path.isfile(json_path):
+        os.remove(json_path)
 
 
 @cli.command()

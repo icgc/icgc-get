@@ -32,7 +32,7 @@ class PdcDownloadClient(DownloadClient):
         self.url = '--endpoint-url=https://bionimbus-objstore.opensciencedatacloud.org/'
 
     def download(self, data_paths, key, tool_path, staging, processes, udt=None, file_from=None, repo=None,
-                 secret_key=None):
+                 password=None, secret_key=None):
         """
         Method that constructs arguments and sets environmental variables to make a download call to the PDC repository
         :param data_paths:
@@ -43,6 +43,7 @@ class PdcDownloadClient(DownloadClient):
         :param udt:
         :param file_from:
         :param repo:
+        :param password:
         :param secret_key:
         :return:
         """
@@ -65,7 +66,8 @@ class PdcDownloadClient(DownloadClient):
             self.session_update(data_path, 'pdc')
         return code
 
-    def access_check(self, key, data_paths=None, path=None, repo=None, output=None, api_url=None, secret_key=None):
+    def access_check(self, key, data_paths=None, path=None, repo=None, output=None, api_url=None, password=None,
+                     secret_key=None):
         """
         Method that constructs arguments to make a access check call to the PDC repository
         :param key:
@@ -74,6 +76,7 @@ class PdcDownloadClient(DownloadClient):
         :param repo:
         :param output:
         :param api_url:
+        :param password:
         :param secret_key:
         :return:
         """

@@ -28,7 +28,14 @@ REPOS = {'collaboratory': {'code': 'collaboratory', 'name': 'collab'},
          'gdc': {'code': 'gdc', 'name': 'genomic data commons'},
          'gnos': {'code': 'gnos', 'name': 'gnos'},
          'pdc': {'code': 'pdc', 'name': 'bionimbus protected data commons'},
-         'pcawg-chicago-icgc': {'code': 'pdc', 'name': 'bionimbus protected data commons'}}
+         'pcawg-chicago-icgc': {'code': 'pcawg-chicago-icgc', 'name': 'pcawg-chicago-icgc'},
+         'pcawg-heidelberg': {'code': 'pcawg-heidelberg', 'name': 'pcawg-heidelberg'},
+         'pcawg-london': {'code': 'pcawg-london', 'name': 'pcawg-london'},
+         'pcawg-tokyo': {'code': 'pcawg-tokyo', 'name': 'pcawg-tokyo'},
+         'pcawg-seoul': {'code': 'pcawg-seoul', 'name': 'pcawg-seoul'},
+         'pcawg-barcelona': {'code': 'pcawg-barcelona', 'name': 'pcawg-barcelona'},
+         'pcawg-cghub': {'code': 'pcawg-cghub', 'name': 'pcawg-cghub'},
+         'pcawg-chicago-tcga': {'code': 'pcawg-chicago-tcga', 'name': 'pcawg-chicago-tcga'}}
 
 
 class LogfileParam(click.ParamType):
@@ -90,11 +97,12 @@ class RepoParam(click.ParamType):
 
 
 class ReposParam(click.ParamType):
-    name = 'repos'
     """
     Custom click parameter for a list of repositories: used in the configure function exclusively due to limitations of
     prompts.
     """
+    name = 'repos'
+
     def convert(self, value, param, ctx):
         """
         Function that ensures every non null value must be a valid repository name.  Null values are stripped later

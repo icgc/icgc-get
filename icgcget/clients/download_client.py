@@ -54,7 +54,7 @@ class DownloadClient(object):
 
     @abc.abstractmethod
     def download(self, manifest, access, tool_path, staging, processes, udt=None, file_from=None, repo=None,
-                 password=None):
+                 password=None, secret_key=None):
         """
         Abstract download method
         :param manifest:
@@ -66,12 +66,14 @@ class DownloadClient(object):
         :param file_from:
         :param repo:
         :param password:
+        :param secret_key:
         :return:
         """
         return
 
     @abc.abstractmethod
-    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None):
+    def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None,
+                     secret_key=None):
         """
         Abstract access check method
         :param access:
@@ -81,6 +83,7 @@ class DownloadClient(object):
         :param output:
         :param api_url:
         :param password:
+        :param secret_key:
         :return:
         """
         return
@@ -118,7 +121,7 @@ class DownloadClient(object):
 
     def _run_command(self, args, parser, env=None):
         """
-        Function controlling the calling and handling of subprocesses.  Creates, monitors and closes subprocess,
+        Function controlling the calling and handling of subprocesses.  Creates, monitors and closes subprocesses,
         handles errors.
         :param args:
         :param parser:
@@ -280,7 +283,7 @@ class DownloadClient(object):
             cidfile = None
             while count < 5:
                 try:
-                    cidfile = open(self.cidfile)  # CID file is created asychronously, try to read until done.
+                    cidfile = open(self.cidfile)  # CID file is created asynchronously, try to read until done.
                     break
                 except IOError:
                     sleep(0.4)
