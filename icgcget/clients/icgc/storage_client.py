@@ -155,6 +155,6 @@ class StorageClient(DownloadClient):
         for line in fileinput.input(logback, inplace=1):
             match = re.search(r'name="LOG_FILE"', line)
             if match:
-                print '     <property name="LOG_FILE" value="{}"/>'.format(log_file)
+                print '     <property name="LOG_FILE" value="%s"/>' % log_file
             else:
                 print line.strip()

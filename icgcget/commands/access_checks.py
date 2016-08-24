@@ -132,13 +132,14 @@ class AccessCheckDispatcher(object):
             else:
                 uuids = [data['uuid'] for data in file_data[repo].values()]
             if not uuids:
-                self.logger.info("None of the specified ids will be downloaded from the %s repository, " +
+                self.logger.info("None of the specified ids will be downloaded from the %s repository:" +
                                  "unable to verify access credentials.", repo)
                 return
             check_access(self, key, repo, path, secret_key=secret_key)
             try:
                 self.access_response(client.access_check(key, uuids, path, output=output, repo=repo,
-                                                         secret_key=secret_key), repo.upper() + " files.")
+                                                         secret_key=secret_key),
+                                     repo.upper() + " files: {}".format(', '.join(file_data[repo].keys())))
             except SubprocessError as ex:
                 self.logger.error(ex.message)
                 raise click.Abort
