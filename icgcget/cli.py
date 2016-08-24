@@ -366,7 +366,7 @@ def check(ctx, repos, ids, manifest, output, gnos_key_icgc, gnos_key_tcga, gnos_
     dispatch.access_checks(repos, download_session['file_data'], gnos_key_icgc, gnos_key_tcga, gnos_key_barcelona,
                            gnos_key_heidelberg, gnos_key_london, gnos_key_cghub, gnos_key_seoul, gnos_key_tokyo,
                            gnos_path, ega_username, ega_password, gdc_token, icgc_token, pdc_key, pdc_secret, pdc_path,
-                           output, ctx.obj['docker'], API_URL, no_ssl_verify)
+                           output, ctx.obj['docker'], API_URL, no_ssl_verify, tag)
     if os.path.isfile(json_path):
         os.remove(json_path)
 

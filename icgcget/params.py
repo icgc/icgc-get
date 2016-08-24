@@ -26,7 +26,6 @@ REPOS = {'collaboratory': {'code': 'collaboratory', 'name': 'collab'},
          'aws-virginia': {'code': 'aws-virginia', 'name': 'aws'},
          'ega': {'code': 'ega', 'name': 'european genome association'},
          'gdc': {'code': 'gdc', 'name': 'genomic data commons'},
-         'gnos': {'code': 'gnos', 'name': 'gnos'},
          'pdc': {'code': 'pdc', 'name': 'bionimbus protected data commons'}}
 
 GNOS = {'pcawg-chicago-icgc': {'code': 'pcawg-chicago-icgc', 'name': 'pcawg-chicago-icgc',
@@ -96,7 +95,8 @@ class RepoParam(click.ParamType):
             if value in REPOS.keys() or value in GNOS.keys():
                 return value
             else:
-                self.fail("Invalid repo '{0}'.  Valid repos are: {1}".format(value, ' '.join(REPOS)), param, ctx)
+                self.fail("Invalid repo '{0}'.  Valid repos are: {1}".format(value, ' '.join(REPOS),
+                                                                             ' '.join(GNOS.keys()), param, ctx))
         except ValueError:
             self.fail('%s is not a valid repository' % value, param, ctx)
 
@@ -119,8 +119,9 @@ class ReposParam(click.ParamType):
         value = value.split(' ')
         repos = []
         for repo in value:
-            if repo in REPOS.keys() or GNOS.keys():
+            if repo in REPOS.keys() or repo in GNOS.keys():
                 repos.append(repo)
-            elif repo:
-                self.fail("Invalid repo '{0}'.  Valid repos are: {1}".format(repo, ' '.join(REPOS)), param, ctx)
+            else:
+                self.fail("Invalid repo '{0}'.  Valid repos are: {1} {2}".format(repo, ' '.join(REPOS),
+                                                                                 ' '.join(GNOS.keys()), param, ctx))
         return repos

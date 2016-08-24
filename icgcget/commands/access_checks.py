@@ -40,15 +40,15 @@ class AccessCheckDispatcher(object):
     def access_checks(self, repo_list, file_data, gnos_key_icgc, gnos_key_tcga, gnos_key_barcelona, gnos_key_heidelberg,
                       gnos_key_london, gnos_key_cghub, gnos_key_seoul, gnos_key_tokyo, gnos_path, ega_username,
                       ega_password, gdc_token, icgc_token, pdc_key, pdc_secret_key, pdc_path, output, docker, api_url,
-                      verify):
+                      verify, container_version=''):
         """
         Dispatcher for access check functions of all repositories
         """
         gdc_client = GdcDownloadClient(verify=verify)
         ega_client = EgaDownloadClient(verify=verify)
-        gt_client = GnosDownloadClient(docker=docker)
+        gt_client = GnosDownloadClient(docker=docker, container_version=container_version)
         icgc_client = StorageClient(verify=verify)
-        pdc_client = PdcDownloadClient(docker=docker)
+        pdc_client = PdcDownloadClient(docker=docker, container_version=container_version)
 
         if "collaboratory" in repo_list:
             self.access_check('collaboratory', icgc_token, icgc_client, api_url=api_url, code='collab')
