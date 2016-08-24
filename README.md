@@ -49,7 +49,9 @@ First run `pip install -r ~/requirements.txt` to ensure that all necessary packa
 python ~/pyinstaller.py --clean --onefile -n icgc-get --additional-hooks-dir ~/icgc-get/bin ~/icgc-get/icgcget/cli.py
 ```
 
-The executable will be in a folder named `dist` in your current directory, the executable can be found inside.
+The executable will be in a folder named `dist` in your current directory, the executable can be found inside.  Zip it, with the namiing convention of 
+`icgc-get_v$VERSION_$OS_x64.zip`
+
 
 #### Packaging inside Docker
 
