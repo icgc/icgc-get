@@ -96,8 +96,8 @@ def compare_ids(current_session, old_session, override):
 
 def config_errors(message, default):
     """
-    Handler that suppresses errors in config.yaml parsing if default config.yaml file has been provided.  Used to allow running
-    without config.yaml file.
+    Handler that suppresses errors in config.yaml parsing if default config.yaml file has been provided.  Used to allow
+    running without config.yaml file.
     :param message:
     :param default:
     :return:
@@ -145,7 +145,7 @@ def config_parse(filename, default_filename, docker=False, docker_paths=None, em
         else:
             config = config_errors("Config file '{}' is an empty file.".format(filename), default)
     except yaml.YAMLError:
-        config = config_errors("Failed to parse config.yaml file '{}'.  Config must be in YAML format.".format(filename),
+        config = config_errors("Failed to parse config.yaml file '{}'. Config must be in YAML format.".format(filename),
                                default)
     return config
 

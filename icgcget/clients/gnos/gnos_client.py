@@ -20,26 +20,23 @@
 
 import re
 import os
+import fnmatch
 import shutil
 from icgcget.clients.download_client import DownloadClient
 from icgcget.clients.errors import SubprocessError
+from icgcget.params import GNOS
 
 
 class GnosDownloadClient(DownloadClient):
+    """
+    Download client subclass that controls interaction with the genetorrent client
+    """
 
     def __init__(self, json_path=None, docker=False, log_dir=None, container_version=''):
         super(GnosDownloadClient, self).__init__(json_path, log_dir, docker, container_version=container_version)
-        self.repo = 'cghub'
+        self.repo = 'gnos'
         self.log_name = '/gnos_log.log'
-        self.data_paths = {"pcawg-heidelberg": "https://gtrepo-dkfz.annailabs.com/",
-                           "pcawg-london": "https://gtrepo-ebi.annailabs.com/",
-                           "pcawg-chicago-icgc": "https://gtrepo-osdc-icgc.annailabs.com/",
-                           "pcawg-tokyo": "https://gtrepo-riken.annailabs.com/",
-                           "pcawg-seoul": "https://gtrepo-etri.annailabs.com/",
-                           "pcawg-barcelona": "https://gtrepo-bsc.annailabs.com/",
-                           "pcawg-chicago-tcga": "https://gtrepo-osdc-tcga.annailabs.com/",
-                           "pcawg-cghub": "https://cghub.ucsc.edu/"   # is this one still up?
-                           }
+        self.data_paths = GNOS
 
     def download(self, uuids, access, tool_path, staging, processes, udt=None, file_from=None, repo=None,
                  password=None, secret_key=None):
@@ -60,8 +57,10 @@ class GnosDownloadClient(DownloadClient):
         access_file = self.get_access_file(access, staging)
         call_args = self.make_call_args(tool_path, staging, access_file, uuids, repo)
         code = self._run_command(call_args, self.download_parser)
-        if self.docker and self.log_dir and os.path.isfile(staging + self.log_name):
-            shutil.move(staging + self.log_name, self.log_dir + self.log_name)
+        if self.docker and self.log_dir:
+            for logfile in os.listdir(staging):
+                if fnmatch.fnmatch(logfile, '*.log'):
+                    shutil.move(staging + '/' + logfile, self.log_dir + '/' + logfile)
         return code
 
     def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None,
@@ -134,7 +133,8 @@ class GnosDownloadClient(DownloadClient):
         :param code:
         :return:
         """
-        data_path = self.data_paths[code] + 'cghub/data/analysis/download/'
+
+        data_path = self.data_paths[code]['path'] + 'cghub/data/analysis/download/'
         uuids = [data_path + uuid for uuid in uuids]
         if self.docker:
             access_path = self.docker_mnt + '/' + os.path.basename(access_file.name)
@@ -146,8 +146,8 @@ class GnosDownloadClient(DownloadClient):
                 call_args[2] += ' -l ' + self.docker_mnt + self.log_name
             call_args = self.prepend_docker_args(call_args, staging)
         else:
-            call_args = [tool_path, '-vv', '-d',
-                         'https://gtrepo-osdc-icgc.annailabs.com/cghub/data/analysis/download/' + uuids[0]]
+            call_args = [tool_path, '-vv', '-d']
+            call_args.extend(uuids)
             call_args.extend(['-c', access_file.name, '-p', staging])
             if self.log_dir:
                 call_args.extend(['-l', self.log_dir + self.log_name])

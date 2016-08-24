@@ -22,11 +22,13 @@ import click
 import yaml
 
 from icgcget.commands.utils import config_parse
-from icgcget.params import ReposParam, LogfileParam
+from icgcget.params import ReposParam, LogfileParam, GNOS
 
 
 class ConfigureDispatcher(object):
-
+    """
+    Dispatcher that handles configuration prompts
+    """
     def __init__(self, config_destination, default):
         """
         Init function parses any previous config.yaml files found in the configuration directory
@@ -35,7 +37,7 @@ class ConfigureDispatcher(object):
         """
         self.old_config = {}
         self.default_dir = os.path.split(default)[0]
-
+        self.gnos_repos = GNOS.keys()
         if os.path.isfile(config_destination):
             old_config = config_parse(config_destination, default, empty_ok=True)
             if old_config:
@@ -43,7 +45,7 @@ class ConfigureDispatcher(object):
 
     def configure(self, config_destination):
         """
-        Series of prompts that gathers information needed for the config.yaml file.
+        Series of prompts that gathers info needed for the config.yaml file.
         :param config_destination:
         :return:
         """
@@ -60,7 +62,7 @@ class ConfigureDispatcher(object):
         message = "Enter a location for the process logs to be stored.  Must be in an existing directory.  Optional."
         logfile = self.prompt('logfile', 'logfile', message, input_type=LogfileParam())
         message = "Enter which repositories you want to download from.\n" + \
-                  "Valid repositories are: aws-virginia gnos collaboratory ega gdc pdc"
+                  "Valid repositories are: aws-virginia collaboratory ega gdc pdc and pcawg repositories"
         repos = self.prompt('repos', 'repos', message, input_type=ReposParam())
         message = "Enter true or false if you wish to use a docker container to download and run all download clients"
         docker = self.prompt('docker', 'docker', message, input_type=click.BOOL)
@@ -74,14 +76,19 @@ class ConfigureDispatcher(object):
                 conf_yaml['icgc'] = {'token': icgc_access, 'path': icgc_path}
             else:
                 conf_yaml["icgc"] = {'token': icgc_access}
-        if "gnos" in repos:
-            gnos_path = self.prompt('gnos path', 'gnos_path', "Enter the path to your local genetorrent binaries",
+        gnos_specified = [repo for repo in self.gnos_repos if repo in repos]
+        if gnos_specified:
+            gnos_path = self.prompt('gnos path', 'gnos_path', "Enter the path to your local genetorrent executable",
                                     input_type=click.Path(exists=True, dir_okay=False, resolve_path=True), skip=docker)
-            gnos_access = self.prompt('gnos key', 'gnos_key', "Enter a valid gnos access key")
+            gnos_keys = {}
+            for repo in gnos_specified:
+                repo_code = repo.split('-')[-1]
+                key = self.prompt(repo.upper() + ' key', 'gnos_key_' + repo_code, "Enter your " + repo.upper() + " key")
+                gnos_keys[repo_code] = key
             if gnos_path:
-                conf_yaml['gnos'] = {'key': gnos_access, 'path': gnos_path}
+                conf_yaml['gnos'] = {'key': gnos_keys, 'path': gnos_path}
             else:
-                conf_yaml["gnos"] = {'key': gnos_access}
+                conf_yaml["gnos"] = {'key': gnos_keys}
         if "ega" in repos:
             ega_path = self.prompt('EGA path', 'ega_path', "Enter the path to your local EGA download client jar file",
                                    input_type=click.Path(exists=True, dir_okay=False, resolve_path=True), skip=docker)
@@ -91,10 +98,12 @@ class ConfigureDispatcher(object):
                 conf_yaml['ega'] = {'username': ega_username, 'password': ega_password, 'path': ega_path}
             else:
                 conf_yaml["ega"] = {'username': ega_username, 'password': ega_password}
+
         if "gdc" in repos:
             message = "Enter the path to your local GDC download client installation"
             gdc_path = self.prompt('GDC path', 'gdc_path', message,
                                    input_type=click.Path(exists=True, dir_okay=False, resolve_path=True), skip=docker)
+
             gdc_access = self.prompt('GDC token', 'gdc_token', "Enter a valid GDC access token")
             if gdc_path:
                 conf_yaml['gdc'] = {'token': gdc_access, 'path': gdc_path}

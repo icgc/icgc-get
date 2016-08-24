@@ -42,10 +42,33 @@ To keep the default values for the parameters, press enter.
 For further information, please view our documentation [here](http://docs.icgc.org/cloud/icgc-get/)
 
 ### Packaging from source
-To package icgc-get from source code first [install pyinstaller](http://www.pyinstaller.org/) and install the necessary python packages with 
-`pip install click PyYaml subprocess32 tabulate psutil`
 
-Then you can package up python using 
-`python ~/pyinstaller.py --clean --onefile -n icgc-get --additional-hooks-dir ~/icgc-get/bin ~/icgc-get/icgcget/cli.py`
+First run `pip install -r ~/requirements.txt` to ensure that all necessary packages have been installed.  Then run
+ 
+``` 
+python ~/pyinstaller.py --clean --onefile -n icgc-get --additional-hooks-dir ~/icgc-get/bin ~/icgc-get/icgcget/cli.py
+```
 
 The executable will be in a folder named `dist` in your current directory, the executable can be found inside.
+
+#### Packaging inside Docker
+
+As an easy way to build a linux version of icgc-get, you can package it inside the docker container described in the Dockerfile.
+First rebuild the container to make sure all of the latest updates to the code are copied inside the table.  This command must
+be run from the root directory of the icgc-get project.
+```
+docker build -t icgc/icgc-get:$VERSION .
+```
+
+Then run the container in interactive mode.  You will need to mount a directory as a data volume to transfer the packaged icgc-get out of the Docker container.
+
+```
+docker run -it -v ~/mnt:/icgc/mnt icgc/icgc-get:$VERSION
+```
+
+Once inside, navigate to `/icgc/mnt`, and run the following version of the pyinstaller call:
+
+```
+python /icgc/pyinstaller/pyinstaller-pyinstaller-1804636/pyinstaller.py --clean --onefile -n icgc-get --additional-hooks-dir /icgc/icgcget/bin /icgc/icgcget/icgcget/cli.py
+```
+Then, exit Docker.  Your executable will be present in the mounted directory.

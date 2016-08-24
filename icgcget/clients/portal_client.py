@@ -53,6 +53,10 @@ def call_api(request, headers=None, head=False, verify=True):
 
 
 class IcgcPortalClient(object):
+    """
+    Object containing functions for common icgc api calls
+    """
+
     def __init__(self, verify):
         self.logger = logging.getLogger('__log__')
         self.verify = verify

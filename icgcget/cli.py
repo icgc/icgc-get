@@ -126,7 +126,7 @@ def subprocess_cleanup(json_path):
 def get_container_tag(context_map):
     """
     Gets the version tag for the docker container. Default tag can be overridden by config.yaml file or environmental
-    varaible, but not command line option
+    variable, but not command line option
     :param context_map:
     :return:
     """
@@ -146,7 +146,15 @@ def get_container_tag(context_map):
 @click.option('--verbose', '-v', is_flag=True, default=False, help="Do not verify ssl certificates")
 @click.pass_context
 def cli(ctx, config, docker, logfile, verbose):
-
+    """
+    Handles icgc-get configuration and setup before running a sub command, passes centralized variable to sub commands.
+    :param ctx:
+    :param config:
+    :param docker:
+    :param logfile:
+    :param verbose:
+    :return:
+    """
     if ctx.invoked_subcommand != 'configure':
         config_file = config_parse(config, DEFAULT_CONFIG_FILE, docker, DOCKER_PATHS)
         ctx.obj = {'docker': '', 'logfile': None}

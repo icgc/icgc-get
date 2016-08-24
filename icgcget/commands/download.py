@@ -38,6 +38,9 @@ from icgcget.commands.utils import api_error_catch, filter_manifest_ids, check_a
 
 
 class DownloadDispatcher(object):
+    """
+    Dispatcher that handles downloading files from client and metadata from the api.
+    """
     def __init__(self, json_path=None, docker=False, log_dir=None, container_version=''):
         self.logger = logging.getLogger("__log__")
         self.gdc_client = GdcDownloadClient(json_path, docker, log_dir=log_dir, container_version=container_version)
