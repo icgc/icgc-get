@@ -28,10 +28,13 @@ from icgcget.params import GNOS
 
 
 class GnosDownloadClient(DownloadClient):
+    """
+    Download client subclass that controls interaction with the genetorrent client
+    """
 
     def __init__(self, json_path=None, docker=False, log_dir=None, container_version=''):
         super(GnosDownloadClient, self).__init__(json_path, log_dir, docker, container_version=container_version)
-        self.repo = 'cghub'
+        self.repo = 'gnos'
         self.log_name = '/gnos_log.log'
         self.data_paths = GNOS
 

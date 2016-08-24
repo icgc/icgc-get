@@ -45,7 +45,7 @@ GNOS = {'pcawg-chicago-icgc': {'code': 'pcawg-chicago-icgc', 'name': 'pcawg-chic
 
 class LogfileParam(click.ParamType):
     """
-    Custom click parameter to verify valid inputs for logfiles.
+    Custom click parameter to verify valid inputs for log files.
     """
     name = 'logfile'
 

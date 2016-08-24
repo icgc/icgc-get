@@ -28,6 +28,9 @@ from icgcget.clients.errors import ApiError
 
 
 class StorageClient(DownloadClient):
+    """
+    Download client subclass for controlling downloads from the icgc storage client
+    """
 
     def __init__(self, json_path=None, docker=False, verify=True, log_dir=None, container_version=''):
         super(StorageClient, self).__init__(json_path, log_dir, docker, container_version=container_version)

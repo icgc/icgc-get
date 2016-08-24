@@ -126,7 +126,7 @@ def subprocess_cleanup(json_path):
 def get_container_tag(context_map):
     """
     Gets the version tag for the docker container. Default tag can be overridden by config.yaml file or environmental
-    varaible, but not command line option
+    variable, but not command line option
     :param context_map:
     :return:
     """

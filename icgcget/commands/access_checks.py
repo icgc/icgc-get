@@ -30,6 +30,10 @@ from icgcget.commands.utils import check_access
 
 
 class AccessCheckDispatcher(object):
+    """
+    Dispatcher that controls verification of access commands
+    """
+
     def __init__(self):
         self.logger = logging.getLogger("__log__")
 

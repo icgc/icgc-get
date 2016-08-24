@@ -27,7 +27,9 @@ from icgcget.clients.portal_client import call_api
 
 
 class GdcDownloadClient(DownloadClient):
-
+    """
+    Download client subclass responsible for handling the GDC download client
+    """
     def __init__(self, json_path=None, docker=False, verify=True, log_dir=None, container_version=''):
         super(GdcDownloadClient, self).__init__(json_path, log_dir, docker, container_version=container_version)
         self.repo = 'gdc'
