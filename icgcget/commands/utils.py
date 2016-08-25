@@ -50,7 +50,6 @@ def check_access(self, access, name, docker=False, path="Default", password="Def
     :param udt:
     :return:
     """
-
     if access is None:
         self.logger.error("No credentials provided for the {} repository".format(name))
         raise click.BadParameter("Please provide credentials for {}".format(name))
@@ -178,7 +177,7 @@ def filter_manifest_ids(self, manifest_json, repos):
                 else:
                     fi_ids.append(file_info["id"])
     if not fi_ids:
-        self.logger.warning("No files found on specified repositories")
+        self.logger.warning("Files specified are not found on specified repositories")
         raise click.Abort
     return fi_ids
 

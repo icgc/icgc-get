@@ -101,6 +101,7 @@ class DownloadClient(object):
             call_args = self.prepend_docker_args(call_args)
         self._run_command(call_args, self.version_parser)
 
+
     @abc.abstractmethod
     def version_parser(self, output):
         """

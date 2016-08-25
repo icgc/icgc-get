@@ -68,7 +68,6 @@ class GdcDownloadClient(DownloadClient):
             call_args.extend(['--dir', staging, '-n', processes, '--token', access_file.name])
             if self.log_dir:
                 call_args.extend(['--log-file', logfile])
-
         if udt:
             call_args.append('--udt')
         code = self._run_command(call_args, self.download_parser)

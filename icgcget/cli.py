@@ -54,7 +54,7 @@ def logger_setup(logfile, verbose):
 
     if logfile:
         try:
-            open(logfile, 'a')
+            open(logfile, 'a+')
             formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
             file_handler = logging.FileHandler(logfile, mode='a')
             file_handler.setLevel(logging.DEBUG)
@@ -216,7 +216,7 @@ def cli(ctx, config, docker, logfile, verbose):
 @click.option('--gdc-transport-parallel', type=click.STRING, default='8')
 @click.option('--gdc-udt', default=False, envvar='ICGCGET_GDC_UDT')
 @click.option('--icgc-token', type=click.STRING, envvar='ICGCGET_ICGC_TOKEN')
-@click.option('--icgc-path', envvar='ICGCGET_gnos_ACCESS')
+@click.option('--icgc-path', envvar='ICGCGET_ICGC_PATH')
 @click.option('--icgc-transport-file-from', type=click.STRING, default='remote',
               envvar='ICGCGET_ICGC_TRANSPORT_FILE_FROM')
 @click.option('--icgc-transport-parallel', type=click.STRING, default='8', envvar='ICGCGET_PDC_TRANSPORT_PARALLEL')
@@ -315,7 +315,6 @@ def report(ctx, repos, ids, manifest, output, table_format, data_type, no_ssl_ve
         validate_ids(ids, manifest)
         download_dispatch = DownloadDispatcher(json_path, container_version=tag)
         download_session = download_dispatch.download_manifest(repos, ids, manifest, output, API_URL, no_ssl_verify)
-
     dispatch = StatusScreenDispatcher()
     if not download_session:
         raise click.BadArgumentUsage("No id's provided and no session info found, aborting")

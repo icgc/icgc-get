@@ -27,7 +27,7 @@ RUN \
 # Required to download Genetorrent
 
 #
-# Install Oracle JDK 8 for icgc-storage client, ega
+# Install Oracle JDK 8 for icgc storage client, ega
 #
 
 RUN add-apt-repository ppa:webupd8team/java
@@ -97,7 +97,7 @@ COPY . /icgc/icgcget/
 WORKDIR /icgc
 
 #
-# Install ICGC-get and make root directory, install aws-cli, cleanup pip
+# Install icgc-get and make root directory, install aws-cli, cleanup pip
 #
 
 RUN cd /icgc/icgcget && \
@@ -121,3 +121,4 @@ ENV ICGCGET_EGA_PATH=/icgc/ega-download-demo/EgaDemoClient.jar
 ENV ICGCGET_GNOS_PATH=/usr/bin/gtdownload
 ENV ICGCGET_PDC_PATH=/usr/local/bin/aws
 ENV ICGCGET_CONFIG=/icgc/mnt/config.yaml
+
