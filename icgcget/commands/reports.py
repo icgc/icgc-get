@@ -17,7 +17,6 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 import logging
 from collections import OrderedDict
 from tabulate import tabulate
@@ -41,7 +40,6 @@ class StatusScreenDispatcher(object):
         :return:
         """
         repos = file_data.keys()
-
         type_counts = {"total": 0}
         download_count = {'total': 0}
         type_donors = {"total": []}
@@ -108,7 +106,6 @@ class StatusScreenDispatcher(object):
                 file_size = convert_size(size)
                 file_table.append([file_id, file_size[0], file_size[1], data["fileFormat"],
                                    data_type, repository, donor, data["fileName"], state])
-
         self.print_table(headers, file_table, table_format)
 
     def print_table(self, headers, file_table, table_format):
@@ -124,9 +121,7 @@ class StatusScreenDispatcher(object):
                 line = [str(item) for item in line]
                 self.logger.info('  '.join(line))
         elif table_format == 'pretty':
-
             file_table = [headers] + file_table
-
             self.logger.info(tabulate(file_table, headers="firstrow", tablefmt="fancy_grid", numalign="right"))
         elif table_format == 'json':
             json_dict = {}
@@ -135,5 +130,4 @@ class StatusScreenDispatcher(object):
                 for i in range(1, len(headers)):
                     line_dict[headers[i]] = line[i]
                 json_dict[line[0]] = line_dict
-
             print json_dict

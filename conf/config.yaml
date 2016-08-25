@@ -30,6 +30,12 @@ repos:
  - gdc
  - aws-virginia
 
+<<<<<<< HEAD
+=======
+portal:
+  url: https://dcc.icgc.org/
+
+>>>>>>> feature/reports
 # IGCC Storage
 icgc:
   token:
@@ -61,12 +67,20 @@ pdc:
   key:
   secret:
   path: /usr/local/bin/aws
+<<<<<<< HEAD
+=======
+  region: us-west-2
+>>>>>>> feature/reports
   transport:
     parallel: '1'
 
 # CGHub
 cghub:
+<<<<<<< HEAD
   key:
+=======
+  access:
+>>>>>>> feature/reports
   path: /icgc/genetorrent/bin/gtdownload
   transport:
     parallel: '8'

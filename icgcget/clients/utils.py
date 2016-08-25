@@ -19,6 +19,7 @@
 #
 import collections
 import os
+import datetime
 
 
 def build_table(table, repo, sizes, counts, donors, downloads, output):
@@ -178,3 +179,4 @@ def search_recursive(filename, output):
             if directory == filename:
                 return True
     return False
+

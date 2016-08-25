@@ -22,6 +22,7 @@ executable callable from anywhere, you need to either move the executable to a f
 the executable to to the `PATH`.  You can find out what directories are on your path with `echo $PATH` on Mac and Linux or `path` on Windows. You can
 add folders to your path with `export PATH=$PATH:/folder` on Mac and Linux or `set PATH=%PATH%;/folder` on Windows.
 
+
 `icgc-get` is capable of interfacing with the [ICGC storage client,](http://docs.icgc.org/cloud/guide/#installation) Genetorrent, 
 [the GDC data transfer tool,](https://gdc.nci.nih.gov/access-data/gdc-data-transfer-tool) [the EGA download client](https://www.ebi.ac.uk/ega/about/your_EGA_account/download_streaming_client#download)
 and [the Amazon Web Service command line interface.](http://docs.aws.amazon.com/cli/latest/userguide/installing.html)  
@@ -56,6 +57,7 @@ The executable `icgc-get` will be in a folder named `dist` in your current direc
 
 #### Packaging inside Docker
 
+
 As an easy way to build a Linux version of icgc-get, you can package it inside the Docker container described in the icgc-get Dockerfile.
 First rebuild the container to make sure all of the latest updates to the code are copied inside the table.  This command must
 be run from the root directory of the icgc-get project.
@@ -63,6 +65,7 @@ be run from the root directory of the icgc-get project.
 ```
 docker build -t icgc/icgc-get:$VERSION .
 ```
+
 
 Then run the container in interactive mode. You will need to mount a directory as a data volume to transfer the packaged icgc-get out of the Docker container.
 

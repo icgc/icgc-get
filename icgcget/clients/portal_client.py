@@ -56,7 +56,6 @@ class IcgcPortalClient(object):
     """
     Object containing functions for common icgc api calls
     """
-
     def __init__(self, verify):
         self.logger = logging.getLogger('__log__')
         self.verify = verify
@@ -92,7 +91,6 @@ class IcgcPortalClient(object):
         :param repos:
         :return:
         """
-
         fields = '&fields=id,size,content,repoFileId&format=json'
         if repos:
             request = (api_url + 'manifests' + self.filters(file_ids) + '&repos=' + ','.join(repos) + '&unique=true&' +

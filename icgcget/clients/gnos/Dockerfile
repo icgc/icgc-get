@@ -5,7 +5,7 @@
 #/___/\____/\____/\____/   \____/\___/\__/
 # Banner @ http://goo.gl/VCY0tD
 
-FROM       ubuntu:16.04
+FROM       ubuntu:14.04
 MAINTAINER ICGC <dcc-support@icgc.org>
 
 ENV EGA_VERSION 2.2.2
@@ -27,7 +27,7 @@ RUN \
 # Required to download Genetorrent
 
 #
-# Install Oracle JDK 8 for icgc-storage client, ega
+# Install Oracle JDK 8 for icgc-storage client 
 #
 
 RUN add-apt-repository ppa:webupd8team/java
@@ -39,36 +39,8 @@ RUN apt-get install -y \
 ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
 
 #
-# Install python 2.7 and dependancies for Genetorrent and icgc-get.
-#
-
-RUN apt-get install -y python-pip python-dev libffi-dev && \
-    apt-get upgrade -y && \
-    pip install -U pip setuptools
-
-COPY . /icgc/icgcget/
-COPY /conf/ /icgc/conf
-
-RUN cd /icgc/icgcget && \
-    pip install -r requirements.txt && \
-    python setup.py install && \
-    mkdir /root/.icgcget
-
-#
-# Download and install latest EGA download client version
-#
-
-
-RUN mkdir -p /icgc/ega-download-demo && \
-    apt-get install -y unzip curl wget && \
-    cd /icgc/ega-download-demo && \
-    wget -qO- https://www.ebi.ac.uk/ega/sites/ebi.ac.uk.ega/files/documents/EgaDemoClient_$EGA_VERSION.zip -O temp.zip ; \
-    unzip temp.zip -d /icgc/ega-download-demo
-
-#
 # Install GeneTorrent and add to PATH
 #
-
 
 RUN mkdir -p /icgc/genetorrent && \
     cd /icgc/genetorrent && \
@@ -81,7 +53,7 @@ RUN mkdir -p /icgc/genetorrent && \
 ENV PATH=$PATH:/icgc/genetorrent/bin
 
 # 
-# Install latest version of storage client distribution, import modified logback file
+# Install latest version of storage client distribution
 #
 
 RUN mkdir -p /icgc/icgc-storage-client && \
@@ -89,8 +61,6 @@ RUN mkdir -p /icgc/icgc-storage-client && \
     wget -qO- https://artifacts.oicr.on.ca/artifactory/dcc-release/org/icgc/dcc/icgc-storage-client/[RELEASE]/icgc-storage-client-[RELEASE]-dist.tar.gz | \
     tar xvz --strip-components 1 && \
     mkdir -p /icgc/icgc-storage-client/logs
-
-COPY ./logback.xml /icgc/icgc-storage-client/conf
 
 #
 # Install latest version of gdc download tool
@@ -106,11 +76,11 @@ RUN mkdir -p /icgc/gdc-data-transfer-tool && \
 ENV PATH=$PATH:/icgc/gdc-data-transfer-tool
 
 #
-# Set working directory for convenience with interactive usage, copy icgc-get for development purposes
+# Set working directory for convenience with interactive usage
 #
 
 COPY . /icgc/icgcget/
-WORKDIR /icgc
+COPY ./logback.xml /icgc/icgc-storage-client/conf
 
 #
 # Install ICGC-get and make root directory, install aws-cli, cleanup pip
@@ -127,6 +97,8 @@ RUN cd /icgc/icgcget && \
     mkdir /icgc/mnt
 
 
+WORKDIR /icgc
+
 #
 # Set path defaults as environmental variables
 #
@@ -137,4 +109,3 @@ ENV ICGCGET_EGA_PATH=/icgc/ega-download-demo/EgaDemoClient.jar
 ENV ICGCGET_GNOS_PATH=/usr/bin/gtdownload
 ENV ICGCGET_PDC_PATH=/usr/local/bin/aws
 ENV ICGCGET_CONFIG=/icgc/mnt/config.yaml
-
