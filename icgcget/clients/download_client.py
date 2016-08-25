@@ -164,24 +164,6 @@ class DownloadClient(object):
             os.remove(self.cidfile)
         return return_code
 
-    def session_update(self, file_name, repo):
-        """
-        Updates state file to keep track of running and finished downloads
-        :param file_name:
-        :param repo:
-        :return:
-        """
-        if 'file_data' in self.session:
-            for name, file_object in self.session['file_data'][repo].iteritems():
-                if file_object['index_filename'] == file_name or file_object['fileName'] == file_name or \
-                                file_object['fileUrl'] == file_name:
-                    file_object['state'] = 'Running'
-                    self.session['file_data'][repo][name] = file_object
-                elif file_object['state'] == 'Running':  # only one file at a time can be downloaded.
-                    file_object['state'] = 'Finished'
-                    self.session['file_data'][repo][name] = file_object
-            json.dump(self.session, open(self.path, 'w', 0777))
-
     def _run_test_command(self, args, forbidden, not_found, env=None, timeout=2):
         """
         Function used to test download permissions-process is started, and then exited after short timeout.
@@ -270,6 +252,24 @@ class DownloadClient(object):
             access_file.file.write(access)
             access_file.file.seek(0)
         return access_file
+
+    def session_update(self, file_name, repo):
+        """
+        Updates state file to keep track of running and finished downloads
+        :param file_name:
+        :param repo:
+        :return:
+        """
+        if 'file_data' in self.session:
+            for name, file_object in self.session['file_data'][repo].iteritems():
+                if file_object['index_filename'] == file_name or file_object['fileName'] == file_name or \
+                                file_object['fileUrl'] == file_name:
+                    file_object['state'] = 'Running'
+                    self.session['file_data'][repo][name] = file_object
+                elif file_object['state'] == 'Running':  # only one file at a time can be downloaded.
+                    file_object['state'] = 'Finished'
+                    self.session['file_data'][repo][name] = file_object
+            json.dump(self.session, open(self.path, 'w', 0777))
 
     def log_subprocess(self, pid):
         """

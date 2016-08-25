@@ -27,7 +27,7 @@ RUN \
 # Required to download Genetorrent
 
 #
-# Install Oracle JDK 8 for icgc-storage client 
+# Install Oracle JDK 8 for icgc-storage client, ega
 #
 
 RUN add-apt-repository ppa:webupd8team/java
@@ -42,7 +42,7 @@ ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
 # Download and install latest EGA download client version
 #
 
-ENV PATH=$PATH:/icgc/genetorrent/bin
+
 RUN mkdir -p /icgc/ega-download-demo && \
     apt-get install -y unzip curl wget && \
     cd /icgc/ega-download-demo && \
@@ -53,6 +53,7 @@ RUN mkdir -p /icgc/ega-download-demo && \
 # Install GeneTorrent and add to PATH
 #
 
+
 RUN mkdir -p /icgc/genetorrent && \
     cd /icgc/genetorrent && \
     wget -qO- https://annai.egnyte.com/dd/LWTWQGXeAi/ -O genetorrent-download.deb && \
@@ -61,8 +62,10 @@ RUN mkdir -p /icgc/genetorrent && \
     dpkg -i ./genetorrent-common.deb && \
     dpkg -i ./genetorrent-download.deb
 
+ENV PATH=$PATH:/icgc/genetorrent/bin
+
 # 
-# Install latest version of storage client distribution
+# Install latest version of storage client distribution, import modified logback file
 #
 
 RUN mkdir -p /icgc/icgc-storage-client && \
@@ -70,6 +73,8 @@ RUN mkdir -p /icgc/icgc-storage-client && \
     wget -qO- https://artifacts.oicr.on.ca/artifactory/dcc-release/org/icgc/dcc/icgc-storage-client/[RELEASE]/icgc-storage-client-[RELEASE]-dist.tar.gz | \
     tar xvz --strip-components 1 && \
     mkdir -p /icgc/icgc-storage-client/logs
+
+COPY ./logback.xml /icgc/icgc-storage-client/conf
 
 #
 # Install latest version of gdc download tool
@@ -85,11 +90,11 @@ RUN mkdir -p /icgc/gdc-data-transfer-tool && \
 ENV PATH=$PATH:/icgc/gdc-data-transfer-tool
 
 #
-# Set working directory for convenience with interactive usage
+# Set working directory for convenience with interactive usage, copy icgc-get for development purposes
 #
 
 COPY . /icgc/icgcget/
-COPY ./logback.xml /icgc/icgc-storage-client/conf
+WORKDIR /icgc
 
 #
 # Install ICGC-get and make root directory, install aws-cli, cleanup pip
@@ -105,8 +110,6 @@ RUN cd /icgc/icgcget && \
     pip uninstall -y pip setuptools && \
     mkdir /icgc/mnt
 
-
-WORKDIR /icgc
 
 #
 # Set path defaults as environmental variables

@@ -50,7 +50,8 @@ python ~/pyinstaller.py --clean --onefile -n icgc-get --additional-hooks-dir ~/i
 ```
 
 The executable `icgc-get` will be in a folder named `dist` in your current directory.  Compress it into a zip file, with the naming convention of 
-`icgc-get_v$VERSION_$OS_x64.zip`
+`icgc-get_v$VERSION_$OS_x64.zip`, and deploy to [artifactory](https://artifacts.oicr.on.ca/artifactory/webapp/#/artifacts/browse/tree/General/dcc-binaries)
+ under dcc-binaries
 
 
 #### Packaging inside Docker
