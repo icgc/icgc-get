@@ -88,7 +88,6 @@ def compare_ids(current_session, old_session, override):
                 if old_session[repo][fi_id]['state'] != "Finished":
                     updated_session[repo][fi_id] = current_session[repo][fi_id]
             else:
-
                 if override_prompt(override):
                     return current_session
     return updated_session
@@ -178,7 +177,7 @@ def filter_manifest_ids(self, manifest_json, repos):
                 else:
                     fi_ids.append(file_info["id"])
     if not fi_ids:
-        self.logger.warning("Files on manifest are not found on specified repositories")
+        self.logger.warning("Files specified are not found on specified repositories")
         raise click.Abort
     return fi_ids
 

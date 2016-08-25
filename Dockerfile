@@ -5,7 +5,7 @@
 #/___/\____/\____/\____/   \____/\___/\__/
 # Banner @ http://goo.gl/VCY0tD
 
-FROM       ubuntu:16.04
+FROM       ubuntu:14.04
 MAINTAINER ICGC <dcc-support@icgc.org>
 
 ENV EGA_VERSION 2.2.2
@@ -27,7 +27,7 @@ RUN \
 # Required to download Genetorrent
 
 #
-# Install Oracle JDK 8 for icgc-storage client, ega
+# Install Oracle JDK 8 for icgc storage client, ega
 #
 
 RUN add-apt-repository ppa:webupd8team/java
@@ -37,22 +37,6 @@ RUN apt-get install -y \
     oracle-java8-installer \
     oracle-java8-set-default
 ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
-
-#
-# Install python 2.7 and dependancies for Genetorrent and icgc-get.
-#
-
-RUN apt-get install -y python-pip python-dev libffi-dev && \
-    apt-get upgrade -y && \
-    pip install -U pip setuptools
-
-COPY . /icgc/icgcget/
-COPY /conf/ /icgc/conf
-
-RUN cd /icgc/icgcget && \
-    pip install -r requirements.txt && \
-    python setup.py install && \
-    mkdir /root/.icgcget
 
 #
 # Download and install latest EGA download client version
@@ -113,7 +97,7 @@ COPY . /icgc/icgcget/
 WORKDIR /icgc
 
 #
-# Install ICGC-get and make root directory, install aws-cli, cleanup pip
+# Install icgc-get and make root directory, install aws-cli, cleanup pip
 #
 
 RUN cd /icgc/icgcget && \

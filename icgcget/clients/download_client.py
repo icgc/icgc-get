@@ -199,7 +199,6 @@ class DownloadClient(object):
 
     @staticmethod
     def parse_test_ex(ex, forbidden, not_found):
-
         """
         Method used to parse the output of test commands
         :param ex:
@@ -207,7 +206,6 @@ class DownloadClient(object):
         :param not_found: regex pattern corresponding to file not found resonse
         :return:
         """
-
         invalid_login = re.findall(forbidden, ex.output)
         not_found = re.findall(not_found, ex.output)
         if invalid_login:
@@ -216,7 +214,6 @@ class DownloadClient(object):
             return 404
         else:
             return 0
-
 
     def prepend_docker_args(self, args, mnt=None, envvars=None):
         """
@@ -295,4 +292,3 @@ class DownloadClient(object):
             if cidfile:
                 self.session['container'] = cidfile.readline()
         json.dump(self.session, open(self.path, 'w+', 0777))
-

@@ -21,7 +21,6 @@
 import re
 import os
 import shutil
-import tempfile
 from icgcget.clients.errors import ApiError
 from icgcget.clients.download_client import DownloadClient
 from icgcget.clients.portal_client import call_api

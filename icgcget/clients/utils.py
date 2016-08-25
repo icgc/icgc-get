@@ -19,7 +19,6 @@
 #
 import collections
 import os
-import datetime
 
 
 def build_table(table, repo, sizes, counts, donors, downloads, output):

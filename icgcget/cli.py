@@ -140,7 +140,6 @@ def get_container_tag(context_map):
     elif context_map and "container_tag" in context_map.default_map:
         tag = context_map.default_map["container_tag"]
     else:
-
         tag = __container_version__
     return tag
 
