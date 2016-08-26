@@ -40,7 +40,7 @@ def call_api(request, headers=None, head=False, verify=True):
         else:
             resp = requests.get(request, headers=headers, verify=verify)
     except requests.exceptions.SSLError as ex:
-        logger.error(ex.message.message)
+        logger.error(ex.message.message)  # this isn't an error, the request exception class has an object for message
         raise ApiError(request, ex.message.message)
     except (requests.exceptions.ConnectionError, requests.exceptions.Timeout,
             requests.exceptions.RequestException) as ex:
@@ -54,7 +54,7 @@ def call_api(request, headers=None, head=False, verify=True):
 
 class IcgcPortalClient(object):
     """
-    Object containing functions for common icgc api calls
+    Object containing functions for common ICGC api calls
     """
     def __init__(self, verify):
         self.logger = logging.getLogger('__log__')

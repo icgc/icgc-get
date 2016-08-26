@@ -21,6 +21,8 @@ RUN \
   apt-get -y upgrade && \
   apt-get install -y libfuse-dev fuse software-properties-common && \
   apt-get install -y python-pip python-dev libffi-dev && \
+  apt-get install -y unzip curl wget && \
+# Required to install clients
   apt-get install -y libicu52 && \
 # Required for Genetorrent and Icgc
   apt-get install -y  openssl libssl-dev
@@ -44,7 +46,7 @@ ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
 
 
 RUN mkdir -p /icgc/ega-download-demo && \
-    apt-get install -y unzip curl wget && \
+
     cd /icgc/ega-download-demo && \
     wget -qO- https://www.ebi.ac.uk/ega/sites/ebi.ac.uk.ega/files/documents/EgaDemoClient_$EGA_VERSION.zip -O temp.zip ; \
     unzip temp.zip -d /icgc/ega-download-demo

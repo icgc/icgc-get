@@ -71,7 +71,8 @@ def check_access(self, access, name, docker=False, path="Default", password="Def
 
 def compare_ids(current_session, old_session, override):
     """
-    Compares manifest of state.json to manifest retrieved from api and strips out any files that already finished
+    Compares manifest of state.json to manifest retrieved from api and strips out any files that already finished.
+    If current session does not match old session, the process is stopped
     :param current_session:
     :param old_session:
     :param override:
@@ -82,7 +83,7 @@ def compare_ids(current_session, old_session, override):
         updated_session[repo] = {}
         if repo not in old_session:
             if override_prompt(override):
-                return current_session
+                return current_session  # if entire repo is new, wipe old session data
         for fi_id in current_session[repo]:
             if fi_id in old_session[repo]:
                 if old_session[repo][fi_id]['state'] != "Finished":
@@ -251,7 +252,7 @@ def load_json(json_path, abort=True):
 
 def match_repositories(self, repos, copies):
     """
-    Function that finds the fileCopy object that corresponds to the highest priority repository
+    Function that finds the fileCopy object that corresponds to the highest priority repository for one file
     :param self:
     :param repos:
     :param copies:
@@ -281,7 +282,7 @@ def override_prompt(override):
 
 def validate_ids(ids, manifest):
     """
-    Function to ensure formatting of supplied FI ids and UUids is correct.
+    Function to ensure formatting of supplied FI ids and uuids is correct.
     :param ids:
     :param manifest:
     :return:

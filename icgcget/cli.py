@@ -80,7 +80,7 @@ def logger_setup(logfile, verbose):
 
 def docker_cleanup(cid_dir):
     """
-    Function run at program exit. Removes CID file and exited docker containers
+    Function run at program exit. Removes Container ID file and exited docker containers
     :param cid_dir:
     :return:
     """
@@ -104,7 +104,7 @@ def docker_cleanup(cid_dir):
             devnull = open('/dev/null', 'w')
             subprocess.call(args, stdout=devnull, env=env)
     except OSError as ex:
-        if ex.errno == 2:
+        if ex.errno == 2:  # error possible if tool is run in docker mode without docker installed
             print 'Docker was not installed, unable to run command'
         else:
             raise ex
@@ -123,7 +123,14 @@ def subprocess_cleanup(json_path):
             env['PATH'] = '/usr/local/bin:' + env['PATH']
             args = ['docker', 'rm', '-f', session['container']]
             devnull = open('/dev/null', 'w')
-            subprocess.call(args, stdout=devnull, stderr=devnull, env=env)  # try to stop the last running container
+            try:
+                subprocess.call(args, stdout=devnull, stderr=devnull, env=env)
+            except OSError as ex:
+                if ex.errno == 2:  # error possible if tool is run in docker mode without docker installed
+                    print 'Docker was not installed, unable to run command'
+                else:
+                    raise ex
+            # try to stop the last running container
             session['container'] = 0
     return session
 
@@ -160,7 +167,7 @@ def cli(ctx, config, docker, logfile, verbose):
     :param verbose:
     :return:
     """
-    if ctx.invoked_subcommand != 'configure':
+    if ctx.invoked_subcommand != 'configure':  # can't load a config file if we haven't made one yet
         config_file = config_parse(config, DEFAULT_CONFIG_FILE, docker, DOCKER_PATHS)
         ctx.obj = {'docker': '', 'logfile': None}
 
@@ -190,6 +197,7 @@ def cli(ctx, config, docker, logfile, verbose):
         logger.debug(__version__ + ' ' + ctx.invoked_subcommand)
 
 
+# Auto environmental variables prevent us from re-using variables between multiple commands/
 @cli.command()
 @click.argument('IDS', nargs=-1, required=True)
 @click.option('--repos', '-r', multiple=True, type=RepoParam())
@@ -308,7 +316,7 @@ def report(ctx, repos, ids, manifest, output, table_format, data_type, no_ssl_ve
     if ctx.obj['logdir']:
         json_path = ctx.obj['logdir'] + '/.staging/state.json'  # Json is only used to speed up command if available
         old_download_session = load_json(json_path, abort=False)  # report will never write to json
-        if old_download_session and (not ids or ids == old_download_session['command']):
+        if old_download_session and (not ids or ids == old_download_session['command']):  # can run report from state
             download_session = old_download_session
 
     if ids and not download_session:
@@ -379,7 +387,7 @@ def check(ctx, repos, ids, manifest, output, gnos_key_icgc, gnos_key_tcga, gnos_
 @click.option('--config', '-c', type=click.Path(), default=DEFAULT_CONFIG_FILE, envvar='ICGCGET_CONFIG')
 def configure(config):
     """
-    Dispatcher for the check command.  Makes config.yaml dir if necessary, and dispatches config.yaml prompt function
+    Dispatcher for the check command.  Makes .icgcget directory if necessary, and dispatches config.yaml prompt function
     command.
     """
     default_dir = os.path.split(DEFAULT_CONFIG_FILE)[0]

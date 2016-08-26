@@ -55,6 +55,7 @@ class GdcDownloadClient(DownloadClient):
         call_args.extend(uuids)
         access_file = self.get_access_file(access, staging)
         log_name = '/gdc_log.log'
+        logfile = ''
         if self.log_dir:
             logfile = self.log_dir + log_name
 

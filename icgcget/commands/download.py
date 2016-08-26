@@ -66,9 +66,9 @@ class DownloadDispatcher(object):
         manifest_json = self.get_manifest(manifest, file_ids, api_url, repos, portal)
         download_session = {'pid': os.getpid(), 'start_time': datetime.datetime.utcnow().isoformat(),
                             'subprocess': [], 'command': file_ids, 'container': 0}
-        size, download_session = calculate_size(manifest_json, download_session)
+        size, download_session = calculate_size(manifest_json, download_session)  # This initializes the file data dict
         file_data = download_session['file_data']
-        if manifest:
+        if manifest:  # if provided with manifest id, populate the file ids object with actual file ids
             file_ids = []
             for repo in file_data:
                 file_ids.extend(file_data[repo].keys())

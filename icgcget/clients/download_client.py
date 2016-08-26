@@ -101,7 +101,6 @@ class DownloadClient(object):
             call_args = self.prepend_docker_args(call_args)
         self._run_command(call_args, self.version_parser)
 
-
     @abc.abstractmethod
     def version_parser(self, output):
         """
@@ -135,7 +134,7 @@ class DownloadClient(object):
             return 1
         if not env:
             env = dict(os.environ)
-        env['PATH'] = '/usr/local/bin:' + env['PATH']  # virtalenv compatibility
+        env['PATH'] = '/usr/local/bin:' + env['PATH']  # virtalenv compatibility.  Not strictly necessary
 
         try:
             output = ''
@@ -152,7 +151,7 @@ class DownloadClient(object):
             char = process.stdout.read(1)
             if process.poll() is not None:
                 break
-            if (char == '\n' or char == '\r') and output:
+            if (char == '\n' or char == '\r') and output:  # Compatibility with storage client, other updating text
                 parser(output)
                 output = ''
             else:
@@ -237,7 +236,7 @@ class DownloadClient(object):
 
     def get_access_file(self, access, staging):
         """
-        Function used to process access parameters. takes both string and file formats, returns a file object.
+        Function used to process access parameters. takes both string and file formats, returns a temp file object.
         :param access:
         :param staging:
         :return:

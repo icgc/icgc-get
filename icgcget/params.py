@@ -61,7 +61,7 @@ class LogfileParam(click.ParamType):
         elif os.path.isfile(value):
             try:
                 logfile = open(value, 'a')
-                logfile.close()
+                logfile.close()  # need to be able to access the logfile
                 return value
             except IOError as ex:
                 if ex.errno != 2:
@@ -70,7 +70,7 @@ class LogfileParam(click.ParamType):
             try:
                 directory, logfile = os.path.split(value)
                 if os.access(directory, os.W_OK) and directory != tempfile.gettempdir():
-                    return value
+                    return value  # need to check if directory can be written to without actually making a file
                 else:
                     self.fail("Logfile cannot be made in selected directory '%s'" % directory, param, ctx)
             except ValueError:

@@ -53,6 +53,7 @@ class StorageClient(DownloadClient):
         :return:
         """
         env_dict = dict(os.environ)
+        log_file = ''
         if self.log_dir:
             log_file = self.log_dir + '/icgc_log.log'
         log_staging = staging + '/icgc_log.log'
@@ -97,7 +98,6 @@ class StorageClient(DownloadClient):
         :param secret_key:
         :return:
         """
-
         request = api_url + 'settings/tokens/' + access
         try:
             resp = call_api(request, verify=self.verify)
@@ -136,7 +136,6 @@ class StorageClient(DownloadClient):
         :param response:
         :return:
         """
-
         response = re.sub(r"\x1b[^m]*m", '', response)
         filename = re.findall(r"\(\w{8}-\w{4}-\w{4}-\w{4}-\w{12}.+", response)
         if filename:
