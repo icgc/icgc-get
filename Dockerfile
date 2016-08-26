@@ -16,16 +16,15 @@ ENV GDC_VERSION gdc-client_v1.0.1_Ubuntu14.04_x64
 # Update apt, add FUSE support, requiered libraries and basic command line tools
 #
 
-RUN \
-  apt-get update && \
-  apt-get -y upgrade && \
-  apt-get install -y libfuse-dev fuse software-properties-common && \
-  apt-get install -y python-pip python-dev libffi-dev && \
-  apt-get install -y unzip curl wget && \
+RUN apt-get update && \
+    apt-get -y upgrade && \
+    apt-get install -y libfuse-dev fuse software-properties-common && \
+    apt-get install -y python-pip python-dev libffi-dev && \
+    apt-get install -y unzip curl wget && \
 # Required to install clients
-  apt-get install -y libicu52 && \
+    apt-get install -y libicu52 && \
 # Required for Genetorrent and Icgc
-  apt-get install -y  openssl libssl-dev
+    apt-get install -y  openssl libssl-dev
 # Required to download Genetorrent
 
 #

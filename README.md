@@ -26,6 +26,7 @@ add folders to your path with `export PATH=$PATH:/folder` on Mac and Linux or `s
 `icgc-get` is capable of interfacing with the [ICGC storage client,](http://docs.icgc.org/cloud/guide/#installation) Genetorrent, 
 [the GDC data transfer tool,](https://gdc.nci.nih.gov/access-data/gdc-data-transfer-tool) [the EGA download client](https://www.ebi.ac.uk/ega/about/your_EGA_account/download_streaming_client#download)
 and [the Amazon Web Service command line interface.](http://docs.aws.amazon.com/cli/latest/userguide/installing.html)  
+
 If you do not have any of download clients installed locally, `icgc-get` is capable of running them through
 the icgc-get Docker container. Running any of the clients through the Docker container will prevent issues from arising related to conflicting 
 software requirements for the data download clients. To enable this functionality, first [install 
