@@ -213,6 +213,12 @@ class DownloadDispatcher(object):
                     uuids.append(file_data[repo][object_id]['fileUrl'])
             else:
                 uuids = self.get_uuids(file_data[repo])
+
+            fids = self.get_fids(file_data[repo])
+            start_string = "************************************************************************************\n" + \
+                           "Starting download(s) for files: %s from: %s " + \
+                           "\n************************************************************************************"
+            self.logger.info(start_string, fids, repo)
             return_code = client.download(uuids, token, path, staging, transport_parallel, repo=code, udt=udt,
                                           file_from=transport_file_from, password=password, secret_key=secret_key)
             self.cleanup(repo, return_code, staging, output)
@@ -242,6 +248,13 @@ class DownloadDispatcher(object):
         for object_id in file_data:
             uuids.append(file_data[object_id]['uuid'])
         return uuids
+
+    @staticmethod
+    def get_fids(file_data):
+        fids = ""
+        for fid in file_data:
+            fids += fid + " "
+        return fids
 
     def get_manifest(self, manifest, file_ids, api_url, repos, portal):
         """
