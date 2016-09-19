@@ -41,6 +41,8 @@ GNOS = {'pcawg-chicago-icgc': {'code': 'pcawg-chicago-icgc', 'name': 'pcawg-chic
         'pcawg-chicago-tcga': {'code': 'pcawg-chicago-tcga', 'name': 'pcawg-chicago-tcga',
                                'path': "https://gtrepo-osdc-tcga.annailabs.com/"}}
 
+ALL_REPO_NAMES = REPOS.keys() + GNOS.keys()
+ALL_REPO_NAMES_STRING = " ".join(ALL_REPO_NAMES)
 
 class LogfileParam(click.ParamType):
     """
