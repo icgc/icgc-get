@@ -19,7 +19,6 @@
 #
 import os
 import click
-import yaml
 
 from icgcget.commands.utils import config_parse
 from icgcget.params import ReposParam, LogfileParam, GNOS, ALL_REPO_NAMES_STRING
