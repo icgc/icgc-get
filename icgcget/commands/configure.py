@@ -24,6 +24,7 @@ import yaml
 from icgcget.commands.utils import config_parse
 from icgcget.params import ReposParam, LogfileParam, GNOS, ALL_REPO_NAMES_STRING
 
+from jinja2 import Environment, PackageLoader
 
 class ConfigureDispatcher(object):
     """
@@ -58,6 +59,9 @@ class ConfigureDispatcher(object):
             if old_config:
                 self.old_config = old_config['report']
 
+        self.env = Environment(loader=PackageLoader('icgcget', 'templates'))
+        self.env.trim_blocks = True
+
     def configure(self, config_destination):
         """
         Series of prompts that gathers info needed for the config.yaml file.
@@ -87,10 +91,14 @@ class ConfigureDispatcher(object):
         if "pdc" in repos:
             self._pdc_prompt(conf_yaml=conf_yaml)
 
+        template = self.env.get_template('config.template.yaml')
+        jinja_test.write(template.render(conf=conf_yaml))
+
         config_file = open(config_destination, 'w')
-        yaml.safe_dump(conf_yaml, config_file, encoding=None, default_flow_style=False)
+        config_file.write(template.render(conf=conf_yaml))
         os.environ['ICGCGET_CONFIG'] = config_destination
         print "Configuration file saved to {}".format(config_file.name)
+        config_file.close()
 
     def get_user_config(self):
         """

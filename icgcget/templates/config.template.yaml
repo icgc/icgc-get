@@ -1,0 +1,119 @@
+# Copyright (c) 2016 The Ontario Institute for Cancer Research. All rights reserved.
+#
+# This program and the accompanying materials are made available under the terms of the GNU Public License v3.0.
+# You should have received a copy of the GNU General Public License along with
+# this program. If not, see <http://www.gnu.org/licenses/>.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
+# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+# SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+# TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+# IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# Configuration for icgc-get
+
+# Location of the log file that icgc-get will log to.
+logfile: {{ conf['logfile'] }}
+
+# Location for the destination directory for downloaded files.
+output: {{ conf['output'] }}
+
+# Use docker container for the storage clients, rather than providing your own client.
+docker: {{ conf['docker'] }}
+
+# Repositories to use and their precedence.
+repos:
+{% for repo in conf['repos'] %}
+- {{ repo }}
+{% endfor %}
+
+# ICGC
+{% if 'icgc' in conf %}
+icgc:
+  token: {{ conf['icgc']['token'] }}
+  {% if 'path' in conf['icgc'] %}
+  path: {{ conf['icgc']['path'] }}
+  {% else %}
+#path: path/to/icgc/storage/client
+  {% endif %}
+{% else %}
+#icgc:
+# token: <icgc_token>
+# path: path/to/icgc/storage/client
+{% endif %}
+
+
+# GNOS
+{% if 'gnos' in conf %}
+gnos:
+  key:
+  {% for key in conf['gnos']['key'] %}
+    {{ key }}: {{ conf['gnos']['key'][key] }}
+  {% endfor %}
+{% if 'path' in conf['gnos'] %}
+path: {{ conf['gnos']['path'] }}
+{% else %}
+  #path: path/to/genetorrent/client
+ {% endif %}
+{% else %}
+#gnos:
+# key:
+#   <repo_code> : <key>
+# path: path/to/genetorrent/client
+{% endif %}
+
+
+# EGA
+{% if 'ega' in conf %}
+ega:
+  username: {{ conf['ega']['username'] }}
+  password: {{ conf['ega']['password'] }}
+  {% if 'path' in conf['ega'] %}
+  path: {{ conf['ega']['path'] }}
+  {% else %}
+#path: path/to/ega/client
+  {% endif %}
+{% else %}
+#ega:
+# username: <username>
+# password: <password>
+# path: path/to/ega/client
+{% endif %}
+
+
+# GDC
+{% if 'gdc' in conf %}
+gdc:
+  token: {{ conf['gdc']['token'] }}
+  {% if 'path' in conf['gdc'] %}
+  path: {{ conf['gdc']['path'] }}
+  {% else %}
+#path: path/to/gdc/client
+  {% endif %}
+{% else %}
+#gdc:
+# token: <gdc_token>
+# path: path/to/gdc/client
+{% endif %}
+
+
+# PDC
+{% if 'pdc' in conf %}
+pdc:
+  key: {{ conf['pdc']['key'] }}
+  secret: {{ conf['pdc']['secret'] }}
+  {% if 'path' in conf['gdc'] %}
+  path: {{ conf['pdc']['path'] }}
+  {% else %}
+#path: path/to/pdc/client
+  {% endif %}
+{% else %}
+#pdc:
+# key: <pdc_key>
+# secret: <pdc_secret>
+# path: path/to/pdc/client
+{% endif %}
