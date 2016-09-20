@@ -36,7 +36,7 @@ repos:
 icgc:
   token: {{ conf['icgc']['token'] }}
   {% if 'path' in conf['icgc'] %}
-  path: {{ conf['icgc']['path'] }}
+path: {{ conf['icgc']['path'] }}
   {% else %}
 #path: path/to/icgc/storage/client
   {% endif %}
@@ -73,7 +73,7 @@ ega:
   username: {{ conf['ega']['username'] }}
   password: {{ conf['ega']['password'] }}
   {% if 'path' in conf['ega'] %}
-  path: {{ conf['ega']['path'] }}
+path: {{ conf['ega']['path'] }}
   {% else %}
 #path: path/to/ega/client
   {% endif %}
@@ -90,7 +90,7 @@ ega:
 gdc:
   token: {{ conf['gdc']['token'] }}
   {% if 'path' in conf['gdc'] %}
-  path: {{ conf['gdc']['path'] }}
+path: {{ conf['gdc']['path'] }}
   {% else %}
 #path: path/to/gdc/client
   {% endif %}
@@ -107,7 +107,7 @@ pdc:
   key: {{ conf['pdc']['key'] }}
   secret: {{ conf['pdc']['secret'] }}
   {% if 'path' in conf['gdc'] %}
-  path: {{ conf['pdc']['path'] }}
+path: {{ conf['pdc']['path'] }}
   {% else %}
 #path: path/to/pdc/client
   {% endif %}

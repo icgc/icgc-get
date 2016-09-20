@@ -91,7 +91,6 @@ class ConfigureDispatcher(object):
             self._pdc_prompt(conf_yaml=conf_yaml)
 
         template = self.env.get_template('config.template.yaml')
-        jinja_test.write(template.render(conf=conf_yaml))
 
         config_file = open(config_destination, 'w')
         config_file.write(template.render(conf=conf_yaml))
@@ -146,6 +145,12 @@ class ConfigureDispatcher(object):
         if value_name == 'repos' and value == default:  # Default params do not get filtered through input_type.convert
             value = default.split(' ')
         return value
+
+    def handle_error(self, config_destination):
+        if click.confirm(click.style('\n\nA fatal error occurred reading/writing the configuration file.\n' +
+                         'Delete corrupted configuration?', fg='red', bold=True)):
+            os.remove(config_destination)
+            click.echo('Removed bad configuration file: ' + config_destination)
 
     def _icgc_prompt(self, conf_yaml):
         """
