@@ -19,11 +19,11 @@
 #
 import os
 import click
-import yaml
 
 from icgcget.commands.utils import config_parse
 from icgcget.params import ReposParam, LogfileParam, GNOS, ALL_REPO_NAMES_STRING
 
+from jinja2 import Environment, PackageLoader
 
 class ConfigureDispatcher(object):
     """
@@ -58,6 +58,9 @@ class ConfigureDispatcher(object):
             if old_config:
                 self.old_config = old_config['report']
 
+        self.env = Environment(loader=PackageLoader('icgcget', 'templates'))
+        self.env.trim_blocks = True
+
     def configure(self, config_destination):
         """
         Series of prompts that gathers info needed for the config.yaml file.
@@ -87,10 +90,13 @@ class ConfigureDispatcher(object):
         if "pdc" in repos:
             self._pdc_prompt(conf_yaml=conf_yaml)
 
+        template = self.env.get_template('config.template.yaml')
+
         config_file = open(config_destination, 'w')
-        yaml.safe_dump(conf_yaml, config_file, encoding=None, default_flow_style=False)
+        config_file.write(template.render(conf=conf_yaml))
         os.environ['ICGCGET_CONFIG'] = config_destination
         print "Configuration file saved to {}".format(config_file.name)
+        config_file.close()
 
     def get_user_config(self):
         """
@@ -139,6 +145,15 @@ class ConfigureDispatcher(object):
         if value_name == 'repos' and value == default:  # Default params do not get filtered through input_type.convert
             value = default.split(' ')
         return value
+
+    def handle_error(self, config_destination):
+        if click.confirm(click.style('\n\nA fatal error occurred reading/writing the configuration file.\n' +
+                         'Delete corrupted configuration?', fg='red', bold=True)):
+            try:
+                os.remove(config_destination)
+                click.echo('Removed bad configuration file: ' + config_destination)
+            except Exception:
+                click.echo(click.style('Could not remove file, possibly already deleted.', fg='red', bold=True))
 
     def _icgc_prompt(self, conf_yaml):
         """

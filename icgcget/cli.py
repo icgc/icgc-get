@@ -395,7 +395,11 @@ def configure(config):
         os.umask(0000)
         os.mkdir(default_dir, 0777)
     dispatch = ConfigureDispatcher(config, DEFAULT_CONFIG_FILE)
-    dispatch.configure(config)
+    try:
+        dispatch.configure(config)
+    except Exception:
+        dispatch.handle_error(config)
+
 
 
 @cli.command()
