@@ -23,7 +23,9 @@ import click
 from icgcget.commands.utils import config_parse
 from icgcget.params import ReposParam, LogfileParam, GNOS, ALL_REPO_NAMES_STRING
 
-from jinja2 import Environment, PackageLoader
+import pkgutil
+from jinja2 import Environment, FunctionLoader
+
 
 class ConfigureDispatcher(object):
     """
@@ -58,7 +60,7 @@ class ConfigureDispatcher(object):
             if old_config:
                 self.old_config = old_config['report']
 
-        self.env = Environment(loader=PackageLoader('icgcget', 'templates'))
+        self.env = Environment(loader=FunctionLoader(_load_template))
         self.env.trim_blocks = True
 
     def configure(self, config_destination):
@@ -91,7 +93,6 @@ class ConfigureDispatcher(object):
             self._pdc_prompt(conf_yaml=conf_yaml)
 
         template = self.env.get_template('config.template.yaml')
-
         config_file = open(config_destination, 'w')
         config_file.write(template.render(conf=conf_yaml))
         os.environ['ICGCGET_CONFIG'] = config_destination
@@ -235,3 +236,6 @@ class ConfigureDispatcher(object):
             conf_yaml['pdc'] = {'key': pdc_key, 'secret': pdc_secret_key, 'path': pdc_path}
         else:
             conf_yaml['pdc'] = {'key': pdc_key, 'secret': pdc_secret_key}
+
+def _load_template(filename):
+    return pkgutil.get_data('templates', filename).decode()

@@ -28,3 +28,4 @@ subprocess32 >= 3.2.7
 # Test dependencies
 pytest >= 2.9.1
 jinja2 >= 2.6
+PyInstaller==3.2
