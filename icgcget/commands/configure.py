@@ -149,8 +149,11 @@ class ConfigureDispatcher(object):
     def handle_error(self, config_destination):
         if click.confirm(click.style('\n\nA fatal error occurred reading/writing the configuration file.\n' +
                          'Delete corrupted configuration?', fg='red', bold=True)):
-            os.remove(config_destination)
-            click.echo('Removed bad configuration file: ' + config_destination)
+            try:
+                os.remove(config_destination)
+                click.echo('Removed bad configuration file: ' + config_destination)
+            except Exception:
+                click.echo(click.style('Could not remove file, possibly already deleted.', fg='red', bold=True))
 
     def _icgc_prompt(self, conf_yaml):
         """
