@@ -46,12 +46,11 @@ For further information, please view our documentation [here.](http://docs.icgc.
 ### Packaging from source
 
 #### Requirements
-- [PyInstaller](http://www.pyinstaller.org/)
 
 First run `pip install -r ~/requirements.txt` to ensure that all necessary packages have been installed. Then run:
  
 ``` 
-python <path_to_pyinstaller>/pyinstaller.py --clean --onefile -n icgc-get --additional-hooks-dir <path_to_icgc-get>/icgc-get/bin <path_to_icgc-get>/icgc-get/icgcget/cli.py
+pyinstaller --clean icgc-get-data.spec
 ```
 
 The executable `icgc-get` will be in a folder named `dist` in your current directory.  Compress it into a zip file, with the naming convention of 
