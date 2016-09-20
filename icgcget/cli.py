@@ -101,7 +101,7 @@ def docker_cleanup(cid_dir):
         if container_ids:
             args = ['docker', 'rm', '-v']
             args.extend(container_ids)  # remove any stopped containers
-            devnull = open('/dev/null', 'w')
+            devnull = open(os.devnull, 'w')
             subprocess.call(args, stdout=devnull, env=env)
     except OSError as ex:
         if ex.errno == 2:  # error possible if tool is run in docker mode without docker installed
@@ -122,7 +122,7 @@ def subprocess_cleanup(json_path):
             env = dict(os.environ)
             env['PATH'] = '/usr/local/bin:' + env['PATH']
             args = ['docker', 'rm', '-f', session['container']]
-            devnull = open('/dev/null', 'w')
+            devnull = open(os.devnull, 'w')
             try:
                 subprocess.call(args, stdout=devnull, stderr=devnull, env=env)
             except OSError as ex:
