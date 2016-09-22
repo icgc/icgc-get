@@ -90,9 +90,9 @@ class AccessCheckDispatcher(object):
         :return:
         """
         if result:
-            self.logger.info("Valid access to the " + repo)
+            self.logger.info('Valid access to the ' + repo)
         else:
-            self.logger.info("Invalid access to the " + repo)
+            self.logger.info('Invalid access to the ' + repo)
 
     def access_check(self, repo, token, client, api_url=None, password=None, code=None):
         """
@@ -111,7 +111,7 @@ class AccessCheckDispatcher(object):
             self.access_response(client.access_check(token, repo=code, api_url=api_url, password=password),
                                  repo.upper())
         except ApiError:
-            self.logger.error("Unable to connect to the %s API, cannot determine status of access credentials",
+            self.logger.error('Unable to connect to the %s API, cannot determine status of access credentials',
                               repo.upper())
 
     def access_check_ids(self, repo, file_data, key, client, path=None, output=None, secret_key="Default"):
@@ -132,14 +132,14 @@ class AccessCheckDispatcher(object):
             else:
                 uuids = [data['uuid'] for data in file_data[repo].values()]
             if not uuids:
-                self.logger.info("None of the specified ids will be downloaded from the %s repository:" +
-                                 "unable to verify access credentials.", repo)
+                self.logger.info('None of the specified ids will be downloaded from the %s repository:' +
+                                 'unable to verify access credentials.', repo)
                 return
             check_access(self, key, repo, path, secret_key=secret_key)
             try:
                 self.access_response(client.access_check(key, uuids, path, output=output, repo=repo,
                                                          secret_key=secret_key),
-                                     repo.upper() + " files: {}".format(', '.join(file_data[repo].keys())))
+                                     repo.upper() + ' files: {}'.format(', '.join(file_data[repo].keys())))
             except SubprocessError as ex:
                 self.logger.error(ex.message)
                 raise click.Abort

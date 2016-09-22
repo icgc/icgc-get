@@ -41,7 +41,7 @@ GNOS = {'pcawg-chicago-icgc': {'code': 'pcawg-chicago-icgc', 'name': 'pcawg-chic
                                'path': "https://gtrepo-osdc-tcga.annailabs.com/"}}
 
 ALL_REPO_NAMES = REPOS.keys() + GNOS.keys()
-ALL_REPO_NAMES_STRING = " ".join(ALL_REPO_NAMES)
+ALL_REPO_NAMES_STRING = ' '.join(ALL_REPO_NAMES)
 
 class LogfileParam(click.ParamType):
     """
@@ -58,7 +58,7 @@ class LogfileParam(click.ParamType):
         :return:
         """
         if os.path.isdir(value):
-            self.fail("Logfile destination '%s' is a directory" % value, param, ctx)
+            self.fail('Logfile destination "{}" is a directory'.format(value), param, ctx)
         elif os.path.isfile(value):
             try:
                 logfile = open(value, 'a')
@@ -66,16 +66,16 @@ class LogfileParam(click.ParamType):
                 return value
             except IOError as ex:
                 if ex.errno != 2:
-                    self.fail("Unable to write to logfile '{}'" % value)
+                    self.fail('Unable to write to logfile "{}"'.format(value))
         else:
             try:
                 directory, logfile = os.path.split(value)
                 if os.access(directory, os.W_OK) and directory != tempfile.gettempdir():
                     return value  # need to check if directory can be written to without actually making a file
                 else:
-                    self.fail("Logfile cannot be made in selected directory '%s'" % directory, param, ctx)
+                    self.fail('Logfile cannot be made in selected directory "{}"'.format(directory), param, ctx)
             except ValueError:
-                self.fail("Unable to resolve path to logfile '%s'" % value, param, ctx)
+                self.fail('Unable to resolve path to logfile "{}"'.format(value), param, ctx)
 
 
 class RepoParam(click.ParamType):
@@ -96,10 +96,9 @@ class RepoParam(click.ParamType):
             if value in REPOS.keys() or value in GNOS.keys():
                 return value
             else:
-                self.fail("Invalid repo '{0}'.  Valid repos are: {1}".format(value, ' '.join(REPOS),
-                                                                             ' '.join(GNOS.keys()), param, ctx))
+                self.fail('Invalid repo "{0}".  Valid repos are: {1}'.format(value, ALL_REPO_NAMES_STRING), param, ctx)
         except ValueError:
-            self.fail('%s is not a valid repository' % value, param, ctx)
+            self.fail('{} is not a valid repository'.format(value), param, ctx)
 
 
 class ReposParam(click.ParamType):
@@ -120,9 +119,9 @@ class ReposParam(click.ParamType):
         value = value.split(' ')
         repos = []
         for repo in value:
-            if repo in REPOS.keys() or repo in GNOS.keys():
+            if repo in ALL_REPO_NAMES:
                 repos.append(repo)
             else:
-                self.fail("Invalid repo '{0}'.  Valid repos are: {1} {2}".format(repo, ' '.join(REPOS),
-                                                                                 ' '.join(GNOS.keys()), param, ctx))
+                self.fail('Invalid repository "{0}".  Valid repositories are: {1}'.format(repo, ALL_REPO_NAMES_STRING),
+                          param=param, ctx=ctx)
         return repos
