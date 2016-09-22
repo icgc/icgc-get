@@ -41,20 +41,20 @@ def versions_command(gnos_path, ega_path, gdc_path, icgc_path, pdc_path, docker,
     :param container_version:
     :return:
     """
-    logger = logging.getLogger("__log__")
-    logger.info("ICGC-Get Version: %s", __version__)
-    logger.info("Clients:")
+    logger = logging.getLogger('__log__')
+    logger.info('ICGC-Get Version: %s', __version__)
+    logger.info('Clients:')
     json_path = log_dir + '/state.json'
     check_version_path(PdcDownloadClient(json_path, docker, container_version=container_version, log_dir=log_dir),
-                       "PDC", pdc_path)
+                       'PDC', pdc_path)
     check_version_path(EgaDownloadClient(json_path, docker, container_version=container_version, log_dir=log_dir),
-                       "EGA", ega_path)
+                       'EGA', ega_path)
     check_version_path(GdcDownloadClient(json_path, docker, container_version=container_version, log_dir=log_dir),
-                       "GDC", gdc_path)
+                       'GDC', gdc_path)
     check_version_path(GnosDownloadClient(json_path, docker, container_version=container_version, log_dir=log_dir),
-                       "GNOS", gnos_path)
+                       'GNOS', gnos_path)
     check_version_path(StorageClient(json_path, docker, container_version=container_version, log_dir=log_dir),
-                       "ICGC", icgc_path)
+                       'ICGC', icgc_path)
 
 
 def check_version_path(client, name, path):
@@ -66,9 +66,9 @@ def check_version_path(client, name, path):
     :param path:
     :return:
     """
-    logger = logging.getLogger("__log__")
+    logger = logging.getLogger('__log__')
     if path:
         if os.path.isfile(path) or client.docker:
             client.print_version(path)
         else:
-            logger.warning(" Path '%s' to %s client could not be resolved.", path, name)
+            logger.warning('Path "%s" to %s client could not be resolved.', path, name)

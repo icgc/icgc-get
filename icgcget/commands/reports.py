@@ -29,7 +29,7 @@ class StatusScreenDispatcher(object):
     """
 
     def __init__(self):
-        self.logger = logging.getLogger("__log__")
+        self.logger = logging.getLogger('__log__')
 
     def summary_table(self, file_data, output, table_format):
         """
@@ -40,27 +40,27 @@ class StatusScreenDispatcher(object):
         :return:
         """
         repos = file_data.keys()
-        type_counts = {"total": 0}
+        type_counts = {'total': 0}
         download_count = {'total': 0}
-        type_donors = {"total": []}
-        type_sizes = OrderedDict({"total": 0})
+        type_donors = {'total': []}
+        type_sizes = OrderedDict({'total': 0})
 
         if output:
-            headers = ["", "Size", "Unit", "File Count", "Donor Count", "Downloaded Files"]
+            headers = ['', 'Size', 'Unit', 'File Count', 'Donor Count', 'Downloaded Files']
         else:
-            headers = ["", "Size", "Unit", "File Count", "Donor Count"]
+            headers = ['', 'Size', 'Unit', 'File Count', 'Donor Count']
         summary_table = []
 
         for repository in repos:
-            repo_sizes = OrderedDict({"total": 0})
-            repo_counts = {"total": 0}
-            repo_donors = {"total": []}
-            repo_download_count = {"total": 0}
+            repo_sizes = OrderedDict({'total': 0})
+            repo_counts = {'total': 0}
+            repo_donors = {'total': []}
+            repo_download_count = {'total': 0}
             for file_id in file_data[repository].values():
-                size = file_id["size"]
+                size = file_id['size']
 
-                data_type = file_id["dataType"]
-                state = search_recursive(file_id["fileName"], output)
+                data_type = file_id['dataType']
+                state = search_recursive(file_id['fileName'], output)
                 type_sizes = increment_types(data_type, type_sizes, size)
                 type_counts = increment_types(data_type, type_counts, 1)
                 repo_sizes = increment_types(data_type, repo_sizes, size)
@@ -88,24 +88,24 @@ class StatusScreenDispatcher(object):
         """
 
         repos = file_data.keys()
-        headers = ["", "Size", "Unit", "File Format", "Data Type", "Repo", "Donor", "File Name", "Downloaded"]
+        headers = ['', 'Size', 'Unit', 'File Format', 'Data Type', 'Repo', 'Donor', 'File Name', 'Downloaded']
         file_table = []
         for repository in repos:
             for file_id in file_data[repository]:
                 data = file_data[repository][file_id]
-                size = data["size"]
+                size = data['size']
                 if len(data['donors']) > 1:
                     donor = str(len(data['donors'])) + ' donors'
                 else:
                     donor = data['donors'][0]['donorId']
-                data_type = data["dataType"]
-                if search_recursive(data["fileName"], output):
-                    state = "Yes"
+                data_type = data['dataType']
+                if search_recursive(data['fileName'], output):
+                    state = 'Yes'
                 else:
-                    state = "No"
+                    state = 'No'
                 file_size = convert_size(size)
-                file_table.append([file_id, file_size[0], file_size[1], data["fileFormat"],
-                                   data_type, repository, donor, data["fileName"], state])
+                file_table.append([file_id, file_size[0], file_size[1], data['fileFormat'],
+                                   data_type, repository, donor, data['fileName'], state])
         self.print_table(headers, file_table, table_format)
 
     def print_table(self, headers, file_table, table_format):
@@ -122,7 +122,7 @@ class StatusScreenDispatcher(object):
                 self.logger.info('  '.join(line))
         elif table_format == 'pretty':
             file_table = [headers] + file_table
-            self.logger.info(tabulate(file_table, headers="firstrow", tablefmt="fancy_grid", numalign="right"))
+            self.logger.info(tabulate(file_table, headers='firstrow', tablefmt='fancy_grid', numalign='right'))
         elif table_format == 'json':
             json_dict = {}
             for line in file_table:

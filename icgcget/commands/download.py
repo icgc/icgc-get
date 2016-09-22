@@ -42,7 +42,7 @@ class DownloadDispatcher(object):
     Dispatcher that handles downloading files from client and metadata from the api.
     """
     def __init__(self, json_path=None, docker=False, log_dir=None, container_version=''):
-        self.logger = logging.getLogger("__log__")
+        self.logger = logging.getLogger('__log__')
         self.gdc_client = GdcDownloadClient(json_path, docker, log_dir=log_dir, container_version=container_version)
         self.ega_client = EgaDownloadClient(json_path, docker, log_dir=log_dir, container_version=container_version)
         self.gt_client = GnosDownloadClient(json_path, docker, log_dir, container_version=container_version)
@@ -82,25 +82,25 @@ class DownloadDispatcher(object):
             if copy['repoCode'] == repo:
                 if unique and search_recursive(copy["fileName"], output):
                     file_data[repo].pop(entity['id'])
-                    self.logger.info("File %s found in download directory, skipping", entity['id'])
+                    self.logger.info('File %s found in download directory, skipping', entity['id'])
                     continue
-                temp_file = {'fileName': copy["fileName"], 'dataType': entity["dataCategorization"]["dataType"],
+                temp_file = {'fileName': copy["fileName"], 'dataType': entity['dataCategorization']['dataType'],
                              'donors': entity["donors"], 'fileFormat': copy['fileFormat']}
 
-                if "fileName" in copy["indexFile"]:
-                    temp_file['index_filename'] = copy["indexFile"]["fileName"]
+                if 'fileName' in copy['indexFile']:
+                    temp_file['index_filename'] = copy['indexFile']['fileName']
                 if repo == 'pdc':
                     file_data[repo][entity['id']]['fileUrl'] = 's3://' + copy['repoDataPath']
                     if unique and search_recursive(copy['repoDataPath'].split('/')[1], output):
                         file_data[repo].pop(entity['id'])
-                        self.logger.info("File %s found in download directory, skipping", entity['id'])
+                        self.logger.info('File %s found in download directory, skipping', entity['id'])
                         continue
-                file_data[repo][entity["id"]].update(temp_file)
+                file_data[repo][entity['id']].update(temp_file)
                 self.logger.debug('File %s added to file data under repo %s', entity['id'], repo)
 
         self.size_check(size, output)
         if not flatten_file_data(file_data):
-            self.logger.error("All files were found in download directory, aborting")
+            self.logger.error('All files were found in download directory, aborting')
             raise click.Abort
         return download_session
 
@@ -163,11 +163,11 @@ class DownloadDispatcher(object):
         :return:
         """
         if code == 127:
-            self.logger.error("Error connecting to the docker container.")
-            raise click.ClickException("Please check the status of your docker client")
+            self.logger.error('Error connecting to the docker container.')
+            raise click.ClickException('Please check the status of your docker client')
         elif code != 0:
-            self.logger.error("%s client exited with a nonzero error code %s.", client, code)
-            raise click.ClickException("Please check client output for error messages")
+            self.logger.error('%s client exited with a nonzero error code %s.', client, code)
+            raise click.ClickException('Please check client output for error messages')
 
     def cleanup(self, name, return_code, staging, output):
         """
@@ -205,8 +205,8 @@ class DownloadDispatcher(object):
             check_access(self, token, repo, client.docker, path, udt, secret_key)
             self.icgc_client.session = session
             if repo == 'ega' and transport_parallel != '1':
-                self.logger.warning("Parallel streams on the EGA client may cause reliability issues and failed " +
-                                    "downloads.  This option is not recommended.")
+                self.logger.warning('Parallel streams on the EGA client may cause reliability issues and failed ' +
+                                    'downloads.  This option is not recommended.')
             if repo == 'pdc':
                 uuids = []
                 for object_id in file_data[repo]:
@@ -215,9 +215,9 @@ class DownloadDispatcher(object):
                 uuids = self.get_uuids(file_data[repo])
 
             fids = self.get_fids(file_data[repo])
-            start_string = "************************************************************************************\n" + \
-                           "Starting download(s) for files: %s from: %s " + \
-                           "\n************************************************************************************"
+            start_string = '************************************************************************************\n' + \
+                           'Starting download(s) for files: %s from: %s ' + \
+                           '\n************************************************************************************'
             self.logger.info(start_string, fids, repo)
             return_code = client.download(uuids, token, path, staging, transport_parallel, repo=code, udt=udt,
                                           file_from=transport_file_from, password=password, secret_key=secret_key)
@@ -233,7 +233,7 @@ class DownloadDispatcher(object):
         if output:
             free = psutil.disk_usage(output)[2]
             if free <= size:
-                self.logger.error("Not enough space detected for download of %s. %s of space in %s",
+                self.logger.error('Not enough space detected for download of %s. %s of space in %s',
                                   ''.join(convert_size(size)), ''.join(convert_size(free)), output)
                 click.Abort()
 
@@ -251,9 +251,9 @@ class DownloadDispatcher(object):
 
     @staticmethod
     def get_fids(file_data):
-        fids = ""
+        fids = ''
         for fid in file_data:
-            fids += fid + " "
+            fids += fid + ' '
         return fids
 
     def get_manifest(self, manifest, file_ids, api_url, repos, portal):
@@ -271,7 +271,7 @@ class DownloadDispatcher(object):
         else:
             manifest_json = api_error_catch(self, portal.get_manifest, file_ids, api_url, repos)
 
-        if not manifest_json["unique"] or len(manifest_json["entries"]) != 1:
+        if not manifest_json['unique'] or len(manifest_json['entries']) != 1:
             filter_manifest_ids(self, manifest_json, repos)
         return manifest_json
 
