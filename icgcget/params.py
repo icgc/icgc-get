@@ -37,7 +37,6 @@ GNOS = {'pcawg-chicago-icgc': {'code': 'pcawg-chicago-icgc', 'name': 'pcawg-chic
         'pcawg-seoul': {'code': 'pcawg-seoul', 'name': 'pcawg-seoul', 'path': "https://gtrepo-etri.annailabs.com/"},
         'pcawg-barcelona': {'code': 'pcawg-barcelona', 'name': 'pcawg-barcelona',
                             'path': "https://gtrepo-bsc.annailabs.com/"},
-        'pcawg-cghub': {'code': 'pcawg-cghub', 'name': 'pcawg-cghub', 'path': "https://cghub.ucsc.edu/"},
         'pcawg-chicago-tcga': {'code': 'pcawg-chicago-tcga', 'name': 'pcawg-chicago-tcga',
                                'path': "https://gtrepo-osdc-tcga.annailabs.com/"}}
 
