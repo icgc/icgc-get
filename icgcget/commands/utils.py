@@ -29,6 +29,7 @@ from icgcget.clients import errors
 from icgcget.clients.utils import normalize_keys, flatten_dict
 from icgcget.params import ICGC_REPOS
 
+
 def api_error_catch(self, func, *args):
     try:
         return func(*args)
