@@ -151,6 +151,9 @@ class PathParam(click.ParamType):
         except OSError as e:
             logging.error(e.message)
             self.fail('Directory {} does not exist and icgc-get was unable to create it.'.format(value))
+        except:
+            logging.error('Exception thrown during output directory check.')
+            raise
 
         return value
 
