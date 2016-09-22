@@ -27,7 +27,7 @@ import yaml
 import signal
 from icgcget.clients import errors
 from icgcget.clients.utils import normalize_keys, flatten_dict
-
+from icgcget.params import ICGC_REPOS
 
 def api_error_catch(self, func, *args):
     try:
@@ -37,7 +37,7 @@ def api_error_catch(self, func, *args):
         raise click.Abort
 
 
-def check_access(self, access, name, docker=False, path="Default", password="Default", secret_key="Default", udt=True):
+def check_access(self, access, name, docker=False, path='Default', password='Default', secret_key='Default', udt=True):
     """
     Verifies if path and access parameters have been provided and that paths are valid.
     :param self:
@@ -51,22 +51,30 @@ def check_access(self, access, name, docker=False, path="Default", password="Def
     :return:
     """
     if access is None:
-        self.logger.error("No credentials provided for the {} repository".format(name))
-        raise click.BadParameter("Please provide credentials for {}".format(name))
+        self.logger.error('No credentials provided for the {} repository'.format(name))
+        raise click.BadParameter('Please provide credentials for {}'.format(name))
     if password is None:
-        self.logger.error("No password provided for the {} repository".format(name))
-        raise click.BadParameter("Please provide a password to the {} download client".format(name))
+        self.logger.error('No password provided for the {} repository'.format(name))
+        raise click.BadParameter('Please provide a password to the {} download client'.format(name))
     if secret_key is None:
-        self.logger.error("No secret key provided for the {} repository".format(name))
-        raise click.BadParameter("Please provide a secret key for {}".format(name))
+        self.logger.error('No secret key provided for the {} repository'.format(name))
+        raise click.BadParameter('Please provide a secret key for {}'.format(name))
     if not isinstance(udt, bool):
-        raise click.BadParameter("UDT flag must be in boolean format")
+        raise click.BadParameter('UDT flag must be in boolean format')
     if path is None:
-        self.logger.error("Path to {} download client not provided.".format(name))
-        raise click.BadParameter("Please provide a path to the {} download client".format(name))
+        if name in ICGC_REPOS:
+            self.logger.error('Path to the icgc-storage-client is not provided.')
+            raise click.BadParameter('Please provide a path to the icgc-storage-client')
+        else:
+            self.logger.error('Path to the download client for {} is not provided.'.format(name))
+            raise click.BadParameter('Please provide a path to the {} download client'.format(name))
     if not os.path.isfile(path) and not docker and path != 'Default':
-        self.logger.error("Path '{0}' to {1} download client cannot be resolved.".format(path, name))
-        raise click.BadParameter("Please provide a complete path to the {} download client".format(name))
+        if name in ICGC_REPOS:
+            self.logger.error('Path "{}" to the icgc-storage-client cannot be resolved.'.format(path))
+            raise click.BadParameter('Please provide a complete path to the icgc-storage-client')
+        else:
+            self.logger.error('Path "{0}" to {1} download client cannot be resolved.'.format(path, name))
+            raise click.BadParameter('Please provide a complete path to the {} download client'.format(name))
 
 
 def compare_ids(current_session, old_session, override):
@@ -86,7 +94,7 @@ def compare_ids(current_session, old_session, override):
                 return current_session  # if entire repo is new, wipe old session data
         for fi_id in current_session[repo]:
             if fi_id in old_session[repo]:
-                if old_session[repo][fi_id]['state'] != "Finished":
+                if old_session[repo][fi_id]['state'] != 'Finished':
                     updated_session[repo][fi_id] = current_session[repo][fi_id]
             else:
                 if override_prompt(override):
@@ -123,13 +131,13 @@ def config_parse(filename, default_filename, docker=False, docker_paths=None, em
     try:
         config_file = open(filename, 'r')
     except IOError as ex:
-        config_errors("Config file '{0}' not found: {1}".format(filename, ex.strerror), default)
+        config_errors('Config file "{0}" not found: {1}'.format(filename, ex.strerror), default)
         if docker:
             return {'download': docker_paths, 'report': docker_paths, 'version': docker_paths, 'check': docker_paths}
         else:
             return {}
     try:
-        yaml.SafeLoader.add_constructor("tag:yaml.org,2002:python/unicode", constructor)
+        yaml.SafeLoader.add_constructor('tag:yaml.org,2002:python/unicode', constructor)
         config_temp = yaml.safe_load(config_file)
         if config_temp:
             config = flatten_dict(normalize_keys(config_temp))
@@ -143,9 +151,9 @@ def config_parse(filename, default_filename, docker=False, docker_paths=None, em
         elif empty_ok:
             return {}
         else:
-            config = config_errors("Config file '{}' is an empty file.".format(filename), default)
+            config = config_errors('Config file "{}" is an empty file.'.format(filename), default)
     except yaml.YAMLError:
-        config = config_errors("Failed to parse config.yaml file '{}'. Config must be in YAML format.".format(filename),
+        config = config_errors('Failed to parse config.yaml file "{}". Config must be in YAML format.'.format(filename),
                                default)
     return config
 
@@ -168,17 +176,17 @@ def filter_manifest_ids(self, manifest_json, repos):
     :return:
     """
     fi_ids = []
-    for repo_info in manifest_json["entries"]:
-        if repo_info["repo"] in repos:
-            for file_info in repo_info["files"]:
-                if file_info["id"] in fi_ids:
-                    self.logger.error("Supplied manifest has repeated file identifiers.  Please specify a " +
-                                      "list of repositories to prioritize")
+    for repo_info in manifest_json['entries']:
+        if repo_info['repo'] in repos:
+            for file_info in repo_info['files']:
+                if file_info['id'] in fi_ids:
+                    self.logger.error('Supplied manifest has repeated file identifiers.  Please specify a ' +
+                                      'list of repositories to prioritize')
                     raise click.Abort
                 else:
-                    fi_ids.append(file_info["id"])
+                    fi_ids.append(file_info['id'])
     if not fi_ids:
-        self.logger.warning("Files specified are not found on specified repositories")
+        self.logger.warning('Files specified are not found on specified repositories')
         raise click.Abort
     return fi_ids
 
@@ -191,7 +199,7 @@ def filter_repos(repos):
     :return:
     """
     if not repos or repos.count(None) == len(repos):
-        raise click.BadOptionUsage("Must include prioritized repositories")
+        raise click.BadOptionUsage('Must include prioritized repositories')
     new_repos = []
     for repo in repos:
         if repo:
@@ -210,8 +218,8 @@ def get_manifest_json(self, file_ids, api_url, repos, portal):
     :return:
     """
     if len(file_ids) > 1:
-        self.logger.error("For download from manifest files, multiple manifest id arguments is not supported")
-        raise click.BadArgumentUsage("Multiple manifest files specified.")
+        self.logger.error('For download from manifest files, multiple manifest id arguments is not supported')
+        raise click.BadArgumentUsage('Multiple manifest files specified.')
     manifest_json = api_error_catch(self, portal.get_manifest_id, file_ids[0], api_url, repos)
     return manifest_json
 
@@ -229,14 +237,14 @@ def load_json(json_path, abort=True):
         try:
             old_download_session = json.load(open(json_path, 'r+'))
             if abort and psutil.pid_exists(old_download_session['pid']):
-                logger.error("Download currently in progress")
+                logger.error('Download currently in progress')
                 raise click.Abort()
             for pid in old_download_session['subprocess']:
                 if psutil.pid_exists(pid) and abort:
                     os.kill(pid, signal.SIGKILL)
                     try:
                         os.kill(pid, 0)
-                        print "Unable to kill client process with pid {}".format(pid)
+                        print 'Unable to kill client process with pid {}'.format(pid)
                     except OSError as ex:
                         if ex.errno == 3:
                             old_download_session['subprocess'].remove(pid)
@@ -245,7 +253,7 @@ def load_json(json_path, abort=True):
                             logger.warning(ex.message)
             return old_download_session
         except ValueError:
-            logger.info("Corrupted download state found.  Cleaning...")
+            logger.info('Corrupted download state found.  Cleaning...')
             os.remove(json_path)
     return None
 
@@ -259,10 +267,10 @@ def match_repositories(self, repos, copies):
     :return:
     """
     for repository in repos:
-        for copy in copies["fileCopies"]:
-            if repository == copy["repoCode"]:
+        for copy in copies['fileCopies']:
+            if repository == copy['repoCode']:
                 return repository, copy
-    self.logger.error("File %s not found on repositories: %s", copies["id"], ' '.join(repos))
+    self.logger.error('File {0} not found on repositories: {1}'.format(copies['id'], ' '.join(repos)))
     return None, None
 
 
@@ -274,7 +282,7 @@ def override_prompt(override):
     """
     if override:
         return True
-    if click.confirm("Previous session data does not match current command.  Ok to overwrite previous session info?"):
+    if click.confirm('Previous session data does not match current command.  Ok to overwrite previous session info?'):
         return True
     else:
         raise click.Abort
@@ -289,14 +297,14 @@ def validate_ids(ids, manifest):
     """
     if manifest:
         if not re.match(r'\w{8}-\w{4}-\w{4}-\w{4}-\w{12}', ids[0]):
-            raise click.BadArgumentUsage(message="Bad Manifest ID: passed argument" +
-                                                 "'{}' isn't in uuid format".format(ids[0]))
+            raise click.BadArgumentUsage(message='Bad Manifest ID: passed argument' +
+                                                 '"{}" is not in uuid format'.format(ids[0]))
     else:
         for fi_id in ids:
             if not re.findall(r'FI\d*', fi_id):
                 if re.match(r'\w{8}-\w{4}-\w{4}-\w{4}-\w{12}', fi_id):
-                    raise click.BadArgumentUsage(message="Bad FI ID: passed argument '{}'".format(fi_id) +
-                                                 "is in UUID format.  If you intended to use a manifest," +
-                                                 "add the -m tag.")
-                raise click.BadArgumentUsage(message="Bad FI ID: passed argument '{}'".format(fi_id) +
-                                             " isn't in FI00000 format")
+                    raise click.BadArgumentUsage(message='Bad FI ID: passed argument "{}"'.format(fi_id) +
+                                                 'is in UUID format.  If you intended to use a manifest,' +
+                                                 'add the -m tag.')
+                raise click.BadArgumentUsage(message='Bad FI ID: passed argument "{}"'.format(fi_id) +
+                                             ' is not in FI00000 format')

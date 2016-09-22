@@ -41,6 +41,7 @@ GNOS = {'pcawg-chicago-icgc': {'code': 'pcawg-chicago-icgc', 'name': 'pcawg-chic
         'pcawg-chicago-tcga': {'code': 'pcawg-chicago-tcga', 'name': 'pcawg-chicago-tcga',
                                'path': "https://gtrepo-osdc-tcga.annailabs.com/"}}
 
+ICGC_REPOS = ['collaboratory', 'aws-virginia'] #TODO: separate ICGC repos out from REPOS dict, and use the keys
 ALL_REPO_NAMES = REPOS.keys() + GNOS.keys()
 ALL_REPO_NAMES_STRING = ' '.join(ALL_REPO_NAMES)
 
