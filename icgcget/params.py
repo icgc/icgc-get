@@ -21,6 +21,7 @@
 import os
 import tempfile
 import click
+import logging
 
 REPOS = {'collaboratory': {'code': 'collaboratory', 'name': 'collab'},
          'aws-virginia': {'code': 'aws-virginia', 'name': 'aws'},
@@ -125,3 +126,31 @@ class ReposParam(click.ParamType):
                 self.fail('Invalid repository "{0}".  Valid repositories are: {1}'.format(repo, ALL_REPO_NAMES_STRING),
                           param=param, ctx=ctx)
         return repos
+
+
+class PathParam(click.ParamType):
+    """
+    Custom parameter to create directory if it doesn't exist.
+    """
+    name = 'path'
+
+    def convert(self, value, param, ctx):
+        """
+        Checks for directory, tries to create if it doesn't exist, otherwise fails.
+        :param value: value from user
+        :param param: param
+        :param ctx: context
+        :return:
+        """
+
+        try:
+            if not os.path.exists(value):
+                os.makedirs(value)
+            elif not os.access(value, os.W_OK):
+                self.fail('Directory {} is not writable by icgc-get.'.format(value))
+        except OSError as e:
+            logging.error(e.message)
+            self.fail('Directory {} does not exist and icgc-get was unable to create it.'.format(value))
+
+        return value
+

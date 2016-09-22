@@ -21,7 +21,7 @@ import os
 import click
 
 from icgcget.commands.utils import config_parse
-from icgcget.params import ReposParam, LogfileParam, GNOS, ALL_REPO_NAMES_STRING
+from icgcget.params import PathParam, ReposParam, LogfileParam, GNOS, ALL_REPO_NAMES_STRING
 
 import pkgutil
 from jinja2 import Environment, FunctionLoader
@@ -40,7 +40,8 @@ class ConfigureDispatcher(object):
         'Existing configuration values are listed in square brackets.  To keep these values, press Enter. \n' + \
         'To input multiple values for a prompt, separate each value with a space.\n'
 
-    DIR_MSG = 'Enter a directory on your machine for downloaded files to be saved to.'
+    DIR_MSG = 'Enter a directory for downloaded files to be saved to. ' + \
+              'icgc-get will attempt to create it if it does not exist.'
     LOG_MSG = 'Enter a location for the process logs to be stored.  Must be in an existing directory.  Optional.'
     REPO_MSG = 'Enter which repositories you want to download from.\n Valid repositories are: {}'\
         .format(ALL_REPO_NAMES_STRING)
@@ -106,9 +107,7 @@ class ConfigureDispatcher(object):
         """
         print self.WELCOME_MSG
         # Prompt for output directory
-        output = self.prompt('output', 'output', self.DIR_MSG, input_type=click.Path(exists=True, writable=True,
-                                                                                     file_okay=False,
-                                                                                     resolve_path=True))
+        output = self.prompt('output', 'output', self.DIR_MSG, input_type=PathParam())
         # Prompt for logfile directory
         logfile = self.prompt('logfile', 'logfile', self.LOG_MSG, input_type=LogfileParam())
         # Prompt for repo selection and precedence
