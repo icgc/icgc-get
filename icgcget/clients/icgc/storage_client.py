@@ -22,6 +22,7 @@ import os
 import re
 import shutil
 import fileinput
+from icgcget.clients.utils import client_style
 from icgcget.clients.download_client import DownloadClient
 from icgcget.clients.portal_client import call_api
 from icgcget.clients.errors import ApiError
@@ -105,8 +106,8 @@ class StorageClient(DownloadClient):
             if ex.code == 400:
                 return False
             raise ApiError(ex.request_string, ex.message, ex.code)
-        match = repo + ".download"
-        return match in resp["scope"]
+        match = repo + '.download'
+        return match in resp['scope']
 
     def print_version(self, path):
         """
@@ -126,9 +127,9 @@ class StorageClient(DownloadClient):
         :return:
         """
         response = re.sub(r"\x1b[^m]*m", '', response)  # Strip ANSI colour codes
-        version = re.findall(r"Version: [0-9.]+", response)
+        version = re.findall(r'Version: [0-9.]+', response)
         if version:
-            self.logger.info(" ICGC Storage Client %s", version[0])
+            self.logger.info(' ICGC Storage Client %s', version[0])
 
     def download_parser(self, response):
         """
@@ -136,12 +137,12 @@ class StorageClient(DownloadClient):
         :param response:
         :return:
         """
-        response = re.sub(r"\x1b[^m]*m", '', response)
-        filename = re.findall(r"\(\w{8}-\w{4}-\w{4}-\w{4}-\w{12}.+", response)
+        response = re.sub(r'\x1b[^m]*m', '', response)
+        filename = re.findall(r'\(\w{8}-\w{4}-\w{4}-\w{4}-\w{12}.+', response)
         if filename:
             filename = filename[0][1:-1]
             self.session_update(filename, self.repo)
-        self.logger.info(response.strip())
+        self.logger.info(client_style(response.strip()))
 
     @staticmethod
     def edit_logback(logback, log_file):

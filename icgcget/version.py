@@ -19,4 +19,4 @@
 #
 
 __version__ = '0.4.3'
-__container_version__ = '0.3.7'
+__container_version__ = 'latest'

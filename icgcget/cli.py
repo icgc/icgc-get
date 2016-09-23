@@ -37,7 +37,7 @@ from icgcget.log_filters import MaxLevelFilter
 from icgcget.version import __version__, __container_version__
 
 DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgc-get', force_posix=True), 'config.yaml')
-API_URL = "https://dcc.icgc.org/api/v1/"
+API_URL = 'https://dcc.icgc.org/api/v1/'
 DOCKER_PATHS = {'icgc_path': '/icgc/icgc-storage-client/bin/icgc-storage-client',
                 'ega_path': '/icgc/ega-download-demo/EgaDemoClient.jar', 'gnos_path': '/usr/bin/gtdownload',
                 'pdc_path': '/usr/local/bin/aws', 'gdc_path': '/icgc/gdc-data-transfer-tool/gdc-client'}
@@ -62,7 +62,7 @@ def logger_setup(logfile, verbose):
             logger.addHandler(file_handler)
         except IOError as ex:
             if not ex.errno == 2:
-                print "Unable to write to logfile '{}'".format(logfile)
+                print 'Unable to write to logfile "{}"'.format(logfile)
 
     stdout_handler = logging.StreamHandler(sys.stdout)
     lower_than_warning = MaxLevelFilter(logging.WARNING)
@@ -142,10 +142,10 @@ def get_container_tag(context_map):
     :param context_map:
     :return:
     """
-    if os.getenv("ICGCGET_CONTAINER_TAG"):
-        tag = os.getenv("ICGCGET_CONTAINER_TAG")
-    elif context_map and "container_tag" in context_map.default_map:
-        tag = context_map.default_map["container_tag"]
+    if os.getenv('ICGCGET_CONTAINER_TAG'):
+        tag = os.getenv('ICGCGET_CONTAINER_TAG')
+    elif context_map and 'container_tag' in context_map.default_map:
+        tag = context_map.default_map['container_tag']
     else:
         tag = __container_version__
     return tag
@@ -232,8 +232,8 @@ def cli(ctx, config, docker, logfile, verbose):
 @click.option('--pdc-secret', type=click.STRING, envvar='ICGCGET_PDC_SECRET')
 @click.option('--pdc-path', envvar='ICGCGET_PDC_PATH')
 @click.option('--pdc-transport-parallel', type=click.STRING, default='8', envvar='ICGCGET_PDC_TRANSPORT_PARALLEL')
-@click.option('--override', '-o', is_flag=True, default=True, help="Bypass all confirmation prompts")
-@click.option('--no-ssl-verify', is_flag=True, default=True, help="Do not verify ssl certificates")
+@click.option('--override', '-o', is_flag=True, default=True, help='Bypass all confirmation prompts')
+@click.option('--no-ssl-verify', is_flag=True, default=True, help='Do not verify ssl certificates')
 @click.pass_context
 def download(ctx, ids, repos, manifest, output,
              gnos_key_icgc, gnos_key_tcga, gnos_key_barcelona, gnos_key_heidelberg, gnos_key_london, gnos_key_cghub,
@@ -290,7 +290,7 @@ def download(ctx, ids, repos, manifest, output,
               envvar='ICGCGET_OUTPUT')
 @click.option('--table-format', '-f', type=click.Choice(['tsv', 'pretty', 'json']), default='pretty')
 @click.option('--data-type', '-t', type=click.Choice(['file', 'summary']), default='file')
-@click.option('--no-ssl-verify', is_flag=True, default=True, help="Do not verify ssl certificates")
+@click.option('--no-ssl-verify', is_flag=True, default=True, help='Do not verify ssl certificates')
 @click.pass_context
 def report(ctx, repos, ids, manifest, output, table_format, data_type, no_ssl_verify):
     """
@@ -325,7 +325,7 @@ def report(ctx, repos, ids, manifest, output, table_format, data_type, no_ssl_ve
         download_session = download_dispatch.download_manifest(repos, ids, manifest, output, API_URL, no_ssl_verify)
     dispatch = StatusScreenDispatcher()
     if not download_session:
-        raise click.BadArgumentUsage("No id's provided and no session info found, aborting")
+        raise click.BadArgumentUsage('No ids provided and no session info found, aborting')
     if data_type == 'file':
         dispatch.file_table(download_session['file_data'], output, table_format)
     elif data_type == 'summary':
@@ -354,7 +354,7 @@ def report(ctx, repos, ids, manifest, output, table_format, data_type, no_ssl_ve
 @click.option('--pdc-key', type=click.STRING, envvar='ICGCGET_PDC_KEY')
 @click.option('--pdc-secret', type=click.STRING, envvar='ICGCGET_PDC_SECRET')
 @click.option('--pdc-path', envvar='ICGCGET_PDC_ACCESS')
-@click.option('--no-ssl-verify', is_flag=True, default=True, help="Do not verify ssl certificates")
+@click.option('--no-ssl-verify', is_flag=True, default=True, help='Do not verify ssl certificates')
 @click.pass_context
 def check(ctx, repos, ids, manifest, output, gnos_key_icgc, gnos_key_tcga, gnos_key_barcelona, gnos_key_heidelberg,
           gnos_key_london, gnos_key_cghub, gnos_key_seoul, gnos_key_tokyo, gnos_path, ega_username, ega_password,

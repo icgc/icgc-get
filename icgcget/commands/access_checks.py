@@ -35,7 +35,7 @@ class AccessCheckDispatcher(object):
     """
 
     def __init__(self):
-        self.logger = logging.getLogger("__log__")
+        self.logger = logging.getLogger('__log__')
 
     def access_checks(self, repo_list, file_data, gnos_key_icgc, gnos_key_tcga, gnos_key_barcelona, gnos_key_heidelberg,
                       gnos_key_london, gnos_key_cghub, gnos_key_seoul, gnos_key_tokyo, gnos_path, ega_username,

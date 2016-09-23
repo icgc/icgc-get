@@ -19,6 +19,7 @@
 #
 import collections
 import os
+import click
 
 
 def build_table(table, repo, sizes, counts, donors, downloads, output):
@@ -38,7 +39,7 @@ def build_table(table, repo, sizes, counts, donors, downloads, output):
         if data_type == 'total':
             name = repo
         else:
-            name = repo + ": " + data_type
+            name = repo + ': ' + data_type
         if output:
             if data_type not in downloads:
                 downloads[data_type] = 0
@@ -59,14 +60,14 @@ def calculate_size(manifest_json, download_session):
     """
     size = 0
     file_data = {}
-    for repo_info in manifest_json["entries"]:
-        repo = repo_info["repo"]
+    for repo_info in manifest_json['entries']:
+        repo = repo_info['repo']
         file_data[repo] = {}
-        for file_info in repo_info["files"]:
-            file_data[repo][file_info['id']] = {'uuid': file_info["repoFileId"], 'state': "Not started",
+        for file_info in repo_info['files']:
+            file_data[repo][file_info['id']] = {'uuid': file_info['repoFileId'], 'state': 'Not started',
                                                 'fileName': 'None', 'index_filename': 'None',
                                                 'fileUrl': 'None', 'size': file_info['size']}
-            size += file_info["size"]
+            size += file_info['size']
     download_session['file_data'] = file_data
     return size, download_session
 
@@ -80,9 +81,9 @@ def convert_size(num, suffix='B'):
     """
     for unit in ['', 'K', 'M', 'G', 'T']:
         if abs(num) < 1024.0:
-            return ["%3.2f" % num, "%s%s" % (unit, suffix)]
+            return ['%3.2f' % num, '%s%s' % (unit, suffix)]
         num /= 1024.0
-    return ["%.2f" % num, "%s%s" % ('Yi', suffix)]
+    return ['%.2f' % num, '%s%s' % ('Yi', suffix)]
 
 
 def donor_addition(donor_list, donor, data_type):
@@ -178,4 +179,9 @@ def search_recursive(filename, output):
             if directory == filename:
                 return True
     return False
+
+
+def client_style(output):
+    formatted = '  |{}'.format(output)
+    return click.style(formatted, fg='green')
 

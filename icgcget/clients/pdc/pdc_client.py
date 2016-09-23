@@ -20,6 +20,7 @@
 
 import os
 import re
+from icgcget.clients.utils import client_style
 from icgcget.clients.errors import SubprocessError
 from icgcget.clients.download_client import DownloadClient
 
@@ -95,15 +96,15 @@ class PdcDownloadClient(DownloadClient):
             else:
                 call_args.append(output + '/')
             call_args.append('--dryrun')
-            result = self._run_test_command(call_args, "(403)", "(404)", env_dict, timeout=4)
+            result = self._run_test_command(call_args, '(403)', '(404)', env_dict, timeout=4)
             if result == 3:
                 return False
             elif result == 0:
                 return True
             elif result == 2:
-                raise SubprocessError(result, "Path to AWS client did not lead to expected application")
+                raise SubprocessError(result, 'Path to AWS client did not lead to expected application')
             else:
-                raise SubprocessError(result, "AWS failed with code {}".format(result))
+                raise SubprocessError(result, 'AWS failed with code {}'.format(result))
 
     def print_version(self, path):
         """
@@ -120,7 +121,7 @@ class PdcDownloadClient(DownloadClient):
         :param output:
         :return:
         """
-        self.logger.info(output.strip())
+        self.logger.info(client_style(output.strip()))
 
     def version_parser(self, output):
         """
@@ -128,6 +129,6 @@ class PdcDownloadClient(DownloadClient):
         :param output:
         :return:
         """
-        version = re.findall(r"aws-cli/[0-9.]+", output)
+        version = re.findall(r'aws-cli/[0-9.]+', output)
         if version:
-            self.logger.info(" AWS CLI Version:             %s", version[0][8:])
+            self.logger.info(' AWS CLI Version:             %s', version[0][8:])

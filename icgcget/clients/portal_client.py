@@ -32,7 +32,7 @@ def call_api(request, headers=None, head=False, verify=True):
     :param verify:
     :return:
     """
-    logger = logging.getLogger("__log__")
+    logger = logging.getLogger('__log__')
     try:
         if head:
             logger.debug(request)
@@ -47,7 +47,7 @@ def call_api(request, headers=None, head=False, verify=True):
         logger.error(ex.message.message)
         raise ApiError(request, ex.message.reason.message)
     if resp.status_code != 200:
-        raise ApiError(request, "API request failed due to {} error.".format(resp.reason),
+        raise ApiError(request, 'API request failed due to {} error.'.format(resp.reason),
                        code=resp.status_code)
     return resp.json()
 
@@ -78,8 +78,8 @@ class IcgcPortalClient(object):
             entity_set = call_api(request, verify=self.verify)
         except ApiError as ex:
             if ex.code == 404:
-                self.logger.error("Manifest '{}' not found on server. ".format(manifest_id) +
-                                  " Please check your manifest id")
+                self.logger.error('Manifest "{}" not found on server. '.format(manifest_id) +
+                                  ' Please check your manifest id')
             raise ApiError(ex.request_string, ex.message, ex.code)
         return entity_set
 
@@ -113,9 +113,9 @@ class IcgcPortalClient(object):
             request = (api_url + 'repository/files' + self.filters(file_ids) +
                        '"&&from=1&size=10&sort=id&order=desc')
             resp = call_api(request, verify=self.verify)
-            entity_set.extend(resp["hits"])
-            pages = resp["pagination"]["pages"]
-            page = resp["pagination"]["page"]
+            entity_set.extend(resp['hits'])
+            pages = resp['pagination']['pages']
+            page = resp['pagination']['page']
             pages_available = page < pages
         return entity_set
 

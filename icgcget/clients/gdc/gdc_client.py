@@ -21,6 +21,7 @@
 import re
 import os
 import shutil
+from icgcget.clients.utils import client_style
 from icgcget.clients.errors import ApiError
 from icgcget.clients.download_client import DownloadClient
 from icgcget.clients.portal_client import call_api
@@ -131,4 +132,4 @@ class GdcDownloadClient(DownloadClient):
         if file_id:
             file_id = file_id[8:-8]
             self.session_update(file_id, 'gdc')
-        self.logger.info(response.strip())
+        self.logger.info(client_style(response.strip()))

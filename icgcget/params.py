@@ -30,16 +30,16 @@ REPOS = {'collaboratory': {'code': 'collaboratory', 'name': 'collab'},
          'pdc': {'code': 'pdc', 'name': 'bionimbus protected data commons'}}
 
 GNOS = {'pcawg-chicago-icgc': {'code': 'pcawg-chicago-icgc', 'name': 'pcawg-chicago-icgc',
-                               'path': "https://gtrepo-osdc-icgc.annailabs.com/"},
+                               'path': 'https://gtrepo-osdc-icgc.annailabs.com/'},
         'pcawg-heidelberg': {'code': 'pcawg-heidelberg', 'name': 'pcawg-heidelberg',
-                             'path': "https://gtrepo-dkfz.annailabs.com/"},
-        'pcawg-london': {'code': 'pcawg-london', 'name': 'pcawg-london', 'path': "https://gtrepo-ebi.annailabs.com/"},
-        'pcawg-tokyo': {'code': 'pcawg-tokyo', 'name': 'pcawg-tokyo', 'path': "https://gtrepo-riken.annailabs.com/"},
-        'pcawg-seoul': {'code': 'pcawg-seoul', 'name': 'pcawg-seoul', 'path': "https://gtrepo-etri.annailabs.com/"},
+                             'path': 'https://gtrepo-dkfz.annailabs.com/'},
+        'pcawg-london': {'code': 'pcawg-london', 'name': 'pcawg-london', 'path': 'https://gtrepo-ebi.annailabs.com/'},
+        'pcawg-tokyo': {'code': 'pcawg-tokyo', 'name': 'pcawg-tokyo', 'path': 'https://gtrepo-riken.annailabs.com/'},
+        'pcawg-seoul': {'code': 'pcawg-seoul', 'name': 'pcawg-seoul', 'path': 'https://gtrepo-etri.annailabs.com/'},
         'pcawg-barcelona': {'code': 'pcawg-barcelona', 'name': 'pcawg-barcelona',
-                            'path': "https://gtrepo-bsc.annailabs.com/"},
+                            'path': 'https://gtrepo-bsc.annailabs.com/'},
         'pcawg-chicago-tcga': {'code': 'pcawg-chicago-tcga', 'name': 'pcawg-chicago-tcga',
-                               'path': "https://gtrepo-osdc-tcga.annailabs.com/"}}
+                               'path': 'https://gtrepo-osdc-tcga.annailabs.com/'}}
 
 ICGC_REPOS = ['collaboratory', 'aws-virginia'] #TODO: separate ICGC repos out from REPOS dict, and use the keys
 ALL_REPO_NAMES = REPOS.keys() + GNOS.keys()

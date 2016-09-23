@@ -22,6 +22,7 @@ import re
 import os
 import fnmatch
 import shutil
+from icgcget.clients.utils import client_style
 from icgcget.clients.download_client import DownloadClient
 from icgcget.clients.errors import SubprocessError
 from icgcget.params import GNOS
@@ -79,7 +80,7 @@ class GnosDownloadClient(DownloadClient):
         """
         access_file = self.get_access_file(access, output)
         call_args = self.make_call_args(path, output, access_file, uuids, repo)
-        result = self._run_test_command(call_args, "403 Forbidden", "404 Not Found")
+        result = self._run_test_command(call_args, '403 Forbidden', '404 Not Found')
         if self.docker and self.log_dir:
             shutil.move(output + '/gnos_log', self.log_dir + '/gnos_log')
         if result == 0:
@@ -87,9 +88,9 @@ class GnosDownloadClient(DownloadClient):
         elif result == 3:
             return False
         elif result == 2:
-            raise SubprocessError(result, "Path to Gentorrent client did not lead to expected application")
+            raise SubprocessError(result, 'Path to Gentorrent client did not lead to expected application')
         else:
-            raise SubprocessError(result, "Genetorrent failed with code {}".format(result))
+            raise SubprocessError(result, 'Genetorrent failed with code {}'.format(result))
 
     def print_version(self, path):
         """
@@ -117,7 +118,7 @@ class GnosDownloadClient(DownloadClient):
         :return:
         """
 
-        self.logger.info(response.strip())
+        self.logger.info(client_style(response.strip()))
         filename = re.findall(r'filename=*', response)
         if filename:
             filename = filename[9:]

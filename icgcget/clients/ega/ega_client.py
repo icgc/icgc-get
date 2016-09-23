@@ -27,6 +27,7 @@ from string import ascii_uppercase, digits
 from urllib import quote
 from requests import HTTPError
 
+from icgcget.clients.utils  import client_style
 from icgcget.clients.download_client import DownloadClient
 from icgcget.clients.portal_client import call_api
 
@@ -118,22 +119,22 @@ class EgaDownloadClient(DownloadClient):
         :param secret_key:
         :return:
         """
-        base_url = "https://ega.ebi.ac.uk/ega/rest/access/v2/"
+        base_url = 'https://ega.ebi.ac.uk/ega/rest/access/v2/'
 
-        login_request = base_url + 'users/' + quote(access) + "?pass=" + quote(password)
+        login_request = base_url + 'users/' + quote(access) + '?pass=' + quote(password)
         try:
             resp = call_api(login_request, verify=self.verify)
         except HTTPError:  # invalid return code
             return False
-        if resp["header"]["userMessage"] == "OK":
-            session_id = resp["response"]["result"][1]
-            dataset_request = base_url + "datasets?session=" + session_id
+        if resp['header']['userMessage'] == 'OK':
+            session_id = resp['response']['result'][1]
+            dataset_request = base_url + 'datasets?session=' + session_id
             try:
                 dataset_response = call_api(dataset_request, verify=self.verify)
-                data_sets = dataset_response["response"]["result"]
+                data_sets = dataset_response['response']['result']
             except HTTPError:
                 return False
-            if "EGAD00001000023" in data_sets and "EGAD00010000562" in data_sets:
+            if 'EGAD00001000023' in data_sets and 'EGAD00010000562' in data_sets:
                 return True
         return False
 
@@ -155,7 +156,7 @@ class EgaDownloadClient(DownloadClient):
         version = re.findall(r"Version: [0-9.]+", response)
         if version:
             version = version[0][9:]
-            self.logger.info(" EGA Client Version:          %s", version)
+            self.logger.info(' EGA Client Version:          %s', version)
 
     def download_parser(self, response):
         """
@@ -167,7 +168,7 @@ class EgaDownloadClient(DownloadClient):
         if filename:
             filename = filename[0][1:-7]
             self.session_update(filename, 'ega')
-        self.logger.info(response.strip())
+        self.logger.info(client_style(response.strip()))
 
     def requests_parser(self, response):
         """

@@ -28,6 +28,7 @@ import re
 import subprocess32
 from time import sleep
 
+import click
 
 class DownloadClient(object):
     """
@@ -76,7 +77,7 @@ class DownloadClient(object):
                      secret_key=None):
         """
         Abstract access check method
-        :param access:
+        :param access:xw
         :param uuids:
         :param path:
         :param repo:
@@ -130,7 +131,7 @@ class DownloadClient(object):
         """
         self.logger.debug(args)
         if None in args:
-            self.logger.warning("Missing argument in %s", args)
+            self.logger.warning('Missing argument in %s', args)
             return 1
         if not env:
             env = dict(os.environ)
@@ -144,7 +145,7 @@ class DownloadClient(object):
             self.logger.warning(ex.output)
             return ex.returncode
         except OSError:
-            self.logger.warning("Path to download tool, %s, does not lead to expected application", args[0])
+            self.logger.warning('Path to download tool, %s, does not lead to expected application', args[0])
             return 2
 
         while True:
@@ -179,7 +180,7 @@ class DownloadClient(object):
             env = dict(os.environ)
         env['PATH'] = '/usr/local/bin:' + env['PATH']
         if None in args:
-            self.logger.warning("Missing argument in %s", args)
+            self.logger.warning('Missing argument in %s', args)
             return 1
         try:
             process = subprocess32.check_output(args, stderr=subprocess.STDOUT, env=env, timeout=timeout)
