@@ -182,6 +182,6 @@ def search_recursive(filename, output):
 
 
 def client_style(output):
-    formatted = '  |{}'.format(output)
+    formatted = '  | {}'.format(output)
     return click.style(formatted, fg='green')
 
