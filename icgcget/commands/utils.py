@@ -66,6 +66,9 @@ def check_access(self, access, name, docker=False, path='Default', password='Def
         if name in ICGC_REPOS:
             self.logger.error('Path to the icgc-storage-client is not provided.')
             raise click.BadParameter('Please provide a path to the icgc-storage-client')
+        elif 'pcawg' in name:
+            self.logger.error('Path to the gtdownload client is not provided.')
+            raise click.BadParameter('Please provide a path to the gtdownload client')
         else:
             self.logger.error('Path to the download client for {} is not provided.'.format(name))
             raise click.BadParameter('Please provide a path to the {} download client'.format(name))
@@ -73,6 +76,9 @@ def check_access(self, access, name, docker=False, path='Default', password='Def
         if name in ICGC_REPOS:
             self.logger.error('Path "{}" to the icgc-storage-client cannot be resolved.'.format(path))
             raise click.BadParameter('Please provide a complete path to the icgc-storage-client')
+        elif 'pcawg' in name:
+            self.logger.error('Path to the gtdownload cannot be resolved.')
+            raise click.BadParameter('Please provide a complete path to the gtdownload client')
         else:
             self.logger.error('Path "{0}" to {1} download client cannot be resolved.'.format(path, name))
             raise click.BadParameter('Please provide a complete path to the {} download client'.format(name))

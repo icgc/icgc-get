@@ -45,6 +45,7 @@ ICGC_REPOS = ['collaboratory', 'aws-virginia'] #TODO: separate ICGC repos out fr
 ALL_REPO_NAMES = REPOS.keys() + GNOS.keys()
 ALL_REPO_NAMES_STRING = ' '.join(ALL_REPO_NAMES)
 
+
 class LogfileParam(click.ParamType):
     """
     Custom click parameter to verify valid inputs for log files.
