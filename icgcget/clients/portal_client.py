@@ -107,16 +107,17 @@ class IcgcPortalClient(object):
         :param api_url:
         :return:
         """
+
+        page_size = 100  # Divide list into chunks based on page size
+        pages = lambda l, pg: [l[i:i+pg] for i in xrange(0, len(l), pg)]
+
         entity_set = []
-        pages_available = True
-        while pages_available:
-            request = (api_url + 'repository/files' + self.filters(file_ids) +
-                       '"&&from=1&size=10&sort=id&order=desc')
+        for page in pages(file_ids, page_size):
+            request = (api_url + 'repository/files' + self.filters(page) +
+                       '"&&from=1&size=100&sort=id&order=desc')
             resp = call_api(request, verify=self.verify)
             entity_set.extend(resp['hits'])
-            pages = resp['pagination']['pages']
-            page = resp['pagination']['page']
-            pages_available = page < pages
+
         return entity_set
 
     @staticmethod
