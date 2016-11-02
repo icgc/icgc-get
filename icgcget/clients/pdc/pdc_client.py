@@ -55,7 +55,7 @@ class PdcDownloadClient(DownloadClient):
         env_dict = dict(os.environ)
 
         for data_path in data_paths:
-            call_args = [tool_path, '--debug', 's3', self.url, 'cp', data_path]
+            call_args = [tool_path, 's3', self.url, 'cp', data_path]
             if self.docker:
                 call_args.extend([self.docker_mnt + '/'])
                 envvars = {'AWS_ACCESS_KEY_ID': key, 'AWS_SECRET_ACCESS_KEY': secret_key}

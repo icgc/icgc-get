@@ -280,6 +280,7 @@ def download(ctx, ids, repos, manifest, output,
                       pdc_key, pdc_secret, pdc_path, pdc_transport_parallel)
     os.umask(oldmask)
     os.remove(json_path)
+    logger.info("Download command completed successfully.")
 
 
 @cli.command()
