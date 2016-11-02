@@ -47,6 +47,20 @@ For further information, please view our documentation [here.](http://docs.icgc.
 
 #### Requirements
 
+##### Build PyInstaller from source
+We depend on PyInstaller for building our binaries. In order to ensure correct behaviour from `icgc-get` on termination, it is recommended that you build a PyInstaller release from source as historically their bundled dists through PyPI or otherwise have been inconsistent. This will include building their C libraries, so ensure you have the correct build tools for your platform. 
+
+```bash
+wget https://github.com/pyinstaller/pyinstaller/releases/download/v3.2/PyInstaller-3.2.tar.gz
+tar zxvf PyInstaller-3.2.tar.gz
+cd PyInstaller-3.2/bootloader
+./waf all
+cd ..
+python setup.py install
+```
+
+#### Packaging
+
 First run `pip install -r ~/requirements.txt` to ensure that all necessary packages have been installed. Then run:
  
 ``` 
