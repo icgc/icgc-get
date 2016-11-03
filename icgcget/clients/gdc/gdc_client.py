@@ -93,7 +93,7 @@ class GdcDownloadClient(DownloadClient):
         """
         base_url = 'https://gdc-api.nci.nih.gov/data/'
         request = base_url + ','.join(uuids)
-        header = {'X-auth-Token': access}
+        header = {'X-Auth-Token': access, 'Content-Type': 'application/json'}
         try:
             call_api(request, header, head=True, verify=self.verify)
             return True

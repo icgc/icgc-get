@@ -49,7 +49,10 @@ def call_api(request, headers=None, head=False, verify=True):
     if resp.status_code != 200:
         raise ApiError(request, 'API request failed due to {} error.'.format(resp.reason),
                        code=resp.status_code)
-    return resp.json()
+    if len(resp.text) > 0:
+        return resp.json()
+    else:
+        return 'No Content'
 
 
 class IcgcPortalClient(object):

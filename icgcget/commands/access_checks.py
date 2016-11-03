@@ -143,5 +143,6 @@ class AccessCheckDispatcher(object):
             except SubprocessError as ex:
                 self.logger.error(ex.message)
                 raise click.Abort
-            except ApiError:
+            except ApiError as api_error:
+                self.logger.error(api_error.message)
                 raise click.Abort
