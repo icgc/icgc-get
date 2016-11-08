@@ -49,23 +49,26 @@ class DownloadDispatcher(object):
         self.pdc_client = PdcDownloadClient(json_path, docker, log_dir, container_version=container_version)
         self.icgc_client = StorageClient(json_path, docker, log_dir=log_dir, container_version=container_version)
 
-    def download_manifest(self, repos, file_ids, manifest, output, api_url, verify, unique=False):
+    def download_manifest(self, ctx, api_url, unique=False):
         """
         Function responsible for retrieving manifests and metadata from the icgc api and formatting that data into
         a download session object.  All queries to the portal go through this function.
-        :param repos:
-        :param file_ids:
-        :param manifest:
-        :param output:
+        :param ctx: click context
         :param api_url: icgc-api url
-        :param verify: toggles ssl verification
         :param unique: controls if all files on output manifest must be unique
         :return: download session
         """
+        params = ctx.params
+        ids = params['ids']
+        manifest = params['manifest']
+        verify = params['no_ssl_verify']
+        repos = params['repos']
+        output = params['output']
+
         portal = portal_client.IcgcPortalClient(verify)
-        manifest_json = self.get_manifest(manifest, file_ids, api_url, repos, portal)
+        manifest_json = self.get_manifest(manifest, ids, api_url, params['repos'], portal)
         download_session = {'pid': os.getpid(), 'start_time': datetime.datetime.utcnow().isoformat(),
-                            'subprocess': [], 'command': file_ids, 'container': 0}
+                            'subprocess': [], 'command': ids, 'container': 0}
         size, download_session = calculate_size(manifest_json, download_session)  # This initializes the file data dict
         file_data = download_session['file_data']
         if manifest:  # if provided with manifest id, populate the file ids object with actual file ids
@@ -73,16 +76,17 @@ class DownloadDispatcher(object):
             for repo in file_data:
                 file_ids.extend(file_data[repo].keys())
                 self.logger.debug(' '.join(file_data[repo].keys()) + ' found on manifest')
-        entities = api_error_catch(self, portal.get_metadata_bulk, file_ids, api_url)
+        entities = api_error_catch(self, portal.get_metadata_bulk, ids, api_url)
         for entity in entities:
             repo, copy = match_repositories(self, repos, entity)
             if not repo:
                 raise click.Abort()
 
             if copy['repoCode'] == repo:
-                if unique and search_recursive(copy["fileName"], output):
+                if unique and search_recursive(copy['fileName'], output):
                     file_data[repo].pop(entity['id'])
-                    self.logger.info('File %s found in download directory, skipping', entity['id'])
+                    self.logger.info('File %s found in download directory as {}, skipping'
+                                     .format(copy['fileName']), entity['id'])
                     continue
                 temp_file = {'fileName': copy["fileName"], 'dataType': entity['dataCategorization']['dataType'],
                              'donors': entity["donors"], 'fileFormat': copy['fileFormat']}
@@ -100,59 +104,59 @@ class DownloadDispatcher(object):
 
         self.size_check(size, output)
         if not flatten_file_data(file_data):
-            self.logger.error('All files were found in download directory, aborting')
-            raise click.Abort
+            self.logger.info('All files were found in download directory ({}), aborting'.format(output))
+
         return download_session
 
-    def download(self, session, staging, output,
-                 gnos_key_icgc, gnos_key_tcga, gnos_key_barcelona, gnos_key_heidelberg,
-                 gnos_key_london, gnos_key_cghub, gnos_key_seoul, gnos_key_tokyo, gnos_path, gnos_transport_parallel,
-                 ega_username, ega_password, ega_path, ega_transport_parallel, ega_udt,
-                 gdc_token, gdc_path, gdc_transport_parallel, gdc_udt,
-                 icgc_token, icgc_path, icgc_transport_file_from, icgc_transport_parallel,
-                 pdc_key, pdc_secret_key, pdc_path, pdc_transport_parallel):
+    def download(self, session, staging, ctx):
         """
         Function that manages client download calls, cleans up downloaded files, and passes updated session info
         between each process.
         """
-        self.client_download('aws-virginia', icgc_token, icgc_path, self.icgc_client, session, staging, output,
-                             icgc_transport_parallel, code='aws', transport_file_from=icgc_transport_file_from)
+        params = ctx.params
+        output = params['output']
 
-        self.client_download('collaboratory', icgc_token, icgc_path, self.icgc_client, session, staging, output,
-                             icgc_transport_parallel, code='collab', transport_file_from=icgc_transport_file_from)
+        self.client_download('aws-virginia', params['icgc_token'], params['icgc_path'], self.icgc_client, session,
+                             staging, output, params['icgc_transport_parallel'], code='aws',
+                             transport_file_from=params['icgc_transport_file_from'])
 
-        self.client_download('gdc', gdc_token, gdc_path, self.gdc_client, session, staging, output,
-                             gdc_transport_parallel, udt=gdc_udt)
+        self.client_download('collaboratory', params['icgc_token'], params['icgc_path'], self.icgc_client, session,
+                             staging, output, params['icgc_transport_parallel'], code='collab',
+                             transport_file_from=params['icgc_transport_file_from'])
 
-        self.client_download('ega', ega_username, ega_path, self.ega_client, session, staging, output,
-                             ega_transport_parallel, udt=ega_udt, password=ega_password)
+        self.client_download('gdc', params['gdc_token'], params['gdc_path'], self.gdc_client, session, staging,
+                             output, params['gdc_transport_parallel'], udt=params['gdc_udt'])
 
-        self.client_download('pcawg-barcelona', gnos_key_barcelona, gnos_path, self.gt_client, session, staging, output,
-                             gnos_transport_parallel, code='pcawg-barcelona')
+        self.client_download('ega', params['ega_username'], params['ega_path'], self.ega_client, session, staging,
+                             output, params['ega_transport_parallel'], udt=params['ega_udt'],
+                             password=params['ega_password'])
 
-        self.client_download('pcawg-cghub', gnos_key_cghub, gnos_path, self.gt_client, session, staging, output,
-                             gnos_transport_parallel, code='pcawg-cghub')
+        self.client_download('pcawg-barcelona', params['gnos_key_barcelona'], params['gnos_path'], self.gt_client,
+                             session, staging, output, params['gnos_transport_parallel'], code='pcawg-barcelona')
 
-        self.client_download('pcawg-chicago-icgc', gnos_key_icgc, gnos_path, self.gt_client, session, staging, output,
-                             gnos_transport_parallel, code='pcawg-chicago-icgc')
+        self.client_download('pcawg-cghub', params['gnos_key_cghub'], params['gnos_path'], self.gt_client, session,
+                             staging, output, params['gnos_transport_parallel'], code='pcawg-cghub')
 
-        self.client_download('pcawg-chicago-tcga', gnos_key_tcga, gnos_path, self.gt_client, session, staging, output,
-                             gnos_transport_parallel, code='pcawg-chicago-tcga')
+        self.client_download('pcawg-chicago-icgc', params['gnos_key_icgc'], params['gnos_path'], self.gt_client,
+                             session, staging, output, params['gnos_transport_parallel'], code='pcawg-chicago-icgc')
 
-        self.client_download('pcawg-heidelberg', gnos_key_heidelberg, gnos_path, self.gt_client, session, staging,
-                             output, gnos_transport_parallel, code='pcawg-heidelberg')
+        self.client_download('pcawg-chicago-tcga', params['gnos_key_tcga'], params['gnos_path'], self.gt_client,
+                             session, staging, output, params['gnos_transport_parallel'], code='pcawg-chicago-tcga')
 
-        self.client_download('pcawg-london', gnos_key_london, gnos_path, self.gt_client, session, staging, output,
-                             gnos_transport_parallel, code='pcawg-london')
+        self.client_download('pcawg-heidelberg', params['gnos_key_heidelberg'], params['gnos_path'], self.gt_client,
+                             session, staging, output, params['gnos_transport_parallel'], code='pcawg-heidelberg')
 
-        self.client_download('pcawg-seoul', gnos_key_seoul, gnos_path, self.gt_client, session, staging, output,
-                             gnos_transport_parallel, code='pcawg-seoul')
+        self.client_download('pcawg-london', params['gnos_key_london'], params['gnos_path'], self.gt_client, session,
+                             staging, output, params['gnos_transport_parallel'], code='pcawg-london')
 
-        self.client_download('pcawg-tokyo', gnos_key_tokyo, gnos_path, self.gt_client, session, staging, output,
-                             gnos_transport_parallel, code='pcawg-tokyo')
+        self.client_download('pcawg-seoul', params['gnos_key_seoul'], params['gnos_path'], self.gt_client, session,
+                             staging, output, params['gnos_transport_parallel'], code='pcawg-seoul')
 
-        self.client_download('pdc', pdc_key, pdc_path, self.pdc_client, session, staging, output,
-                             pdc_transport_parallel, secret_key=pdc_secret_key)
+        self.client_download('pcawg-tokyo', params['gnos_key_tokyo'], params['gnos_path'], self.gt_client, session,
+                             staging, output, params['gnos_transport_parallel'], code='pcawg-tokyo')
+
+        self.client_download('pdc', params['pdc_key'], params['pdc_path'], self.pdc_client, session, staging, output,
+                             params['pdc_transport_parallel'], secret_key=params['pdc_secret'])
         return session
 
     def check_code(self, client, code):

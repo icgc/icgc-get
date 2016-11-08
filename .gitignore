@@ -18,3 +18,10 @@ passfile.txt
 
 # Local Virtualenv
 env/
+
+# PyInstaller
+PyInstaller-3.2/
+PyInstaller-3.2.tar.gz
+
+# VS Code
+.vscode/

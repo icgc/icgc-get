@@ -28,19 +28,21 @@ from icgcget.clients.pdc.pdc_client import PdcDownloadClient
 from icgcget.version import __version__
 
 
-def versions_command(gnos_path, ega_path, gdc_path, icgc_path, pdc_path, docker, log_dir, container_version):
+def versions_command(ctx, gnos_path, ega_path, gdc_path, icgc_path, pdc_path, container_version):
     """
     Function that controls the outputs of the versions command and creates download client objects.
+    :param ctx:
     :param gnos_path:
     :param ega_path:
     :param gdc_path:
     :param icgc_path:
     :param pdc_path:
-    :param docker:
-    :param log_dir:
     :param container_version:
     :return:
     """
+    docker = ctx.obj['docker']
+    log_dir = ctx.obj['logdir']
+
     logger = logging.getLogger('__log__')
     logger.info('ICGC-Get Version: %s', __version__)
     logger.info('Clients:')
