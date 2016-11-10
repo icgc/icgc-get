@@ -1,5 +1,8 @@
 # icgc-get
 
+[![](https://images.microbadger.com/badges/image/icgc/icgc-get.svg)](https://microbadger.com/images/icgc/icgc-get "Get your own image badge on microbadger.com")
+[![](https://images.microbadger.com/badges/version/icgc/icgc-get.svg)](https://microbadger.com/images/icgc/icgc-get "Get your own version badge on microbadger.com")
+
 This is the `icgc-get` utility, a universal download client for accessing ICGC data residing in various data repositories. 
 
 ## Motivation
