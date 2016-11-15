@@ -34,4 +34,4 @@ setup(name='icgcget',
               'icgc-get=icgcget.cli:main'
           ]
       }
-      )
+)
