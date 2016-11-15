@@ -193,7 +193,11 @@ def filter_manifest_ids(self, manifest_json, repos):
                 else:
                     fi_ids.append(file_info['id'])
     if not fi_ids:
-        self.logger.warning('Files specified are not found on specified repositories')
+        msg = 'Files specified are not found on configured repositories: ({})'.format(str.join(' ', repos))
+        self.logger.warning(click.style(msg, fg='red', bold=True))
+        help_msg = 'You can use the configure command to add any ' + \
+                   'missing repositories or pass them in with the "-r" option.'
+        self.logger.warning(click.style(help_msg, fg='red'))
         raise click.Abort
     return fi_ids
 
