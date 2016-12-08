@@ -246,6 +246,7 @@ def download(ctx, **kwargs):
     filter_repos(kwargs['repos'])
     tag = get_container_tag(ctx)
     oldmask = os.umask(0000)
+
     if not os.path.exists(staging):
         os.mkdir(staging, 0777)
     if ctx.obj['logdir']:
@@ -253,8 +254,9 @@ def download(ctx, **kwargs):
     else:
         json_path = None
 
-    old_download_session = subprocess_cleanup(json_path)  # strips pids and cids that have been stopped
     dispatch = DownloadDispatcher(json_path, ctx.obj['docker'], ctx.obj['logdir'], tag)
+
+    old_download_session = subprocess_cleanup(json_path)  # strips pids and cids that have been stopped
     if old_download_session and kwargs['ids'] == old_download_session['command']:  # if old session was the same command, can skip
         download_session = old_download_session
     else:

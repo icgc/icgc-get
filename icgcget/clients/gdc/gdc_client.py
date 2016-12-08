@@ -20,6 +20,7 @@
 
 import re
 import os
+import click
 import shutil
 from icgcget.clients.utils import client_style
 from icgcget.clients.errors import ApiError
@@ -74,7 +75,10 @@ class GdcDownloadClient(DownloadClient):
             call_args.append('--udt')
         code = self._run_command(call_args, self.download_parser)
         if self.docker and self.log_dir:
-            shutil.move(staging + log_name, logfile)
+            if os.path.exists(staging + log_name):
+                shutil.move(staging + log_name, logfile)
+            else:
+                self.logger.error('Download client failed to start before log file was created.')
         return code
 
     def access_check(self, access, uuids=None, path=None, repo=None, output=None, api_url=None, password=None,
@@ -120,7 +124,7 @@ class GdcDownloadClient(DownloadClient):
         version = re.findall(r"v[0-9.]+", response)
         if version:
             version = version[0][1:]
-            self.logger.info(" GDC Client Version:          %s", version)
+            self.logger.info(' GDC Client Version:          %s', version)
 
     def download_parser(self, response):
         """
