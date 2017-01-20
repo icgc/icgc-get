@@ -53,11 +53,14 @@ class StorageClient(DownloadClient):
         :param secret_key:
         :return:
         """
+
         env_dict = dict(os.environ)
         log_file = ''
+        client_log_file_name = 'icgc-storage-client.log'
         if self.log_dir:
-            log_file = self.log_dir + '/icgc_log.log'
-        log_staging = staging + '/icgc_log.log'
+            log_file = self.log_dir + '/' + client_log_file_name
+        log_staging = staging + '/' + client_log_file_name
+
         if file_from is not None:
             os.environ['TRANSPORT_FILEFROM'] = file_from
         call_args = [tool_path, '--profile', repo, 'download', '--object-id']

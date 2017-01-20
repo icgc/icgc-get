@@ -12,20 +12,25 @@ ENV EGA_VERSION 2.2.2
 ENV GT_VERSION 3.8.7
 ENV GT_VERSION_LONG 207
 ENV GDC_VERSION gdc-client_v1.0.1_Ubuntu14.04_x64
+
+
 #
-# Update apt, add FUSE support, requiered libraries and basic command line tools
+# Update apt, add FUSE support, required libraries and basic command line tools
 #
 
 RUN apt-get update && \
     apt-get -y upgrade && \
     apt-get install -y libfuse-dev fuse software-properties-common && \
     apt-get install -y python-pip python-dev libffi-dev && \
-    apt-get install -y unzip curl wget && \
 # Required to install clients
+    apt-get install -y unzip curl wget && \
+# Required for Genetorrent and icgc
     apt-get install -y libicu52 && \
-# Required for Genetorrent and Icgc
-    apt-get install -y  openssl libssl-dev
 # Required to download Genetorrent
+    apt-get install -y  openssl libssl-dev && \
+# Required for addressing ownership of files created by root
+    apt-get install -y inotify-tools
+
 
 #
 # Install Oracle JDK 8 for icgc storage client, ega
@@ -43,9 +48,7 @@ ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
 # Download and install latest EGA download client version
 #
 
-
 RUN mkdir -p /icgc/ega-download-demo && \
-
     cd /icgc/ega-download-demo && \
     wget -qO- https://www.ebi.ac.uk/ega/sites/ebi.ac.uk.ega/files/documents/EgaDemoClient_$EGA_VERSION.zip -O temp.zip ; \
     unzip temp.zip -d /icgc/ega-download-demo
@@ -53,7 +56,6 @@ RUN mkdir -p /icgc/ega-download-demo && \
 #
 # Install GeneTorrent and add to PATH
 #
-
 
 RUN mkdir -p /icgc/genetorrent && \
     cd /icgc/genetorrent && \
@@ -73,9 +75,14 @@ RUN mkdir -p /icgc/icgc-storage-client && \
     cd /icgc/icgc-storage-client && \
     wget -qO- https://artifacts.oicr.on.ca/artifactory/dcc-release/org/icgc/dcc/icgc-storage-client/[RELEASE]/icgc-storage-client-[RELEASE]-dist.tar.gz | \
     tar xvz --strip-components 1 && \
-    mkdir -p /icgc/icgc-storage-client/logs
+    mkdir -p /icgc/icgc-storage-client/logs && \
+    chmod a+w /icgc/icgc-storage-client/logs && \
+    mkdir -p /icgc/proxy
 
 COPY ./logback.xml /icgc/icgc-storage-client/conf
+
+COPY ./icgc-storage-client-proxy.sh /icgc/proxy/icgc-storage-client-proxy
+RUN chmod og+x /icgc/proxy/icgc-storage-client-proxy
 
 #
 # Install latest version of gdc download tool
@@ -91,20 +98,20 @@ RUN mkdir -p /icgc/gdc-data-transfer-tool && \
 ENV PATH=$PATH:/icgc/gdc-data-transfer-tool
 
 #
+# Install icgc-get for development purposes and make mount point directory, install aws-cli, cleanup pip
+#
+
+RUN export DEBIAN_FRONTEND=noninteractive && \
+    apt-get upgrade -y && \
+    pip install -U pip setuptools && \
+    pip install pyyaml && \
+    pip install awscli && \
+    pip uninstall -y pip setuptools && \
+    mkdir /icgc/mnt 
+
+#
 # Set working directory for convenience with interactive usage, copy icgc-get for development purposes
 #
 
 WORKDIR /icgc
-
-#
-# Install icgc-get for development purposes and make root directory, install aws-cli, cleanup pip
-#
-
-RUN apt-get upgrade -y && \
-    pip install -U pip setuptools && \
-    pip install awscli && \
-    pip uninstall -y pip setuptools && \
-    mkdir /icgc/mnt
-
-
 
