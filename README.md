@@ -64,7 +64,7 @@ python setup.py install
 
 #### Packaging
 
-First run `sudo ip install -r ./requirements.txt` to ensure that all necessary packages have been installed. Then run:
+First run `sudo pip install -r ./requirements.txt` to ensure that all necessary packages have been installed. Then run:
  
 ``` 
 pyinstaller --clean icgc-get-data.spec
