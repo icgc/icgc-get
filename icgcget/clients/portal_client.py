@@ -23,6 +23,7 @@ import logging
 import requests
 
 from icgcget.clients.errors import ApiError
+from click import UsageError
 
 
 def call_api(request, headers=None, head=False, verify=True):
@@ -65,6 +66,12 @@ class IcgcPortalClient(object):
         self.logger = logging.getLogger('__log__')
         self.verify = verify
 
+    def __parse_repos(self, entity_set):
+        try:
+            return entity_set["repos"]
+        except:
+            print "Unexpected error trying to parse manifest, please verify your version of icgc-get is up to date"
+            raise
 
     """
     Extract the ordered repository list from the manifest_id
@@ -73,7 +80,7 @@ class IcgcPortalClient(object):
         pre_request = (api_url + 'manifests/' + manifest_id + '?format=json')
         try:
             entity_set = call_api(pre_request, verify=self.verify)
-            return entity_set["repos"]
+            return self.__parse_repos(entity_set)
         except ApiError as ex:
             self.logger.error('There was an issue extracting the repo priority from manifestId "{}"'.format(manifest_id) +
                               ' Please check your manifest id')
@@ -93,7 +100,7 @@ class IcgcPortalClient(object):
 
         if len(missing_list) > 0:
             message = 'The following repositories from the manifest id "{}" are not configured: {}'.format(manifest_id,set(missing_list))
-            raise ApiError(api_url, message, 400)
+            raise UsageError(message)
 
 
     def get_manifest_id(self, manifest_id, api_url, repos=None):
