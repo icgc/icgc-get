@@ -99,7 +99,7 @@ class IcgcPortalClient(object):
                 missing_list.append(manifest_repo)
 
         if len(missing_list) > 0:
-            message = 'The following repositories from the manifest id "{}" are not configured: {}'.format(manifest_id,set(missing_list))
+            message = 'The following repositories from the manifest id "{}" are not configured: {}'.format(manifest_id, ",".join(set(missing_list)))
             raise UsageError(message)
 
 
