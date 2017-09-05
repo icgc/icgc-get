@@ -19,7 +19,9 @@
 #
 
 import logging
+
 import requests
+
 from icgcget.clients.errors import ApiError
 
 
@@ -63,6 +65,37 @@ class IcgcPortalClient(object):
         self.logger = logging.getLogger('__log__')
         self.verify = verify
 
+
+    """
+    Extract the ordered repository list from the manifest_id
+    """
+    def __get_repos_from_manifest_id(self, manifest_id, api_url):
+        pre_request = (api_url + 'manifests/' + manifest_id + '?format=json')
+        try:
+            entity_set = call_api(pre_request, verify=self.verify)
+            return entity_set["repos"]
+        except ApiError as ex:
+            self.logger.error('There was an issue extracting the repo priority from manifestId "{}"'.format(manifest_id) +
+                              ' Please check your manifest id')
+            raise ApiError(ex.request_string, ex.message, ex.code)
+
+
+    # Verifies the repo list in the manifest id matches the manifest id
+    def check_repo_list(self, manifest_id, api_url, configured_repo_list):
+        # Extract repo list from manifest_id
+        manifest_repo_list = self.__get_repos_from_manifest_id(manifest_id, api_url)
+
+        # Find the repositories that were not configured
+        missing_list = []
+        for manifest_repo in manifest_repo_list:
+            if manifest_repo not in configured_repo_list:
+                missing_list.append(manifest_repo)
+
+        if len(missing_list) > 0:
+            message = 'The following repositories from the manifest id "{}" are not configured: {}'.format(manifest_id,set(missing_list))
+            raise ApiError(api_url, message, 400)
+
+
     def get_manifest_id(self, manifest_id, api_url, repos=None):
         """
         Function that calls ICGC api for a manifest by manifest ID
@@ -71,6 +104,9 @@ class IcgcPortalClient(object):
         :param repos:
         :return:
         """
+
+        self.check_repo_list(manifest_id, api_url, repos)
+
         fields = '&fields=id,size,content,repoFileId&format=json'
         if repos:
             request = (api_url + 'manifests/' + manifest_id + '?repos=' + ','.join(repos) +
