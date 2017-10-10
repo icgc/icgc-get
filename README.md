@@ -38,7 +38,7 @@ when running on a Linux machine to ensure that Docker can be run without root pe
 
 **This tool requires one or more download clients installed or Docker installed to function**
 
-##Quick start
+## Quick start
 
 After installing `icgc-get`, you will need to do configure some of the essential usage parameters,
 such as your access credentials. Enter `./icgc-get configure` and follow the instructions of the prompts.
