@@ -22,17 +22,15 @@ import os
 
 from icgcget.clients.ega.ega_client import EgaDownloadClient
 from icgcget.clients.gdc.gdc_client import GdcDownloadClient
-from icgcget.clients.gnos.gnos_client import GnosDownloadClient
 from icgcget.clients.icgc.storage_client import StorageClient
 from icgcget.clients.pdc.pdc_client import PdcDownloadClient
 from icgcget.version import __version__
 
 
-def versions_command(ctx, gnos_path, ega_path, gdc_path, icgc_path, pdc_path, container_version):
+def versions_command(ctx, ega_path, gdc_path, icgc_path, pdc_path, container_version):
     """
     Function that controls the outputs of the versions command and creates download client objects.
     :param ctx:
-    :param gnos_path:
     :param ega_path:
     :param gdc_path:
     :param icgc_path:
@@ -53,8 +51,6 @@ def versions_command(ctx, gnos_path, ega_path, gdc_path, icgc_path, pdc_path, co
                        'EGA', ega_path)
     check_version_path(GdcDownloadClient(json_path, docker, container_version=container_version, log_dir=log_dir),
                        'GDC', gdc_path)
-    check_version_path(GnosDownloadClient(json_path, docker, container_version=container_version, log_dir=log_dir),
-                       'GNOS', gnos_path)
     check_version_path(StorageClient(json_path, docker, container_version=container_version, log_dir=log_dir),
                        'ICGC', icgc_path)
 

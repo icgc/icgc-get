@@ -24,7 +24,6 @@ from icgcget.clients.errors import SubprocessError
 from icgcget.clients.gdc.gdc_client import GdcDownloadClient
 from icgcget.clients.icgc.storage_client import StorageClient
 from icgcget.clients.pdc.pdc_client import PdcDownloadClient
-from icgcget.clients.gnos.gnos_client import GnosDownloadClient
 from icgcget.clients.errors import ApiError
 from icgcget.commands.utils import check_access
 
@@ -45,11 +44,9 @@ class AccessCheckDispatcher(object):
         verify = params['no_ssl_verify']
         repos = params['repos']
         output = params['output']
-        gnos_path = params['gnos_path']
 
         gdc_client = GdcDownloadClient(verify=verify)
         ega_client = EgaDownloadClient(verify=verify)
-        gt_client = GnosDownloadClient(docker=docker, container_version=container_version)
         icgc_client = StorageClient(verify=verify)
         pdc_client = PdcDownloadClient(docker=docker, container_version=container_version)
 
@@ -65,27 +62,6 @@ class AccessCheckDispatcher(object):
 
         if 'gdc' in repos:
             self.access_check_ids('gdc', file_data, params['gdc_token'], gdc_client)
-
-        if 'pcawg-chicago-icgc' in repos:
-            self.access_check_ids('pcawg-chicago-icgc', file_data, params['gnos_key_icgc'],
-                                  gt_client, gnos_path, output)
-        if 'pcawg-chicago-tcga' in repos:
-            self.access_check_ids('pcawg-chicago-tcga', file_data, params['gnos_key_tcga'],
-                                  gt_client, gnos_path, output)
-        if 'pcawg-barcelona' in repos:
-            self.access_check_ids('pcawg-barcelona', file_data, params['gnos_key_barcelona'],
-                                  gt_client, gnos_path, output)
-        if 'pcawg-heidelberg' in repos:
-            self.access_check_ids('pcawg-heidelberg', file_data, params['gnos_key_heidelberg'],
-                                  gt_client, gnos_path, output)
-        if 'pcawg-london' in repos:
-            self.access_check_ids('pcawg-london', file_data, params['gnos_key_london'], gt_client, gnos_path, output)
-        if 'pcawg-cghub' in repos:
-            self.access_check_ids('pcawg-cghub', file_data, params['gnos_key_cghub'], gt_client, gnos_path, output)
-        if 'pcawg-seoul' in repos:
-            self.access_check_ids('pcawg-seoul', file_data, params['gnos_key_seoul'], gt_client, gnos_path, output)
-        if 'pcawg-tokyo' in repos:
-            self.access_check_ids('pcawg-tokyo', file_data, params['gnos_key_tokyo'], gt_client, gnos_path, output)
 
         if 'pdc' in repos:
             self.access_check_ids('pdc', file_data, params['pdc_key'], pdc_client, params['pdc_path'], output,
