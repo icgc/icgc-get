@@ -21,7 +21,7 @@ import os
 import click
 
 from icgcget.commands.utils import config_parse
-from icgcget.params import PathParam, ReposParam, LogfileParam, GNOS, ALL_REPO_NAMES_STRING
+from icgcget.params import PathParam, ReposParam, LogfileParam, ALL_REPO_NAMES_STRING
 
 import pkgutil
 from jinja2 import Environment, FunctionLoader
@@ -55,7 +55,6 @@ class ConfigureDispatcher(object):
         """
         self.old_config = {}
         self.default_dir = os.path.split(default)[0]
-        self.gnos_repos = GNOS.keys()
         if os.path.isfile(config_destination):
             old_config = config_parse(config_destination, default, empty_ok=True)
             if old_config:
@@ -79,10 +78,6 @@ class ConfigureDispatcher(object):
 
         if 'aws-virginia' in repos or 'collaboratory' in repos:
             self._icgc_prompt(conf_yaml=conf_yaml)
-
-        gnos_specified = [repo for repo in self.gnos_repos if repo in repos]
-        if gnos_specified:
-            self._gnos_prompt(gnos_specified=gnos_specified, conf_yaml=conf_yaml)
 
         if 'ega' in repos:
             self._ega_prompt(conf_yaml=conf_yaml)
@@ -169,25 +164,6 @@ class ConfigureDispatcher(object):
             conf_yaml['icgc'] = {'token': icgc_access, 'path': icgc_path}
         else:
             conf_yaml['icgc'] = {'token': icgc_access}
-
-    def _gnos_prompt(self, gnos_specified, conf_yaml):
-        """
-        Prompts user for genetorrent access
-        :param gnos_specified: Specific gnos repos that were specified.
-        :param conf_yaml: Dictionary representing yaml config file.
-        """
-        gnos_path = self.prompt('gnos path', 'gnos_path', 'Enter the path to your local genetorrent executable',
-                                input_type=click.Path(exists=True, dir_okay=False, resolve_path=True),
-                                skip=conf_yaml['docker'])
-        gnos_keys = {}
-        for repo in gnos_specified:
-            repo_code = repo.split('-')[-1]
-            key = self.prompt(repo.upper() + ' key', 'gnos_key_' + repo_code, 'Enter your ' + repo.upper() + ' key')
-            gnos_keys[repo_code] = key
-        if gnos_path:
-            conf_yaml['gnos'] = {'key': gnos_keys, 'path': gnos_path}
-        else:
-            conf_yaml['gnos'] = {'key': gnos_keys}
 
     def _ega_prompt(self, conf_yaml):
         """

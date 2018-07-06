@@ -39,7 +39,7 @@ from icgcget.version import __version__, __container_version__
 DEFAULT_CONFIG_FILE = os.path.join(click.get_app_dir('icgc-get', force_posix=True), 'config.yaml')
 API_URL = 'https://dcc.icgc.org/api/v1/'
 DOCKER_PATHS = {'icgc_path': '/icgc/proxy/icgc-storage-client-proxy',
-                'ega_path': '/icgc/ega-download-demo/EgaDemoClient.jar', 'gnos_path': '/usr/bin/gtdownload',
+                'ega_path': '/icgc/ega-download-demo/EgaDemoClient.jar',
                 'pdc_path': '/usr/local/bin/aws', 'gdc_path': '/icgc/gdc-data-transfer-tool/gdc-client'}
 
 
@@ -204,16 +204,6 @@ def cli(ctx, config, docker, logfile, verbose):
 @click.option('--manifest', '-m', is_flag=True, default=False)
 @click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True),
               required=True, envvar='ICGCGET_OUTPUT')
-@click.option('--gnos-key-icgc', type=click.STRING, envvar='ICGCGET_GNOS_KEY_ICGC')
-@click.option('--gnos-key-tcga', type=click.STRING, envvar='ICGCGET_GNOS_KEY_TCGA')
-@click.option('--gnos-key-barcelona', type=click.STRING, envvar='ICGCGET_GNOS_KEY_BARCELONA')
-@click.option('--gnos-key-heidelberg', type=click.STRING, envvar='ICGCGET_GNOS_KEY_HEIDELBERG')
-@click.option('--gnos-key-london', type=click.STRING, envvar='ICGCGET_GNOS_KEY_LONDON')
-@click.option('--gnos-key-cghub', type=click.STRING, envvar='ICGCGET_GNOS_KEY_CGHUB')
-@click.option('--gnos-key-seoul', type=click.STRING, envvar='ICGCGET_GNOS_KEY_SEOUL')
-@click.option('--gnos-key-tokyo', type=click.STRING, envvar='ICGCGET_GNOS_KEY_TOKYO')
-@click.option('--gnos-path', envvar='ICGCGET_GNOS_PATH')
-@click.option('--gnos-transport-parallel', type=click.STRING, default='8', envvar='ICGCGET_GNOS_TRANSPORT_PARALLEL')
 @click.option('--ega-username', type=click.STRING, envvar='ICGCGET_EGA_USERNAME')
 @click.option('--ega-password', type=click.STRING, envvar='ICGCGET_EGA_PASSWORD')
 @click.option('--ega-path', envvar='ICGCGET_EGA_PATH')
@@ -271,7 +261,7 @@ def download(ctx, **kwargs):
     dispatch.download(download_session, staging, ctx)
     os.umask(oldmask)
     os.remove(json_path)
-    logger.info("Download command completed successfully.")
+    logger.info('Download command completed successfully.')
 
 
 @cli.command()
@@ -330,15 +320,6 @@ def report(ctx, repos, ids, manifest, output, table_format, data_type, no_ssl_ve
 @click.option('--manifest', '-m', is_flag=True, default=False)
 @click.option('--output', type=click.Path(exists=True, writable=True, file_okay=False, resolve_path=True),
               envvar='ICGCGET_OUTPUT')
-@click.option('--gnos-key-icgc', type=click.STRING, envvar='ICGCGET_GNOS_KEY_ICGC')
-@click.option('--gnos-key-tcga', type=click.STRING, envvar='ICGCGET_GNOS_KEY_TCGA')
-@click.option('--gnos-key-barcelona', type=click.STRING, envvar='ICGCGET_GNOS_KEY_BARCELONA')
-@click.option('--gnos-key-heidelberg', type=click.STRING, envvar='ICGCGET_GNOS_KEY_HEIDELBERG')
-@click.option('--gnos-key-london', type=click.STRING, envvar='ICGCGET_GNOS_KEY_LONDON')
-@click.option('--gnos-key-cghub', type=click.STRING, envvar='ICGCGET_GNOS_KEY_CGHUB')
-@click.option('--gnos-key-seoul', type=click.STRING, envvar='ICGCGET_GNOS_KEY_SEOUL')
-@click.option('--gnos-key-tokyo', type=click.STRING, envvar='ICGCGET_GNOS_KEY_TOKYO')
-@click.option('--gnos-path', type=click.STRING, envvar='ICGCGET_GNOS_PATH')
 @click.option('--ega-username', type=click.STRING, envvar='ICGCGET_EGA_USERNAME')
 @click.option('--ega-password', type=click.STRING, envvar='ICGCGET_EGA_PASSWORD')
 @click.option('--gdc-token', type=click.STRING, envvar='ICGCGET_GDC_TOKEN')
@@ -393,20 +374,19 @@ def configure(config):
 
 
 @cli.command()
-@click.option('--gnos-path', envvar='ICGCGET_GNOS_PATH')
 @click.option('--ega-path', envvar='ICGCGET_EGA_PATH')
 @click.option('--gdc-path', envvar='ICGCGET_GDC_PATH')
 @click.option('--icgc-path', envvar='ICGCGET_ICGC_PATH')
 @click.option('--pdc-path', envvar='ICGCGET_PDC_PATH')
 @click.pass_context
-def version(ctx, gnos_path, ega_path, gdc_path, icgc_path, pdc_path):
+def version(ctx, ega_path, gdc_path, icgc_path, pdc_path):
     """
     Dispatcher for the version check command.
     """
     logger = logging.getLogger('__log__')
     logger.debug(str(ctx.params))
     tag = get_container_tag(ctx)
-    versions_command(ctx, gnos_path, ega_path, gdc_path, icgc_path, pdc_path, tag)
+    versions_command(ctx, ega_path, gdc_path, icgc_path, pdc_path, tag)
 
 
 def main():

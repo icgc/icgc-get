@@ -26,7 +26,6 @@ import click
 import psutil
 
 from icgcget.clients import portal_client
-from icgcget.clients.gnos.gnos_client import GnosDownloadClient
 from icgcget.clients.ega.ega_client import EgaDownloadClient
 from icgcget.clients.gdc.gdc_client import GdcDownloadClient
 from icgcget.clients.icgc.storage_client import StorageClient
@@ -45,7 +44,6 @@ class DownloadDispatcher(object):
         self.logger = logging.getLogger('__log__')
         self.gdc_client = GdcDownloadClient(json_path, docker, log_dir=log_dir, container_version=container_version)
         self.ega_client = EgaDownloadClient(json_path, docker, log_dir=log_dir, container_version=container_version)
-        self.gt_client = GnosDownloadClient(json_path, docker, log_dir, container_version=container_version)
         self.pdc_client = PdcDownloadClient(json_path, docker, log_dir, container_version=container_version)
         self.icgc_client = StorageClient(json_path, docker, log_dir=log_dir, container_version=container_version)
 
@@ -130,30 +128,6 @@ class DownloadDispatcher(object):
         self.client_download('ega', params['ega_username'], params['ega_path'], self.ega_client, session, staging,
                              output, params['ega_transport_parallel'], udt=params['ega_udt'],
                              password=params['ega_password'])
-
-        self.client_download('pcawg-barcelona', params['gnos_key_barcelona'], params['gnos_path'], self.gt_client,
-                             session, staging, output, params['gnos_transport_parallel'], code='pcawg-barcelona')
-
-        self.client_download('pcawg-cghub', params['gnos_key_cghub'], params['gnos_path'], self.gt_client, session,
-                             staging, output, params['gnos_transport_parallel'], code='pcawg-cghub')
-
-        self.client_download('pcawg-chicago-icgc', params['gnos_key_icgc'], params['gnos_path'], self.gt_client,
-                             session, staging, output, params['gnos_transport_parallel'], code='pcawg-chicago-icgc')
-
-        self.client_download('pcawg-chicago-tcga', params['gnos_key_tcga'], params['gnos_path'], self.gt_client,
-                             session, staging, output, params['gnos_transport_parallel'], code='pcawg-chicago-tcga')
-
-        self.client_download('pcawg-heidelberg', params['gnos_key_heidelberg'], params['gnos_path'], self.gt_client,
-                             session, staging, output, params['gnos_transport_parallel'], code='pcawg-heidelberg')
-
-        self.client_download('pcawg-london', params['gnos_key_london'], params['gnos_path'], self.gt_client, session,
-                             staging, output, params['gnos_transport_parallel'], code='pcawg-london')
-
-        self.client_download('pcawg-seoul', params['gnos_key_seoul'], params['gnos_path'], self.gt_client, session,
-                             staging, output, params['gnos_transport_parallel'], code='pcawg-seoul')
-
-        self.client_download('pcawg-tokyo', params['gnos_key_tokyo'], params['gnos_path'], self.gt_client, session,
-                             staging, output, params['gnos_transport_parallel'], code='pcawg-tokyo')
 
         self.client_download('pdc', params['pdc_key'], params['pdc_path'], self.pdc_client, session, staging, output,
                              params['pdc_transport_parallel'], secret_key=params['pdc_secret'])
