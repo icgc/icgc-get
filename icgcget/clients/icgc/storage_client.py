@@ -56,7 +56,7 @@ class StorageClient(DownloadClient):
 
         env_dict = dict(os.environ)
         log_file = ''
-        client_log_file_name = 'icgc-storage-client.log'
+        client_log_file_name = 'score-client.log'
         if self.log_dir:
             log_file = self.log_dir + '/' + client_log_file_name
         log_staging = staging + '/' + client_log_file_name

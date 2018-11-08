@@ -64,8 +64,8 @@ def check_access(self, access, name, docker=False, path='Default', password='Def
         raise click.BadParameter('UDT flag must be in boolean format')
     if path is None:
         if name in ICGC_REPOS:
-            self.logger.error('Path to the icgc-storage-client is not provided.')
-            raise click.BadParameter('Please provide a path to the icgc-storage-client')
+            self.logger.error('Path to the score-client is not provided.')
+            raise click.BadParameter('Please provide a path to the score-client')
         elif 'pcawg' in name:
             self.logger.error('Path to the gtdownload client is not provided.')
             raise click.BadParameter('Please provide a path to the gtdownload client')
@@ -74,8 +74,8 @@ def check_access(self, access, name, docker=False, path='Default', password='Def
             raise click.BadParameter('Please provide a path to the {} download client'.format(name))
     if not os.path.isfile(path) and not docker and path != 'Default':
         if name in ICGC_REPOS:
-            self.logger.error('Path "{}" to the icgc-storage-client cannot be resolved.'.format(path))
-            raise click.BadParameter('Please provide a complete path to the icgc-storage-client')
+            self.logger.error('Path "{}" to the score-client cannot be resolved.'.format(path))
+            raise click.BadParameter('Please provide a complete path to the score-client')
         elif 'pcawg' in name:
             self.logger.error('Path to the gtdownload cannot be resolved.')
             raise click.BadParameter('Please provide a complete path to the gtdownload client')
