@@ -35,12 +35,6 @@ lib_dir = base + '/lib/'
 icgc_get_github_url = 'https://github.com/icgc/icgc-get'
 
 
-def git_clone(url, output_dir="", branch=None):
-    branch_switch = ''
-    if branch is not None:
-        branch_switch = '--branch '+str(branch)
-    os.system("git clone %s %s %s " % (branch_switch, url, output_dir))
-
 def main():
     parser = argparse.ArgumentParser(description='This script builds the ' + name + ' executable binary')
     parser.add_argument("-n", '--dry-run', help='Enable Dry run',action='store_true')
@@ -94,7 +88,8 @@ def main():
 		print("[EXECUTE] Build: %s" % (docker_build_command))
 		os.system(docker_build_command)
 
-    docker_run_command = "docker run %s %s %s" % (repo_mount_switch, output_dir_mount_switch, docker_image_name)
+    user_switch = "-u $(id -u):$(id -g)"
+    docker_run_command = "docker run  %s %s %s" % (repo_mount_switch, output_dir_mount_switch, docker_image_name)
     if args.run_only or args.all:
 	    if args.dry_run:
 		print("[DRY-RUN] Run: %s" % (docker_run_command))

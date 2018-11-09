@@ -11,8 +11,8 @@ RUN apt update && \
 
 RUN pip install pyinstaller
 
-COPY clone-repo.sh /icgc/clone-repo.sh
-COPY run.sh /icgc/run.sh
+COPY ./scripts/clone-repo.sh /icgc/clone-repo.sh
+COPY ./scripts/run.sh /icgc/run.sh
 RUN chmod 755  /icgc/clone-repo.sh
 RUN chmod 755  /icgc/run.sh
 RUN /icgc/clone-repo.sh $GIT_BRANCH $USE_LOCAL $REPO_MOUNT_PATH

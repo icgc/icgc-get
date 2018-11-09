@@ -73,7 +73,7 @@ ENV PATH=$PATH:/icgc/genetorrent/bin
 
 RUN mkdir -p /icgc/score-client && \
     cd /icgc/score-client && \
-    wget -qO score-client.tar.gz https://artifacts.oicr.on.ca/artifactory/dcc-release/bio/overture/score-client/\[RELEASE\]/score-client-\[RELEASE\]-dist.tar.gz | \
+    wget -qO- 'https://artifacts.oicr.on.ca/artifactory/dcc-release/bio/overture/score-client/[RELEASE]/score-client-[RELEASE]-dist.tar.gz' | \
     tar xvz --strip-components 1 && \
     mkdir -p /icgc/score-client/logs && \
     chmod a+w /icgc/score-client/logs && \
