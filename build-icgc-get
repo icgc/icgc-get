@@ -1,0 +1,106 @@
+#!/usr/bin/python
+# Copyright (c) 2016 The Ontario Institute for Cancer Research. All rights reserved.
+#
+# This program and the accompanying materials are made available under the terms of the GNU Public License v3.0.
+# You should have received a copy of the GNU General Public License along with
+# this program. If not, see <http://www.gnu.org/licenses/>.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
+# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+# SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+# TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+# IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# Expecting Python version 2.6 or 2.7
+
+import json
+import argparse
+import os
+import sys
+import subprocess
+from xml.dom.minidom import parseString
+from datetime import datetime
+
+
+# System Paths
+name = 'icgc-get'
+base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+log_file_path = base + '/logs/install.log'
+bin_dir = base + '/bin/'
+lib_dir = base + '/lib/'
+icgc_get_github_url = 'https://github.com/icgc/icgc-get'
+
+
+def git_clone(url, output_dir="", branch=None):
+    branch_switch = ''
+    if branch is not None:
+        branch_switch = '--branch '+str(branch)
+    os.system("git clone %s %s %s " % (branch_switch, url, output_dir))
+
+def main():
+    parser = argparse.ArgumentParser(description='This script builds the ' + name + ' executable binary')
+    parser.add_argument("-n", '--dry-run', help='Enable Dry run',action='store_true')
+    parser.add_argument("-o", '--output-dir', help='Local directory to store the output executable binary to',
+                        required=True)
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('-b', '--branch', help='Build the icgc-get binary using a branch or tag')
+    group.add_argument('-d', '--directory', help='Build the icgc-get binary using a local directory')
+
+    group2 = parser.add_mutually_exclusive_group(required=True)
+    group2.add_argument('--build-only', help='Only build the docker image', action='store_true')
+    group2.add_argument('--run-only', help='Only run the docker image. Assuming it was previously built', action='store_true')
+    group2.add_argument('--all', help='Builds the docker image and runs it', action='store_true')
+
+    args = parser.parse_args()
+
+    docker_image_name = "icgc-get-builder"
+    docker_repo_mount_path = '/mnt/icgc-get'
+    docker_output_dir = '/mnt/icgc-get-output'
+    use_local = 0
+    branch_build_arg = ""
+    repo_mount_switch = ""
+    if args.branch:
+        use_local = 0
+        branch_build_arg = "--build-arg \"BRANCH=%s\"" % (str(args.branch))
+    if args.directory:
+        use_local = 1
+        local_repo_directory = str(args.directory)
+        if not os.path.exists(local_repo_directory):
+            raise Exception("The repo path \"%s\" does not exist" % (local_repo_directory))
+        abs_local_repo_directory = os.path.realpath(local_repo_directory)
+        repo_mount_switch = "-v  %s:%s" % (abs_local_repo_directory, docker_repo_mount_path)
+
+    local_output_dir = str(args.output_dir)
+    if not os.path.exists(local_output_dir):
+        os.makedirs(local_output_dir)
+    abs_local_output_dir = os.path.realpath(local_output_dir)
+
+    output_dir_mount_switch = "-v %s:%s" % (abs_local_output_dir, docker_output_dir )
+
+    docker_build_command = "docker build -f Dockerfile-dist " \
+                           "--build-arg \"USE_LOCAL=%s\" " \
+                           "--build-arg \"OUTPUT_DIR=%s\" " \
+                           "%s " \
+                           "--build-arg \"REPO_MOUNT_PATH=%s\" " \
+                           "-t %s ." % ( use_local, docker_output_dir, branch_build_arg, docker_repo_mount_path, docker_image_name )
+    if args.build_only or args.all:
+	    if args.dry_run:
+		print("[DRY-RUN] Build: %s" % (docker_build_command))
+	    else:
+		print("[EXECUTE] Build: %s" % (docker_build_command))
+		os.system(docker_build_command)
+
+    docker_run_command = "docker run %s %s %s" % (repo_mount_switch, output_dir_mount_switch, docker_image_name)
+    if args.run_only or args.all:
+	    if args.dry_run:
+		print("[DRY-RUN] Run: %s" % (docker_run_command))
+	    else:
+		print("[EXECUTE] Run: %s" % (docker_run_command))
+		os.system(docker_run_command)
+
+if __name__ == '__main__':
+    main()
