@@ -1,4 +1,4 @@
-FROM ubuntu:14.04
+FROM ubuntu:16.04
 MAINTAINER ICGC <dcc-support@icgc.org>
 
 
@@ -7,14 +7,7 @@ ARG USE_LOCAL=0
 ARG REPO_MOUNT_PATH=/mnt/icgc-get
 ARG OUTPUT_DIR=/mnt/icgc-get-output
 RUN apt update && \
-    apt install -y python2.7 python-pip lsb-core wget git 
-
-#RUN wget https://github.com/pyinstaller/pyinstaller/releases/download/v3.2/PyInstaller-3.2.tar.gz \ 
-#	&& tar zxvf PyInstaller-3.2.tar.gz \
-#        && cd PyInstaller-3.2/bootloader \
-#	&& ./waf all \
-#	&& cd .. \
-# 	&& python setup.py install
+    apt install -y python2.7 python-pip lsb-core wget git python-dev
 
 RUN pip install pyinstaller
 
@@ -23,6 +16,7 @@ COPY run.sh /icgc/run.sh
 RUN chmod 755  /icgc/clone-repo.sh
 RUN chmod 755  /icgc/run.sh
 RUN /icgc/clone-repo.sh $GIT_BRANCH $USE_LOCAL $REPO_MOUNT_PATH
+
 ENV REPO_MOUNT_PATH_VAR $REPO_MOUNT_PATH
 ENV OUTPUT_DIR_VAR $OUTPUT_DIR
     

@@ -6,7 +6,7 @@ if [ ! -e $repo_mount_path ]; then
 	echo "The repo_mount_path \"$repo_mount_path\" DNE"
 	exit 1
 fi
-if [ ! -e $output_dir]; then
+if [ ! -e $output_dir ]; then
 	echo "The output_dir \"$output_dir\" DNE"
 	exit 1
 fi
