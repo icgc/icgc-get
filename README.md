@@ -44,7 +44,7 @@ After installing `icgc-get`, you will need to do configure some of the essential
 such as your access credentials. Enter `./icgc-get configure` and follow the instructions of the prompts.
 To keep the default values for the parameters, press enter.
 
-For further information, please view our documentation [here.](http://docs.icgc.org/cloud/icgc-get/)
+For further information, please view our documentation [here.](http://docs.icgc.org/download/icgc-get/#icgc-get-user-guide)
 
 ### Packaging from source
 
