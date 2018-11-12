@@ -81,8 +81,8 @@ RUN mkdir -p /icgc/score-client && \
 
 COPY ./logback.xml /icgc/score-client/conf
 
-COPY ./score-client-proxy.sh /icgc/proxy/score-client-proxy
-RUN chmod og+x /icgc/proxy/score-client-proxy
+COPY ./icgc-storage-client-proxy.sh /icgc/proxy/icgc-storage-client-proxy
+RUN chmod og+x /icgc/proxy/icgc-storage-client-proxy
 
 #
 # Install latest version of gdc download tool
