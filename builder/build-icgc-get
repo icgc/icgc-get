@@ -38,6 +38,7 @@ icgc_get_github_url = 'https://github.com/icgc/icgc-get'
 def main():
     parser = argparse.ArgumentParser(description='This script builds the ' + name + ' executable binary')
     parser.add_argument("-n", '--dry-run', help='Enable Dry run',action='store_true')
+    parser.add_argument("-f", '--force', help='Force re-building the docker container',action='store_true')
     parser.add_argument("-o", '--output-dir', help='Local directory to store the output executable binary to',
                         required=True)
     group = parser.add_mutually_exclusive_group(required=True)
@@ -59,7 +60,7 @@ def main():
     repo_mount_switch = ""
     if args.branch:
         use_local = 0
-        branch_build_arg = "--build-arg \"BRANCH=%s\"" % (str(args.branch))
+        branch_build_arg = "--build-arg \"GIT_BRANCH=%s\"" % (str(args.branch))
     if args.directory:
         use_local = 1
         local_repo_directory = str(args.directory)
@@ -74,13 +75,17 @@ def main():
     abs_local_output_dir = os.path.realpath(local_output_dir)
 
     output_dir_mount_switch = "-v %s:%s" % (abs_local_output_dir, docker_output_dir )
+    force_build_switch = ""
+    if args.force:
+        force_build_switch = " --no-cache "
 
     docker_build_command = "docker build -f Dockerfile-dist " \
+                            " %s " \
                            "--build-arg \"USE_LOCAL=%s\" " \
                            "--build-arg \"OUTPUT_DIR=%s\" " \
                            "%s " \
                            "--build-arg \"REPO_MOUNT_PATH=%s\" " \
-                           "-t %s ." % ( use_local, docker_output_dir, branch_build_arg, docker_repo_mount_path, docker_image_name )
+                           "-t %s ." % ( force_build_switch, use_local, docker_output_dir, branch_build_arg, docker_repo_mount_path, docker_image_name )
     if args.build_only or args.all:
 	    if args.dry_run:
 		print("[DRY-RUN] Build: %s" % (docker_build_command))
