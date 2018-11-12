@@ -9,4 +9,4 @@
 ##
 nohup inotifywait -q -m -r /icgc/mnt -e create --format '%w%f' | while read f; do chown $(stat -c '%u' /icgc/mnt):$(stat -c '%g' /icgc/mnt) $f; done &
 
-/icgc/icgc-storage-client/bin/icgc-storage-client "$@"
+/icgc/score-client/bin/score-client "$@"

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 Copyright (c) 2016 The Ontario Institute for Cancer Research. All rights reserved.
- 
+
 This program and the accompanying materials are made available under the terms of the GNU Public License v3.0.
 You should have received a copy of the GNU General Public License along with
 this program. If not, see <http://www.gnu.org/licenses/>.
@@ -19,7 +19,7 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF S
 <configuration>
     <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
 
-    <property name="LOG_FILE" value="/icgc/mnt/icgc-storage-client.log"/>
+    <property name="LOG_FILE" value="/icgc/mnt/score-client.log"/>
     <property name="FILE_LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} %5p ${PID:- } [%t] --- %-40.40logger{39} : %m%n"/>
     <property name="SESSION_LOG_FILE" value="${SESSION_LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/session.log}"/>
 
@@ -45,12 +45,12 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF S
             <pattern>%date{ISO8601} %msg %n</pattern>
         </encoder>
     </appender>
-    
+
     <!-- additivity=false ensures session data only goes to the session log -->
     <logger name="session" level="INFO" additivity="false">
         <appender-ref ref="SESSION-LOG"/>
     </logger>
-    
+
     <root level="DEBUG">
         <appender-ref ref="FILE" />
     </root>

@@ -71,18 +71,18 @@ ENV PATH=$PATH:/icgc/genetorrent/bin
 # Install latest version of storage client distribution, import modified logback file
 #
 
-RUN mkdir -p /icgc/icgc-storage-client && \
-    cd /icgc/icgc-storage-client && \
-    wget -qO- https://artifacts.oicr.on.ca/artifactory/dcc-release/org/icgc/dcc/icgc-storage-client/[RELEASE]/icgc-storage-client-[RELEASE]-dist.tar.gz | \
+RUN mkdir -p /icgc/score-client && \
+    cd /icgc/score-client && \
+    wget -qO- 'https://artifacts.oicr.on.ca/artifactory/dcc-release/bio/overture/score-client/[RELEASE]/score-client-[RELEASE]-dist.tar.gz' | \
     tar xvz --strip-components 1 && \
-    mkdir -p /icgc/icgc-storage-client/logs && \
-    chmod a+w /icgc/icgc-storage-client/logs && \
+    mkdir -p /icgc/score-client/logs && \
+    chmod a+w /icgc/score-client/logs && \
     mkdir -p /icgc/proxy
 
-COPY ./logback.xml /icgc/icgc-storage-client/conf
+COPY ./logback.xml /icgc/score-client/conf
 
-COPY ./icgc-storage-client-proxy.sh /icgc/proxy/icgc-storage-client-proxy
-RUN chmod og+x /icgc/proxy/icgc-storage-client-proxy
+COPY ./score-client-proxy.sh /icgc/proxy/score-client-proxy
+RUN chmod og+x /icgc/proxy/score-client-proxy
 
 #
 # Install latest version of gdc download tool
