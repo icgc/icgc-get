@@ -34,6 +34,8 @@ bin_dir = base + '/bin/'
 lib_dir = base + '/lib/'
 icgc_get_github_url = 'https://github.com/icgc/icgc-get'
 
+def create_env_switch(key, value):
+    return " -e \"%s=%s\" " % (key, value)
 
 def main():
     parser = argparse.ArgumentParser(description='This script builds the ' + name + ' executable binary')
@@ -56,11 +58,11 @@ def main():
     docker_repo_mount_path = '/mnt/icgc-get'
     docker_output_dir = '/mnt/icgc-get-output'
     use_local = 0
-    branch_build_arg = ""
     repo_mount_switch = ""
+    branch = ""
     if args.branch:
+        branch = str(args.branch)
         use_local = 0
-        branch_build_arg = "--build-arg \"GIT_BRANCH=%s\"" % (str(args.branch))
     if args.directory:
         use_local = 1
         local_repo_directory = str(args.directory)
@@ -79,13 +81,7 @@ def main():
     if args.force:
         force_build_switch = " --no-cache "
 
-    docker_build_command = "docker build -f Dockerfile-dist " \
-                            " %s " \
-                           "--build-arg \"USE_LOCAL=%s\" " \
-                           "--build-arg \"OUTPUT_DIR=%s\" " \
-                           "%s " \
-                           "--build-arg \"REPO_MOUNT_PATH=%s\" " \
-                           "-t %s ." % ( force_build_switch, use_local, docker_output_dir, branch_build_arg, docker_repo_mount_path, docker_image_name )
+    docker_build_command = "docker build %s -t %s ." % ( force_build_switch, docker_image_name )
     if args.build_only or args.all:
 	    if args.dry_run:
 		print("[DRY-RUN] Build: %s" % (docker_build_command))
@@ -94,7 +90,12 @@ def main():
 		os.system(docker_build_command)
 
     user_switch = "-u $(id -u):$(id -g)"
-    docker_run_command = "docker run  %s %s %s" % (repo_mount_switch, output_dir_mount_switch, docker_image_name)
+    output_dir_env_switch = create_env_switch("OUTPUT_DIR", docker_output_dir)
+    use_local_env_switch = create_env_switch("USE_LOCAL", use_local)
+    repo_mount_path_env_switch = create_env_switch("REPO_MOUNT_PATH", docker_repo_mount_path)
+    git_branch_env_switch = create_env_switch("GIT_BRANCH", branch)
+
+    docker_run_command = "docker run %s %s %s %s %s %s %s" % (output_dir_env_switch, use_local_env_switch, repo_mount_path_env_switch, git_branch_env_switch, repo_mount_switch, output_dir_mount_switch, docker_image_name)
     if args.run_only or args.all:
 	    if args.dry_run:
 		print("[DRY-RUN] Run: %s" % (docker_run_command))
