@@ -155,7 +155,7 @@ def get_container_tag(context_map):
 @click.option('--config', default=DEFAULT_CONFIG_FILE, envvar='ICGCGET_CONFIG')
 @click.option('--docker', '-d', type=click.BOOL, default=None, envvar='ICGCGET_DOCKER')
 @click.option('--logfile', type=LogfileParam(), default=None, envvar='ICGCGET_LOGFILE')
-@click.option('--verbose', '-v', is_flag=True, default=False, help="Do not verify ssl certificates")
+@click.option('--verbose', '-v', is_flag=True, default=False, help="Flag to increase tool verbosity")
 @click.pass_context
 def cli(ctx, config, docker, logfile, verbose):
     """
@@ -331,8 +331,7 @@ def report(ctx, repos, ids, manifest, output, table_format, data_type, no_ssl_ve
 @click.pass_context
 def check(ctx, **kwargs):
     """
-    Dispatcher for the check command.  Verifies input arguments, hits api if necessary, and dispatches access check
-    command.
+    Verify credentials for specified repositories.
     """
     logger = logging.getLogger('__log__')
     logger.debug(str(ctx.params))
@@ -359,8 +358,7 @@ def check(ctx, **kwargs):
 @click.option('--config', '-c', type=click.Path(), default=DEFAULT_CONFIG_FILE, envvar='ICGCGET_CONFIG')
 def configure(config):
     """
-    Dispatcher for the check command.  Makes .icgcget directory if necessary, and dispatches config.yaml prompt function
-    command.
+    Start a series of prompts to configure icgc-get.
     """
     default_dir = os.path.split(DEFAULT_CONFIG_FILE)[0]
     if config == DEFAULT_CONFIG_FILE and not os.path.exists(default_dir):
