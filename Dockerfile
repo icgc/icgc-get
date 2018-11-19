@@ -11,7 +11,7 @@ MAINTAINER ICGC <dcc-support@icgc.org>
 ENV EGA_VERSION 2.2.2
 ENV GT_VERSION 3.8.7
 ENV GT_VERSION_LONG 207
-ENV GDC_VERSION gdc-client_v1.0.1_Ubuntu14.04_x64
+ENV GDC_VERSION gdc-client_v1.3.0_Ubuntu14.04_x64
 
 
 #
@@ -90,7 +90,7 @@ RUN chmod og+x /icgc/proxy/icgc-storage-client-proxy
 
 RUN mkdir -p /icgc/gdc-data-transfer-tool && \
     cd /icgc/gdc-data-transfer-tool && \
-    wget -qO- https://gdc.nci.nih.gov/files/public/file/$GDC_VERSION.zip -O temp.zip ; \
+    wget -qO- https://gdc.cancer.gov/system/files/authenticated%20user/0/$GDC_VERSION.zip -O temp.zip ; \
     unzip temp.zip -d /icgc/gdc-data-transfer-tool ; \
     rm temp.zip && \
     cd /icgc
