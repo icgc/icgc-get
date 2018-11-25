@@ -227,7 +227,7 @@ def cli(ctx, config, docker, logfile, verbose):
 @click.pass_context
 def download(ctx, **kwargs):
     """
-    Manages the download command, parses state.json and checks arguments for validity.
+    Download data objects by File IDs or Manifest ID.
     """
     logger = logging.getLogger('__log__')
     logger.debug(str(ctx.params))
@@ -276,8 +276,7 @@ def download(ctx, **kwargs):
 @click.pass_context
 def report(ctx, repos, ids, manifest, output, table_format, data_type, no_ssl_verify):
     """
-    Controls the report command, gets data from ICGC api, and sends it to table parsers. Function is also
-    responsible for verifying input parameters
+    Produce report on provided list of files or manifest ID.
     :param ctx:
     :param repos:
     :param ids:
@@ -379,7 +378,7 @@ def configure(config):
 @click.pass_context
 def version(ctx, ega_path, gdc_path, icgc_path, pdc_path):
     """
-    Dispatcher for the version check command.
+    Display versions for icgc-get and other download clients.
     """
     logger = logging.getLogger('__log__')
     logger.debug(str(ctx.params))
