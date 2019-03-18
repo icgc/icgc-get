@@ -1,3 +1,11 @@
+:warning::warning: :warning: 
+
+Icgc-get will be deprecated in the near future. We recommend using the [score-client](https://github.com/overture-stack/score/releases) directly to download files from the ICGC Data Portal. Instructions to download and use the score-client with various repositories can be found at https://docs.icgc.org/pcawg/data/.
+
+If you experience issues while downloading with the score-client, please contact us with details at dcc-support@icgc.org.
+
+:warning: :warning: :warning:
+
 # icgc-get
 
 [![](https://images.microbadger.com/badges/image/icgc/icgc-get.svg)](https://microbadger.com/images/icgc/icgc-get "Get your own image badge on microbadger.com")
